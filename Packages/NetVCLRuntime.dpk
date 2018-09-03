@@ -1,0 +1,61 @@
+package NetVCLRuntime;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl,
+  IndySystem,
+  IndyProtocols,
+  IndyCore,
+  dbrtl;
+
+contains
+  NV.Common.Interfaces in '..\Sources\Pascal\Common\NV.Common.Interfaces.pas',
+  NV.Server in '..\Sources\Pascal\Server\NV.Server.pas',
+  NV.Server.HttpServer in '..\Sources\Pascal\Server\NV.Server.HttpServer.pas',
+  NV.HostApplication in '..\Sources\Pascal\Application\NV.HostApplication.pas',
+  NV.Session in '..\Sources\Pascal\Application\NV.Session.pas',
+  NV.VCL.Page in '..\Sources\Pascal\VCL\NV.VCL.Page.pas',
+  NV.Request in '..\Sources\Pascal\Common\NV.Request.pas',
+  NV.VCL.Container in '..\Sources\Pascal\VCL\NV.VCL.Container.pas',
+  NV.Router in '..\Sources\Pascal\Application\NV.Router.pas',
+  NV.Common.Types in '..\Sources\Pascal\Common\NV.Common.Types.pas',
+  NV.VCL.Controls in '..\Sources\Pascal\VCL\NV.VCL.Controls.pas',
+  NV.Dispatcher in '..\Sources\Pascal\Application\NV.Dispatcher.pas',
+  NV.Utils in '..\Sources\Pascal\Common\NV.Utils.pas',
+  NV.Common.Classes in '..\Sources\Pascal\Common\NV.Common.Classes.pas',
+  NV.Messages in '..\Sources\Pascal\Application\NV.Messages.pas',
+  NV.JSON in '..\Sources\Pascal\Common\NV.JSON.pas',
+  NV.Languages in '..\Sources\Pascal\Common\NV.Languages.pas',
+  NV.WebSocket in '..\Sources\Pascal\Application\NV.WebSocket.pas',
+  NV.Cache in '..\Sources\Pascal\Common\NV.Cache.pas',
+  NV.UserSession in '..\Sources\Pascal\Application\NV.UserSession.pas';
+
+end.

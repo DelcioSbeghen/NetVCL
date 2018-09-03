@@ -1,0 +1,72 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{6F51EA1A-C3A9-4B97-B236-1C8B4F47A31D}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Packages\NetVCLDesign.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Packages\NetVCLRuntime.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Demos\DevTests\DevTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Demos\DevTests\App1.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="NetVCLDesign">
+        <MSBuild Projects="Packages\NetVCLDesign.dproj"/>
+    </Target>
+    <Target Name="NetVCLDesign:Clean">
+        <MSBuild Projects="Packages\NetVCLDesign.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="NetVCLDesign:Make">
+        <MSBuild Projects="Packages\NetVCLDesign.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="NetVCLRuntime">
+        <MSBuild Projects="Packages\NetVCLRuntime.dproj"/>
+    </Target>
+    <Target Name="NetVCLRuntime:Clean">
+        <MSBuild Projects="Packages\NetVCLRuntime.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="NetVCLRuntime:Make">
+        <MSBuild Projects="Packages\NetVCLRuntime.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DevTest">
+        <MSBuild Projects="Demos\DevTests\DevTest.dproj"/>
+    </Target>
+    <Target Name="DevTest:Clean">
+        <MSBuild Projects="Demos\DevTests\DevTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DevTest:Make">
+        <MSBuild Projects="Demos\DevTests\DevTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="App1">
+        <MSBuild Projects="Demos\DevTests\App1.dproj"/>
+    </Target>
+    <Target Name="App1:Clean">
+        <MSBuild Projects="Demos\DevTests\App1.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="App1:Make">
+        <MSBuild Projects="Demos\DevTests\App1.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="NetVCLDesign;NetVCLRuntime;DevTest;App1"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="NetVCLDesign:Clean;NetVCLRuntime:Clean;DevTest:Clean;App1:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="NetVCLDesign:Make;NetVCLRuntime:Make;DevTest:Make;App1:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
