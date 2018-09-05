@@ -2,17 +2,20 @@ unit NV.Dispatcher;
 
 interface
 
+uses
+  NV.Request;
+
 type
   TNVAllowedPath = (afBeginBy, afExactMatch, afDirList);
 
   TDispatch = class
   public
-    procedure Execute; virtual;
+    procedure Execute(aRequest: TNVRequestTask); virtual;
   end;
 
   TDispatchCache = class(TDispatch)
   public
-    procedure Execute; override;
+    procedure Execute(aRequest: TNVRequestTask); override;
   end;
 
   TDispatchDirFiles = class(TDispatch)

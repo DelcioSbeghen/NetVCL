@@ -66,7 +66,7 @@ begin
       Exit;
     if LObject is TDispatch then
     begin
-      TDispatch(LObject).Execute;
+      TDispatch(LObject).Execute(aRequest);
     end
     else if LObject is TNVControl then
     begin

@@ -46,10 +46,4 @@ object Form2: TForm2
     Left = 416
     Top = 96
   end
-  object NVHostApp1: TNVHostApp
-    Domain = 'localhost:888'
-    LibDir = 'wwwroot\dwlib\'
-    Left = 432
-    Top = 176
-  end
 end

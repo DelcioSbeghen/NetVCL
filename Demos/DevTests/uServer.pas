@@ -13,7 +13,6 @@ type
     btn1: TButton;
     dlgOpen1: TOpenDialog;
     NVServer1: TNVServer;
-    NVHostApp1: TNVHostApp;
     procedure FormCreate(Sender: TObject);
     procedure btn1Click(Sender: TObject);
   private

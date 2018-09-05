@@ -88,6 +88,7 @@
         <DCCReference Include="IndySystem.dcp"/>
         <DCCReference Include="IndyProtocols.dcp"/>
         <DCCReference Include="IndyCore.dcp"/>
+        <DCCReference Include="NetVCLRuntime.dcp"/>
         <DCCReference Include="uApp1.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>

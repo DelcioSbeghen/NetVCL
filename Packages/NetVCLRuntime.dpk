@@ -56,6 +56,7 @@ contains
   NV.Languages in '..\Sources\Pascal\Common\NV.Languages.pas',
   NV.WebSocket in '..\Sources\Pascal\Application\NV.WebSocket.pas',
   NV.Cache in '..\Sources\Pascal\Common\NV.Cache.pas',
-  NV.UserSession in '..\Sources\Pascal\Application\NV.UserSession.pas';
+  NV.UserSession in '..\Sources\Pascal\Application\NV.UserSession.pas',
+  NV.DispatcherPage in '..\Sources\Pascal\Application\NV.DispatcherPage.pas';
 
 end.

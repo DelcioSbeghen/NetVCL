@@ -3,11 +3,12 @@ unit NV.HostApplication;
 interface
 
 uses
-  Classes, SysUtils, NV.VCL.Page, NV.Common.Interfaces, IdCustomHTTPServer, NV.Router,
+  Classes, SysUtils, RTLConsts, NV.VCL.Page, NV.Common.Interfaces, IdCustomHTTPServer, NV.Router,
   NV.Request;
 
 type
   TGetDesignExename = function: string;
+
   TNVHostAppClass = class of TNVHostApp;
 
   TNVHostApp = class;
@@ -129,13 +130,25 @@ end;
 
 constructor TNVHostApp.Create(AOwner: TComponent);
 begin
-  inherited;
-  FSessionList := TNVSessionList.Create;
-  FLibDir := AppPath + 'wwwroot\dwlib\';
-  FUrlBase := '';
-  FComInitilization := False;
-  FTerminatedUrl := '';
-  FAllowedPaths := TStringList.Create;
+  GlobalNameSpace.BeginWrite;
+  try
+    CreateNew(AOwner);
+    FSessionList := TNVSessionList.Create;
+    FLibDir := AppPath + 'wwwroot\dwlib\';
+    FUrlBase := '';
+    FComInitilization := False;
+    FTerminatedUrl := '';
+    FAllowedPaths := TStringList.Create;
+    if (ClassType <> TNVHostApp) and not (csDesigning in ComponentState) then
+    begin
+      if not InitInheritedComponent(Self, TNVHostApp) then
+        raise EResNotFound.CreateFmt(SResNotFound, [ClassName]);
+      if OldCreateOrder then
+        DoCreate;
+    end;
+  finally
+    GlobalNameSpace.EndWrite;
+  end;
 end;
 
 procedure TNVHostApp.CreateSession(aRequest: TNVRequestTask);

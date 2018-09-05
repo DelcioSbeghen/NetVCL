@@ -36,6 +36,7 @@ begin
  // RegisterComponents('NetVCL', [TNVHostApp]);
    // DelphiWeb Wizards
   RegisterCustomModule(TNVPage, TNVFormModule);
+  RegisterCustomModule(TNVHostApp, TDataModuleCustomModule);
  // RegisterCustomModule(TDWFrame, TNVFormModule);
  // RegisterCustomModule(TDWPopup, TNVFormModule);
   RegisterCustomModule(TNVUserSession, TDataModuleCustomModule);
@@ -45,6 +46,7 @@ begin
  // RegisterCustomModule(TDWDatamodule, TDataModuleCustomModule);
   RegisterPackageWizard(TNVAppWizard.Create);
   RegisterPackageWizard(TNVPageWizard.Create);
+ // RegisterPackageWizard(TNVSeWizard.Create);
  // RegisterPackageWizard(TDWFrameWizard.Create);
  // RegisterPackageWizard(TDWPopupWizard.Create);
  // RegisterPackageWizard(TDWDataModuleWizard.Create);

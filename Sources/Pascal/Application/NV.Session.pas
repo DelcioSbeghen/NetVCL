@@ -367,8 +367,15 @@ begin
 end;
 
 class function TNVSessionThread.GetCurrent(var ASessionTh): Boolean;
+var
+  _TH:TThread;
 begin
-  TNVSessionThread(ASessionTh) := nil;
+  _TH:= Self.Current;
+  Result:= _TH is TNVSessionThread;
+  if Result then
+    TNVSessionThread(ASessionTh):= TNVSessionThread(_TH)
+  else
+    TNVSessionThread(ASessionTh) := nil;
 end;
 
 function TNVSessionThread.HostApp: TNVHostApp;
@@ -615,7 +622,7 @@ begin
   if FPages.IndexOf(aPage) < 0 then
     FPages.Add(aPage);
  // _JSON := FCallbackResp.O[aPage.ID];
-  Router.AddRoute(aPage.RouteName, aPage);
+  Router.AddRoute(aPage.RouteName, aPage.Dispatcher);
 end;
 
 function TNVSessionApp.CallBackResp: TJsonObject;
