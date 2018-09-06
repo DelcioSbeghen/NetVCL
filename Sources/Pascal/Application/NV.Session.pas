@@ -3,9 +3,9 @@ unit NV.Session;
 interface
 
 uses
-  Classes, SysUtils, NV.Common.Classes, NV.Common.Interfaces, NVJclDebug, NV.Router,
+  Classes, SysUtils, NV.Classes, NV.Interfaces, NVJclDebug, NV.Router,
   NV.VCL.Page, NV.HostApplication, NV.Request, SyncObjs, NV.JSON, NV.WebSocket,
-  NV.Cache, NV.Messages, NV.Languages, NV.Common.Types;
+  NV.Cache, NV.Messages, NV.Languages, NV.Types;
 
 type
   TNVLanguage = (nvlNone, nvlENUS, nvlPTBR);
@@ -324,7 +324,7 @@ begin
     RoutePath.StrictDelimiter := True;
     RoutePath.Text := aRequestTask.Req.Document;
 
-    FNVApp.Router.Route(RoutePath, aRequestTask);
+    Found:= FNVApp.Router.Route(RoutePath, aRequestTask);
 
 
     (*if TDWDispatch.DispatchCallBacks(aRequestTask, LRequest, LResponse) then
@@ -371,7 +371,7 @@ var
   _TH:TThread;
 begin
   _TH:= Self.Current;
-  Result:= _TH is TNVSessionThread;
+  Result:= _TH.InheritsFrom(TNVSessionThread);
   if Result then
     TNVSessionThread(ASessionTh):= TNVSessionThread(_TH)
   else

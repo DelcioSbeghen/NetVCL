@@ -1,4 +1,4 @@
-unit NV.Common.Interfaces;
+unit NV.Interfaces;
 
 interface
 
@@ -36,9 +36,7 @@ type
     ['{2F4BF6CA-3BBF-4F03-9DC3-4172AE26DD21}']
   end;
 
-  INVHostApp = interface(IInterfaceComponentReference)
-    procedure ProcessGet(aRequest: TNVRequestTask);
-  end;
+
 
 implementation
 

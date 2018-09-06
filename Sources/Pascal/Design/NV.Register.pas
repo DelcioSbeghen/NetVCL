@@ -1,4 +1,4 @@
-unit NetVCL.Server.Register;
+unit NV.Register;
 
 interface
 
@@ -27,12 +27,11 @@ procedure register;
 implementation
 
 uses
-  NV.Server, NV.HostApplication, ToolsAPI, NV.Design.AppWizard, NV.Design.UserSessionWizard,
+  NV.HostApplication, ToolsAPI, NV.Design.AppWizard, NV.Design.UserSessionWizard,
   NV.Design.PageWizard, NV.Design.AppModuleWizard, NV.VCL.Page, NV.UserSession;
 
 procedure register;
 begin
-  RegisterComponents('NetVCL', [TNVServer]);
  // RegisterComponents('NetVCL', [TNVHostApp]);
    // DelphiWeb Wizards
   RegisterCustomModule(TNVPage, TNVFormModule);

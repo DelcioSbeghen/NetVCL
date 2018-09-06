@@ -64,7 +64,7 @@ type
 
 implementation
 
-uses NV.Utils, NV.Session, NV.Common.Interfaces, NV.Dispatcher, NV.HostApplication;
+uses NV.Utils, NV.Session, NV.Interfaces, NV.Dispatcher, NV.HostApplication;
 
 type
   THack = class(TNVSessionApp);

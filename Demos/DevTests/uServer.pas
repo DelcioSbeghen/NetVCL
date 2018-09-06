@@ -4,8 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, NV.Server,
-  NV.HostApplication, NV.VCL.Page;
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, NV.Server;
 
 type
   TForm2 = class(TForm)
@@ -28,10 +27,10 @@ implementation
 
 {$R *.dfm}
 
-type
+//type
   //Create one Main Page
-  TMainPage = class(TNVPage)
-  end;
+ // TMainPage = class(TNVPage)
+// end;
 
 procedure TForm2.btn1Click(Sender: TObject);
 begin

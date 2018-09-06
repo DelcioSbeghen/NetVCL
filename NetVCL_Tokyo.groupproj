@@ -15,6 +15,12 @@
         <Projects Include="Demos\DevTests\App1.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="Packages\NetVCLServerDesign.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Packages\NetVCLServerRuntime.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -59,14 +65,32 @@
     <Target Name="App1:Make">
         <MSBuild Projects="Demos\DevTests\App1.dproj" Targets="Make"/>
     </Target>
+    <Target Name="NetVCLServerDesign">
+        <MSBuild Projects="Packages\NetVCLServerDesign.dproj"/>
+    </Target>
+    <Target Name="NetVCLServerDesign:Clean">
+        <MSBuild Projects="Packages\NetVCLServerDesign.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="NetVCLServerDesign:Make">
+        <MSBuild Projects="Packages\NetVCLServerDesign.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="NetVCLServerRuntime">
+        <MSBuild Projects="Packages\NetVCLServerRuntime.dproj"/>
+    </Target>
+    <Target Name="NetVCLServerRuntime:Clean">
+        <MSBuild Projects="Packages\NetVCLServerRuntime.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="NetVCLServerRuntime:Make">
+        <MSBuild Projects="Packages\NetVCLServerRuntime.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="NetVCLDesign;NetVCLRuntime;DevTest;App1"/>
+        <CallTarget Targets="NetVCLDesign;NetVCLRuntime;DevTest;App1;NetVCLServerDesign;NetVCLServerRuntime"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="NetVCLDesign:Clean;NetVCLRuntime:Clean;DevTest:Clean;App1:Clean"/>
+        <CallTarget Targets="NetVCLDesign:Clean;NetVCLRuntime:Clean;DevTest:Clean;App1:Clean;NetVCLServerDesign:Clean;NetVCLServerRuntime:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="NetVCLDesign:Make;NetVCLRuntime:Make;DevTest:Make;App1:Make"/>
+        <CallTarget Targets="NetVCLDesign:Make;NetVCLRuntime:Make;DevTest:Make;App1:Make;NetVCLServerDesign:Make;NetVCLServerRuntime:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

@@ -3,7 +3,7 @@ unit NV.Router;
 interface
 
 uses
-  Classes, NV.Common.Types, NV.Dispatcher, NV.Request;
+  Classes, NV.Types, NV.Dispatcher, NV.Request;
 
 type
   TNVRouteMethod = class
@@ -45,7 +45,7 @@ end;
 
 function TNVRouter.AddRoute(aRoute: string; aDest: TDispatch): string;
 begin
-
+  AddRoute(aRoute, TObject(aDest));
 end;
 
 function TNVRouter.Route(aRoutePath: TStrings; aRequest: TNVRequestTask): Boolean;
@@ -66,7 +66,7 @@ begin
       Exit;
     if LObject is TDispatch then
     begin
-      TDispatch(LObject).Execute(aRequest);
+      Result:= TDispatch(LObject).Execute(aRequest);
     end
     else if LObject is TNVControl then
     begin

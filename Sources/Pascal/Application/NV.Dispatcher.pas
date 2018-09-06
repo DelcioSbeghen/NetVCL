@@ -10,12 +10,12 @@ type
 
   TDispatch = class
   public
-    procedure Execute(aRequest: TNVRequestTask); virtual;
+    function Execute(aRequest: TNVRequestTask):Boolean; virtual;
   end;
 
   TDispatchCache = class(TDispatch)
   public
-    procedure Execute(aRequest: TNVRequestTask); override;
+    function Execute(aRequest: TNVRequestTask):Boolean; override;
   end;
 
   TDispatchDirFiles = class(TDispatch)
@@ -44,7 +44,7 @@ end;
 
 { TDispatchCache }
 
-procedure TDispatchCache.Execute;
+function TDispatchCache.Execute(aRequest: TNVRequestTask):Boolean;
 (* var
  Status: string;
   LPath: string;
@@ -52,6 +52,7 @@ procedure TDispatchCache.Execute;
   Lindex: Integer;
   LCacheItem: TCacheItemBase; *)
 begin
+ Result:= False;
  (*) Result:=False;
   Status     := '';
   LPath      := ARequestInfo.Document;
@@ -106,9 +107,9 @@ end;
 
 { TDispatch }
 
-procedure TDispatch.Execute;
+function TDispatch.Execute(aRequest: TNVRequestTask):Boolean;
 begin
-
+  Result:= False;
 end;
 
 end.

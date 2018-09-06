@@ -8,10 +8,10 @@ unit NV.Server.HttpServer;
 interface
 
 uses
-  Classes, IdHTTPServer;
+  Classes, IdHTTPServer, NV.Common.HostAppInterface;
 
 type
-  TNVHTTPServer = class(TIdHTTPServer)
+  TNVHTTPServer = class(TIdHTTPServer, INVHTTPServer)
   private
   public
     constructor Create(AOwner: TComponent); reintroduce;

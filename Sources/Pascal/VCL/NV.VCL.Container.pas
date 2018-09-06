@@ -3,7 +3,7 @@ unit NV.VCL.Container;
 interface
 
 uses
-  Controls, NV.Common.Interfaces, NV.Router, NV.JSON;
+  Controls, NV.Interfaces, NV.Router, NV.JSON;
 
 type
   //base for all containers(panels, regions, Forms, Pages)

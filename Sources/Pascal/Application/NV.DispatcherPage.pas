@@ -10,7 +10,7 @@ type
   private
     FPage: TNVModuleContainer;
   public
-    procedure Execute(aRequest: TNVRequestTask); override;
+    function Execute(aRequest: TNVRequestTask):Boolean; override;
     constructor Create(aPage: TNVModuleContainer);
     destructor Destroy; override;
   end;
@@ -34,9 +34,10 @@ begin
   inherited;
 end;
 
-procedure TDispatchPage.Execute(aRequest: TNVRequestTask);
+function TDispatchPage.Execute(aRequest: TNVRequestTask):Boolean;
 const
-  Html =  //
+  Html =  sLineBreak +//
+    '<!DOCTYPE html>' + //
     '<html> ' + sLineBreak +  //
     ' ' + sLineBreak +   //
     '<head> ' + sLineBreak +  //
@@ -93,6 +94,7 @@ const
 begin
   inherited Execute(aRequest);
   aRequest.Resp.ResponseText:= Html;
+  Result:= True;
 end;
 
 end.

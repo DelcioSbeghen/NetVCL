@@ -3,7 +3,7 @@ unit NV.Utils;
 interface
 
 uses
-  Classes, Controls, NV.VCL.Page, NV.Session, NV.Server;
+  Classes, Controls, NV.VCL.Page, NV.Session, NV.Common.HostAppInterface;
 
 type
   TJumpOfs = Integer;
@@ -42,7 +42,7 @@ function NVSessionApp: TNVSessionApp;
 // return the NVSessionThread for this session
 function NVSessionThread: TNVSessionThread;
 
-function NVServer:TNVServer;
+function NVServer: INVServer;
 
 implementation
 
@@ -248,12 +248,12 @@ end;
 
 function NVSessionApp: TNVSessionApp;
 var
-  _SessionTh:TNVSessionThread;
+  _SessionTh: TNVSessionThread;
 begin
   if TNVSessionThread.GetCurrent(_SessionTh) then
-    Result:= _SessionTh.SessionApp
+    Result := _SessionTh.SessionApp
   else
-    Result:= nil;
+    Result := nil;
   (*Result := nil;
   if (TThread.CurrentThread is TNVAppThread) then
     Result := TNVAppThread(TThread.Current).DWApp;
@@ -271,9 +271,15 @@ begin
   // raise Exception.Create('Corrigir Isso');*)
 end;
 
-function NVServer:TNVServer;
+function NVServer: INVServer;
 begin
-  Result:= gNVServer;
+  try
+    Result := NVSessionThread.HostApp.GetServer;
+  except
+    Result := nil;
+    if DebugHook <> 0 then
+      raise;
+  end;
 end;
 
 end.

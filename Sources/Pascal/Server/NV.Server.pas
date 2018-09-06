@@ -3,18 +3,18 @@ unit NV.Server;
 interface
 
 uses
-  Classes, windows, Forms, SysUtils, StrUtils, NVJCLDebug, NV.Server.HttpServer,
-  SyncObjs, StdCtrls, IdContext, IdCustomHTTPServer, IdThread,
-  IdSchedulerOfThread, NV.Common.Classes;
+  Classes, windows, Forms, Generics.Collections, SysUtils, StrUtils, NVJCLDebug,
+  NV.Server.HttpServer, SyncObjs, StdCtrls, IdContext, IdCustomHTTPServer,
+  IdThread, IdSchedulerOfThread, NV.Common.HostAppInterface;
 
 type
   TDatamoduleClass = class of TDataModule;
 
-  TNVServer = class(TComponent)
+  TNVServer = class(TComponent, INVServer)
   private
     FHttpSrv: TNVHttpServer;
     {TODO -oDelcio -cImprove : Implement fast Threadsafe list with TMultipleReadExclusiveWriter and avoid Lock in subsequent calls }
-    FHostedApps: TThreadStringList;
+    FHostedApps: TThreadList<INVHostApp>;
     FCriticalLog: TCriticalSection;
     FLogMemo: TMemo;
     FOnSessionAppTerminate: TNotifyEvent;
@@ -35,32 +35,34 @@ type
     procedure HttpServerCommandGet(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
     procedure HttpServerCommandOther(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
     //procedure HttpServerSessionStart(Sender: TIdHTTPSession);
+    function FindAppByDomain(aDomain: string; var aApp: INVHostApp): Boolean;
     procedure SetOnHostAppStart(const Value: TNotifyEvent);
     procedure SetOnHostAppStop(const Value: TNotifyEvent);
     procedure SetOnSessionAppStart(const Value: TNotifyEvent);
     procedure SetOnSessionAppTerminate(const Value: TNotifyEvent);
+    function GetHttpServer: INVHTTPServer;
   protected
     procedure ProcessException(e: Exception);
     procedure DoNewSession(Sender: TObject);
     procedure DoSessionClose(Sender: TObject);
     procedure DoDWAppTerminate(Sender: TObject);
     //wrapper to INVAppThread.AddDatamodule
-    procedure AddDataModule(DataModule: TDataModule);
+   // procedure AddDataModule(DataModule: TDataModule);
     //wrapper to INVAppThread.RemoveDatamodule
-    procedure RemoveDataModule(DataModule: TDataModule);
+   // procedure RemoveDataModule(DataModule: TDataModule);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Start;
     procedure Stop;
-    function AppPath: string;
+  //  function AppPath: string;
     procedure Log(aMsg: string);
-    class function GetDWServer: TNVServer;
-    procedure AddApp(aApp: TComponent);
+  //  class function GetDWServer: TNVServer;
+    procedure AddApp(aApp: INVHostApp);
     procedure AddPackage(aPatch: string);
+    property HttpServer: INVHTTPServer read GetHttpServer;
   published
     property Port: string read GetPort write SetPort;
-    property HttpServer: TNVHttpServer read FHttpSrv;
     property LogMemo: TMemo read FLogMemo write SetLogMemo;
     property OnHostAppStart: TNotifyEvent read FOnHostAppStart write SetOnHostAppStart;
     property OnHostAppStop: TNotifyEvent read FOnHostAppStop write SetOnHostAppStop;
@@ -68,13 +70,10 @@ type
     property OnSessionAppStart: TNotifyEvent read FOnSessionAppStart write SetOnSessionAppStart;
   end;
 
-var
-  gNVServer: TNVServer;
-
 implementation
 
 uses
-  IOUtils, NV.HostApplication, NV.Session, NV.Request;
+  IOUtils, NV.Request {, NV.HostApplication, NV.Session, NV.Request};
 
 const
   BreakingLine = '//----------------------------------------------------------------------------//';
@@ -82,36 +81,34 @@ const
 type
   THackIdThread = class(TIdThread);
 
-  THackSessionTh = class(TNVSessionThread);
+ //THackSessionTh = class(TNVSessionThread);
 
-  THackHostApp = class(TNVHostApp);
+//  THackHostApp = class(TNVHostApp);
 
 
   { TNVServer }
 
-procedure TNVServer.AddApp(aApp: TComponent);
+procedure TNVServer.AddApp(aApp: INVHostApp);
 begin
-  if not (aApp is TNVHostApp) then
-    raise Exception.Create('Only add TNVHostApp');
-  FHostedApps.AddObject(TNVHostApp(aApp).Domain, aApp);
+  FHostedApps.Add(aApp);
 end;
 
-procedure TNVServer.AddDataModule(DataModule: TDataModule);
+(*procedure TNVServer.AddDataModule(DataModule: TDataModule);
 var
   _SessionTh: THackSessionTh;
 begin
   if THackSessionTh.GetCurrent(_SessionTh) then
     _SessionTh.AddDataModule(DataModule);
-end;
+end;*)
 
 procedure TNVServer.AddPackage(aPatch: string);
 var
   _Pkg: HMODULE;
   _HostAppClass: TPersistentClass;
-  _HostApp: TNVHostApp;
-  _ProcLoadApp: function(aServer: TNVServer): TNVHostApp;
+  _HostApp: INVHostApp;
+  _ProcLoadApp: function(aServer: INVServer): INVHostApp;
 begin
-  _HostApp:= nil;
+  _HostApp := nil;
 
   _Pkg := LoadPackage(aPatch);
   if _Pkg = 0 then
@@ -126,21 +123,18 @@ begin
   if _HostApp = nil then
     raise Exception.Create('Cannot Create Hosted App.');
 
-  if not (_HostApp is TNVHostApp) then
-    raise Exception.Create('Only add TNVHostApp');
-  FHostedApps.AddObject(TNVHostApp(_HostApp).Domain, _HostApp);
+  FHostedApps.add(_HostApp);
 end;
 
-function TNVServer.AppPath: string;
+{function TNVServer.AppPath: string;
 begin
   Result := ExtractFilePath(Application.ExeName);
-end;
+end; }
 
 constructor TNVServer.Create(AOwner: TComponent);
 begin
   inherited;
-  gNVServer := Self;
-  FHostedApps := TThreadStringList.Create;
+  FHostedApps := TThreadList<INVHostApp>.Create;
   FCriticalLog := TCriticalSection.Create;
   with JclDebugThreadList do
   begin
@@ -159,7 +153,6 @@ begin
     OnCommandOther := HttpServerCommandOther;
    // OnSessionStart := HttpServerSessionStart;
   end;
-  gNVServer := Self;
 end;
 
 destructor TNVServer.Destroy;
@@ -171,14 +164,19 @@ begin
   inherited;
 end;
 
-class function TNVServer.GetDWServer: TNVServer;
+{class function TNVServer.GetDWServer: TNVServer;
 begin
   Result := gNVServer;
-end;
+end; }
 
 function TNVServer.GetCurrentLogName: string;
 begin
-  Result := AppPath + TPath.GetFileNameWithoutExtension(Application.ExeName) + FormatDateTime('_yyyy_mm_dd', now) + '.log';
+  Result := ExtractFilePath(Application.ExeName) + TPath.GetFileNameWithoutExtension(Application.ExeName) + FormatDateTime('_yyyy_mm_dd', now) + '.log';
+end;
+
+function TNVServer.GetHttpServer: INVHTTPServer;
+begin
+  Result:= FHttpSrv;
 end;
 
 function TNVServer.GetPort: string;
@@ -220,8 +218,6 @@ end;
 
 procedure TNVServer.Start;
 begin
-  Classes.AddDataModule := Self.AddDataModule;
-  Classes.RemoveDataModule := Self.RemoveDataModule;
   FHttpSrv.Active := True;
 end;
 
@@ -247,13 +243,13 @@ begin
   end;
 end;
 
-procedure TNVServer.RemoveDataModule(DataModule: TDataModule);
+(*procedure TNVServer.RemoveDataModule(DataModule: TDataModule);
 var
   _SessionTh: THackSessionTh;
 begin
   if THackSessionTh.GetCurrent(_SessionTh) then
     _SessionTh.RemoveDataModule(DataModule);
-end;
+end;  *)
 
 // ** This procedure just creates a new Logfile an appends when it was created **
 // credits: http://delphi.cjcsoft.net//viewthread.php?tid=47526
@@ -365,25 +361,46 @@ begin
   //
 end;
 
+function TNVServer.FindAppByDomain(aDomain: string; var aApp: INVHostApp): Boolean;
+var
+  _List: TList<INVHostApp>;
+  I: Integer;
+begin
+  _List := FHostedApps.LockList;
+  try
+    for I := 0 to _List.Count - 1 do
+    begin
+      if _List[I].Domain = aDomain then
+      begin
+        aApp := _List[I];
+        Result := True;
+        Exit;
+      end;
+    end;
+  finally
+    FHostedApps.UnlockList;
+  end;
+  Result := False;
+end;
+
 procedure TNVServer.HttpServerCommandGet(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
 var
-  _AppIndex: Integer;
-  _HostedApp: THackHostApp;
-  _NVRequest: TNVRequestTask;
+  //_AppIndex: Integer;
+  _HostedApp: INVHostApp;
+  _NVRequest: PNVRequestTask;
 begin
   try
-    if FHostedApps.Find(ARequestInfo.Host, _AppIndex) then
+    if FindAppByDomain(ARequestInfo.Host, _HostedApp) then
     begin
-      _HostedApp := THackHostApp(FHostedApps.Objects[_AppIndex]);
       if Assigned(_HostedApp) then
       begin
-        _NVRequest := TNVRequestTask.Create(AContext, ARequestInfo, AResponseInfo);
+        _NVRequest := PNVRequestTask(TNVRequestTask.Create(AContext, ARequestInfo, AResponseInfo));
         try
           _HostedApp.ProcessGet(_NVRequest);
         finally
           {Modal start request task is released in  TNVAppThread.SendRequestTask}
           if not (_NVRequest.ModalStatus in [rmsModalStart, rmsModalStartSended]) then
-            _NVRequest.Free;
+            TNVRequestTask(_NVRequest).Free;
         end;
       end;
     end

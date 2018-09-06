@@ -25,6 +25,7 @@ package App1;
 {$IMAGEBASE $400000}
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
+{$RUNONLY}
 {$IMPLICITBUILD ON}
 
 requires
@@ -37,6 +38,7 @@ requires
   NetVCLRuntime;
 
 contains
-  uApp1 in 'uApp1.pas';
+  uApp1 in 'uApp1.pas',
+  uIndex in 'uIndex.pas' {NVPage1: TNVPage};
 
 end.

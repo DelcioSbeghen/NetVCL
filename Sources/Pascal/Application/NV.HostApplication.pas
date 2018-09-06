@@ -3,8 +3,8 @@ unit NV.HostApplication;
 interface
 
 uses
-  Classes, SysUtils, RTLConsts, NV.VCL.Page, NV.Common.Interfaces, IdCustomHTTPServer, NV.Router,
-  NV.Request;
+  Classes, SysUtils, RTLConsts, NV.VCL.Page, NV.Interfaces, IdCustomHTTPServer,
+  NV.Router, NV.Request, NV.Common.HostAppInterface;
 
 type
   TGetDesignExename = function: string;
@@ -57,9 +57,11 @@ type
     procedure CreateSession(aRequest: TNVRequestTask);
     procedure SetDomain(const Value: string);
     procedure SetTerminatedUrl(const Value: string);
+    function GetDomain: string;
   protected
     FSessionList: TNVSessionList;
-    procedure ProcessGet(aRequest: TNVRequestTask);
+    FServer: INVServer;
+    procedure ProcessGet(aRequest: PNVRequestTask);
     procedure DoNewSession(aRequest: TNVRequestTask; aSession: TComponent);
   public
     constructor Create(AOwner: TComponent); override;
@@ -67,9 +69,10 @@ type
     procedure Start;
     procedure Stop;
     function AppPath: string;
+    function GetServer: INVServer;
     property Router: TNVRouter read FRouter;
   published
-    property Domain: string read FDomain write SetDomain;
+    property Domain: string read GetDomain write SetDomain;
     property DocDir: string read GetDocDir write SetDocDir;
     property TemplateDir: string read GetTemplateDir write SetTemplateDir;
     property LibDir: string read FLibDir write SetLibDir;
@@ -234,6 +237,16 @@ begin
 
 end;
 
+function TNVHostApp.GetDomain: string;
+begin
+  Result := FDomain;
+end;
+
+function TNVHostApp.GetServer: INVServer;
+begin
+  Result:= FServer;
+end;
+
 function TNVHostApp.GetTemplateDir: string;
 begin
 
@@ -244,29 +257,29 @@ begin
 
 end;
 
-procedure TNVHostApp.ProcessGet(aRequest: TNVRequestTask);
+procedure TNVHostApp.ProcessGet(aRequest: PNVRequestTask);
 var
 //  _SessionApp: TNVSessionApp;
   _SessionThread: TNVSessionThread;
   _IdThread: TIdThread;
 begin
   // Create session if not already created
-  if aRequest.Req.Session = nil then
-    CreateSession(aRequest);
+  if TNVRequestTask(aRequest).Req.Session = nil then
+    CreateSession(TNVRequestTask(aRequest));
 
   //Get NVSession App and NVSession Thread from Indy Session
  // _SessionApp := TNVSessionApp(aRequest.Req.Session.Content.Objects[0]);
-  _SessionThread := TNVSessionThread(aRequest.Req.Session.Content.Objects[1]);
+  _SessionThread := TNVSessionThread(TNVRequestTask(aRequest).Req.Session.Content.Objects[1]);
 
   //Attach NVSession Thread to Current Indy Thread for further use
-  _IdThread := TIdThread(TIdYarnOfThread(aRequest.Context.Yarn).Thread);
+  _IdThread := TIdThread(TIdYarnOfThread(TNVRequestTask(aRequest).Context.Yarn).Thread);
   _IdThread.Data := _SessionThread;
 
   //to not Free NVSession Thread on Cleanup Indy Thread
   Exclude(THackIdThread(_IdThread).FOptions, itoDataOwner);
 
   //Put Request in NVSession Thread queue
-  THackSessionTh(_SessionThread).ProcessRequest(aRequest);
+  THackSessionTh(_SessionThread).ProcessRequest(TNVRequestTask(aRequest));
 end;
 
 procedure TNVHostApp.SetAllowedPaths(const Value: TStrings);

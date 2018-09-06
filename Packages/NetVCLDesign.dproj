@@ -93,7 +93,7 @@
         <DCCReference Include="IndyProtocols.dcp"/>
         <DCCReference Include="IndyCore.dcp"/>
         <DCCReference Include="NetVCLRuntime.dcp"/>
-        <DCCReference Include="..\Sources\Pascal\Server\NetVCL.Server.Register.pas"/>
+        <DCCReference Include="..\Sources\Pascal\Design\NV.Register.pas"/>
         <DCCReference Include="..\Sources\Pascal\Design\NV.Design.AppWizard.pas"/>
         <DCCReference Include="..\Sources\Pascal\Design\NV.Design.AppModuleWizard.pas"/>
         <DCCReference Include="..\Sources\Pascal\Design\NV.Design.PageWizard.pas"/>

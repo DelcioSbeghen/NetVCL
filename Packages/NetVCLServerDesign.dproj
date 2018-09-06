@@ -1,9 +1,9 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{4842ED83-8531-4CB8-8CA5-0B1C4FFB8502}</ProjectGuid>
-        <MainSource>NetVCLRuntime.dpk</MainSource>
+        <ProjectGuid>{35C86E21-AF11-4F99-B7E3-F9CC29F420F9}</ProjectGuid>
+        <MainSource>NetVCLServerDesign.dpk</MainSource>
         <ProjectVersion>18.4</ProjectVersion>
-        <FrameworkType>VCL</FrameworkType>
+        <FrameworkType>None</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
@@ -44,10 +44,10 @@
         <DCC_K>false</DCC_K>
         <GenDll>true</GenDll>
         <GenPackage>true</GenPackage>
-        <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
-        <SanitizedProjectName>NetVCLRuntime</SanitizedProjectName>
-        <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
+        <DesignOnlyPackage>true</DesignOnlyPackage>
+        <SanitizedProjectName>NetVCLServerDesign</SanitizedProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
@@ -55,6 +55,7 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
+        <DCC_UsePackage>rtl;NetVCLServerRuntime;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
@@ -68,6 +69,7 @@
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
+        <DCC_Namespace>VCL;$(DCC_Namespace)</DCC_Namespace>
         <DCC_UnitSearchPath>..\Sources\Pascal\ThirdParty;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
@@ -81,30 +83,8 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
-        <DCCReference Include="vcl.dcp"/>
-        <DCCReference Include="IndySystem.dcp"/>
-        <DCCReference Include="IndyProtocols.dcp"/>
-        <DCCReference Include="IndyCore.dcp"/>
-        <DCCReference Include="dbrtl.dcp"/>
         <DCCReference Include="NetVCLServerRuntime.dcp"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.HostApplication.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.Session.pas"/>
-        <DCCReference Include="..\Sources\Pascal\VCL\NV.VCL.Page.pas"/>
-        <DCCReference Include="..\Sources\Pascal\VCL\NV.VCL.Container.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.Router.pas"/>
-        <DCCReference Include="..\Sources\Pascal\VCL\NV.VCL.Controls.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.Dispatcher.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.Messages.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.WebSocket.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.UserSession.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.DispatcherPage.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.Interfaces.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.Types.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.JSON.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.Languages.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.Classes.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.Cache.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Application\NV.Utils.pas"/>
+        <DCCReference Include="..\Sources\Pascal\Server\NV.Server.Register.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -122,13 +102,13 @@
         <Borland.ProjectType>Package</Borland.ProjectType>
         <BorlandProject>
             <Delphi.Personality>
-                <Source>
-                    <Source Name="MainSource">NetVCLRuntime.dpk</Source>
-                </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k250.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp250.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
+                <Source>
+                    <Source Name="MainSource">NetVCLServerDesign.dpk</Source>
+                </Source>
             </Delphi.Personality>
             <Deployment Version="3">
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule">
@@ -151,9 +131,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl\NetVCLRuntime.bpl" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl\NetVCLServerDesign.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>NetVCLRuntime.bpl</RemoteName>
+                        <RemoteName>NetVCLServerDesign.bpl</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

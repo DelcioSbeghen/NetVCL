@@ -1,4 +1,4 @@
-package NetVCLDesign;
+package NetVCLServerRuntime;
 
 {$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
@@ -25,27 +25,20 @@ package NetVCLDesign;
 {$IMAGEBASE $400000}
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
-{$DESIGNONLY}
+{$RUNONLY}
 {$IMPLICITBUILD ON}
 
 requires
   rtl,
   vcl,
-  designide,
-  ExpertsCreators,
-  dbrtl,
-  vcldb,
-  vcldesigner,
   IndySystem,
   IndyProtocols,
-  IndyCore,
-  NetVCLRuntime;
+  IndyCore;
 
 contains
-  NV.Register in '..\Sources\Pascal\Design\NV.Register.pas',
-  NV.Design.AppWizard in '..\Sources\Pascal\Design\NV.Design.AppWizard.pas',
-  NV.Design.AppModuleWizard in '..\Sources\Pascal\Design\NV.Design.AppModuleWizard.pas',
-  NV.Design.PageWizard in '..\Sources\Pascal\Design\NV.Design.PageWizard.pas',
-  NV.Design.UserSessionWizard in '..\Sources\Pascal\Design\NV.Design.UserSessionWizard.pas';
+  NV.Server.HttpServer in '..\Sources\Pascal\Server\NV.Server.HttpServer.pas',
+  NV.Server in '..\Sources\Pascal\Server\NV.Server.pas',
+  NV.Common.HostAppInterface in '..\Sources\Pascal\Common\NV.Common.HostAppInterface.pas',
+  NV.Request in '..\Sources\Pascal\Common\NV.Request.pas';
 
 end.
