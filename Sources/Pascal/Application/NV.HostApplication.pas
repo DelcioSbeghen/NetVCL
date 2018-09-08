@@ -32,6 +32,7 @@ type
     FCookieParam: string;
     FOnNewSession: TNVCreateSessionEvent;
     FLibDir: string;
+    FDocDir:string;
     FTemplateCss: string;
     FOnSessionClose: TNotifyEvent;
     FComInitilization: Boolean;
@@ -137,7 +138,8 @@ begin
   try
     CreateNew(AOwner);
     FSessionList := TNVSessionList.Create;
-    FLibDir := AppPath + 'wwwroot\dwlib\';
+    FLibDir := AppPath + 'www\netvcl\';
+    FDocDir := AppPath + 'www\';
     FUrlBase := '';
     FComInitilization := False;
     FTerminatedUrl := '';
@@ -178,7 +180,7 @@ begin
     _SessionApp := _SessionThread.SessionApp; //dwapp
 
     //add lib patch dir to route
-    _Aux := MakeValidFileUrl(UrlBase, LibDir);
+    _Aux := MakeValidFileUrl(UrlBase, LibDir, Self);
     _Dispatch := TDispatchDirFiles.Create;
     _Dispatch.AllowedFlag := afBeginBy;
     _SessionApp.Router.AddRoute(_Aux, _Dispatch);
@@ -186,7 +188,7 @@ begin
     //add template Css to route
     if FTemplateCss <> '' then
     begin
-      _Aux := MakeValidFileUrl(UrlBase, FTemplateCss);
+      _Aux := MakeValidFileUrl(UrlBase, FTemplateCss, Self);
       _Dispatch := TDispatchDirFiles.Create;
       _Dispatch.AllowedFlag := afExactMatch;
       _SessionApp.Router.AddRoute(_Aux, _Dispatch);
@@ -196,7 +198,7 @@ begin
   { TODO 1 -oDELCIO -cIMPLEMENT : !!!!!!!!!! Syncronize this or ERRROR }
     for I := 0 to FAllowedPaths.Count - 1 do
     begin
-      _Aux := MakeValidFileUrl(UrlBase, FAllowedPaths[I]);
+      _Aux := MakeValidFileUrl(UrlBase, FAllowedPaths[I], Self);
       _Dispatch := TDispatchDirFiles.Create;
       _Dispatch.AllowedFlag := afBeginBy;
       _SessionApp.Router.AddRoute(_Aux, _Dispatch);
@@ -234,7 +236,7 @@ end;
 
 function TNVHostApp.GetDocDir: string;
 begin
-
+  Result:= FDocDir;
 end;
 
 function TNVHostApp.GetDomain: string;
@@ -299,7 +301,7 @@ end;
 
 procedure TNVHostApp.SetDocDir(const Value: string);
 begin
-
+  FDocDir:= Value;
 end;
 
 procedure TNVHostApp.SetDomain(const Value: string);

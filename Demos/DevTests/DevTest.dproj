@@ -79,6 +79,7 @@
         <DCC_UnitSearchPath>..\..\Sources\Pascal\Server;..\..\Sources\Pascal\ThirdParty;..\..\Sources\Pascal\Application;..\..\Sources\Pascal\Common;..\..\Sources\Pascal\VCL;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
+        <DCC_ExeOutput>..\Dist</DCC_ExeOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>

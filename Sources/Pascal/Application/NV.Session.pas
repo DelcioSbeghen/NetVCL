@@ -319,12 +319,13 @@ begin
 
     // Dispatch Request
     Found := False;
-    RoutePath := TStringList.Create;
-    RoutePath.Delimiter := '/';
-    RoutePath.StrictDelimiter := True;
-    RoutePath.Text := aRequestTask.Req.Document;
 
-    Found:= FNVApp.Router.Route(RoutePath, aRequestTask);
+    RoutePath := TNVRouter.CreateRouteStringList(aRequestTask.Req.Document);
+    try
+      Found := FNVApp.Router.Route(RoutePath, aRequestTask);
+    finally
+      RoutePath.Free;
+    end;
 
 
     (*if TDWDispatch.DispatchCallBacks(aRequestTask, LRequest, LResponse) then

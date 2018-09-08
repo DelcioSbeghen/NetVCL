@@ -3,19 +3,19 @@ unit NV.Dispatcher;
 interface
 
 uses
-  NV.Request;
+  SysUtils,  NV.Request;
 
 type
   TNVAllowedPath = (afBeginBy, afExactMatch, afDirList);
 
   TDispatch = class
   public
-    function Execute(aRequest: TNVRequestTask):Boolean; virtual;
+    function Execute(aRequest: TNVRequestTask): Boolean; virtual;
   end;
 
   TDispatchCache = class(TDispatch)
   public
-    function Execute(aRequest: TNVRequestTask):Boolean; override;
+    function Execute(aRequest: TNVRequestTask): Boolean; override;
   end;
 
   TDispatchDirFiles = class(TDispatch)
@@ -24,10 +24,14 @@ type
     procedure SetAllowedFlag(const Value: TNVAllowedPath);
   public
     constructor Create;
+    function Execute(aRequest: TNVRequestTask): Boolean; override;
     property AllowedFlag: TNVAllowedPath read FAllowedFlag write SetAllowedFlag default afExactMatch;
   end;
 
 implementation
+
+uses
+  NV.Utils;
 
 { TDispatchDirFiles }
 
@@ -37,6 +41,66 @@ begin
   FAllowedFlag := afExactMatch;
 end;
 
+function TDispatchDirFiles.Execute(aRequest: TNVRequestTask): Boolean;
+  function DocumentFile: string;
+  begin
+    if aRequest.Req.Document = '/' then
+      Result := NVSessionThread.HostApp.DocDir
+    else if (aRequest.Req.Document <> '') and (aRequest.Req.Document[1] = '/') then
+      Result := AbsolutisePath(NVSessionThread.HostApp.DocDir +
+        URLDecode(AdjustOSPathDelimiters(aRequest.Req.Document)))
+    else
+      Result := AbsolutisePath(NVSessionThread.HostApp.DocDir + PathDelim +
+        URLDecode(AdjustOSPathDelimiters(aRequest.Req.Document)));
+
+    { Check for default document }
+    if (Length(Result) > 0) and (Result[Length(Result)] = PathDelim) and
+      (FileExists(Result + 'index.html' { FDefaultDoc } )) then
+      Result := Result + 'index.html' { FDefaultDoc }
+    else if IsDirectory(Result) and (FileExists(Result + PathDelim + 'index.html' { FDefaultDoc } ))
+    then
+      Result := Result + PathDelim + 'index.html' { FDefaultDoc };
+  end;
+begin
+  Result := False;
+  case FAllowedFlag of
+    afBeginBy:
+      begin
+        aRequest.Resp.ContentDisposition := 'inline';
+        aRequest.Resp.CacheControl := 'private';
+        aRequest.Resp.SmartServeFile(aRequest.Context, aRequest.Req, DocumentFile);
+        Result := True;
+        Exit;
+
+      end;
+    afExactMatch:
+      begin
+        raise Exception.Create('Need to implement TDispatchDirFiles.Execute for afExactMatch');
+        {if CompareText(Elem.Path, aRequestInfo.Document) = 0 then
+        begin
+          aResponseInfo.ContentDisposition := 'inline';
+          aResponseInfo.CacheControl := 'private';
+          aResponseInfo.SmartServeFile(aReqTask.FContext, aRequestInfo, DocumentFile);
+          Result := True;
+          Exit;
+        end;}
+      end;
+    afDirList:
+      begin
+         raise Exception.Create('Need to implement TDispatchDirFiles.Execute for afDirList');
+        {if CompareText(Elem.Path, aRequestInfo.Document) = 0 then
+        begin
+          aResponseInfo.ContentDisposition := 'inline';
+          aResponseInfo.CacheControl := 'private';
+          aResponseInfo.SmartServeFile(aReqTask.FContext, aRequestInfo, DocumentFile);
+          Result := True;
+          Exit;
+        end; }
+      end;
+  end;
+
+end;
+
 procedure TDispatchDirFiles.SetAllowedFlag(const Value: TNVAllowedPath);
 begin
   FAllowedFlag := Value;
@@ -44,7 +108,7 @@ end;
 
 { TDispatchCache }
 
-function TDispatchCache.Execute(aRequest: TNVRequestTask):Boolean;
+function TDispatchCache.Execute(aRequest: TNVRequestTask): Boolean;
 (* var
  Status: string;
   LPath: string;
@@ -52,7 +116,7 @@ function TDispatchCache.Execute(aRequest: TNVRequestTask):Boolean;
   Lindex: Integer;
   LCacheItem: TCacheItemBase; *)
 begin
- Result:= False;
+  Result := False;
  (*) Result:=False;
   Status     := '';
   LPath      := ARequestInfo.Document;
@@ -107,9 +171,9 @@ end;
 
 { TDispatch }
 
-function TDispatch.Execute(aRequest: TNVRequestTask):Boolean;
+function TDispatch.Execute(aRequest: TNVRequestTask): Boolean;
 begin
-  Result:= False;
+  Result := False;
 end;
 
 end.

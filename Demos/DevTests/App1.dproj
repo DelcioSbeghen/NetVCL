@@ -69,9 +69,8 @@
         <DCC_UnitSearchPath>..\..\Sources\Pascal\Application;..\..\Sources\Pascal\Common;..\..\Sources\Pascal\VCL;..\..\Sources\Pascal\Server;..\..\Sources\Pascal\ThirdParty;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <DCC_BplOutput>.\</DCC_BplOutput>
-        <DCC_Namespace>VCl;$(DCC_Namespace)</DCC_Namespace>
-        <Debugger_HostApplication>C:\Delcio\Projetos\NetVCL\Demos\DevTests\Win32\Debug\DevTest.exe</Debugger_HostApplication>
+        <DCC_BplOutput>..\Dist</DCC_BplOutput>
+        <Debugger_HostApplication>C:\Delcio\Projetos\NetVCL\Demos\Dist\DevTest.exe</Debugger_HostApplication>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>

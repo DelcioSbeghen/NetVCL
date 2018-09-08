@@ -3,7 +3,7 @@ unit NV.Utils;
 interface
 
 uses
-  Classes, Controls, NV.VCL.Page, NV.Session, NV.Common.HostAppInterface;
+  Classes, Controls, NV.VCL.Page, NV.Session, NV.Common.HostAppInterface, NV.HostApplication;
 
 type
   TJumpOfs = Integer;
@@ -14,13 +14,21 @@ type
     Jump: Byte;
     Offset: TJumpOfs;
   end;
+function TranslateChar(const Str: String; FromChar, ToChar: Char): String;
+function htoin(Value: PWideChar; Len: Integer): Integer;
+function UrlDecode(const Url: String; SrcCodePage: LongWord = CP_ACP;
+  DetectUtf8: boolean = TRUE): String;
+function AbsolutisePath(const Path: String): String;
+function AdjustOSPathDelimiters(const Path: String): String;
+function IsDirectory(const Path: String): boolean;
+
 
   // Find a parent Page of one NV Control
 function FindParentPage(aControl: TControl): TNVBasePage;
 
-function MakeValidFileUrl(const ARootUrl: string; const AFileUrl: string): string;
+function MakeValidFileUrl(const ARootUrl: string; const AFileUrl: string; aHostApp:TNVHostApp = nil ): string;
 
-function MakeValidFileUrl2(const ARootUrl: string; const AFileUrl: string; ADisableCache: boolean = True): string;
+function MakeValidFileUrl2(const ARootUrl: string; const AFileUrl: string; ADisableCache: boolean = True; aHostApp:TNVHostApp = nil ): string;
 
 function IIf(Expressao: Variant; ParteTRUE, ParteFALSE: Variant): Variant;
 
@@ -65,6 +73,165 @@ type
     Addr: PPointer;
   end;
 
+function TranslateChar(const Str: String; FromChar, ToChar: Char): String;
+var
+  i: Integer;
+begin
+  Result := Str;
+  for i  := 1 to Length(Result) do
+    if Result[i] = FromChar then
+      Result[i] := ToChar;
+end;
+
+function htoin(Value: PWideChar; Len: Integer): Integer;
+  function IsXDigit(Ch: WideChar): boolean;
+  begin
+    Result := ((Ch >= '0') and (Ch <= '9')) or ((Ch >= 'a') and (Ch <= 'f')) or
+      ((Ch >= 'A') and (Ch <= 'F'));
+  end;
+
+  function XDigit(Ch: WideChar): Integer;
+  begin
+    case Ch of
+      '0' .. '9': Result := Ord(Ch) - Ord('0');
+    else Result          := (Ord(Ch) and 15) + 9;
+    end;
+  end;
+
+var
+  i: Integer;
+begin
+  Result := 0;
+  i      := 0;
+  while (i < Len) and (Value[i] = ' ') do
+    i := i + 1;
+  while (i < Len) and (IsXDigit(Value[i])) do
+    begin
+      Result := Result * 16 + XDigit(Value[i]);
+      i      := i + 1;
+    end;
+end;
+
+function UrlDecode(const Url: String; SrcCodePage: LongWord = CP_ACP;
+  DetectUtf8: boolean = TRUE): String;
+  var
+  i, J, L: Integer;
+  U8Str: AnsiString;
+  Ch: AnsiChar;
+begin
+  L := Length(Url);
+  SetLength(U8Str, L);
+  i := 1;
+  J := 0;
+  while (i <= L) do
+    begin
+      Ch := AnsiChar(Url[i]);
+      if Ch = '%' then
+        begin
+          Ch := AnsiChar(htoin(PChar(@Url[i + 1]), 2));
+          inc(i, 2);
+        end
+      else if Ch = '+' then
+        Ch := ' ';
+      inc(J);
+      U8Str[J] := Ch;
+      inc(i);
+    end;
+  SetLength(U8Str, J);
+  // if (SrcCodePage = CP_UTF8) or (DetectUtf8 and IsUtf8Valid(U8Str)) then { V7.24 }
+  // {$IFDEF COMPILER12_UP}
+  // Result := Utf8ToStringW(U8Str)
+  // else
+  // Result := AnsiToUnicode(U8Str, SrcCodePage);
+  // {$ELSE}
+  // Result := Utf8ToStringA(U8Str)
+  // else
+  Result := U8Str;
+  // {$ENDIF}
+end;
+
+function AbsolutisePath(const Path: String): String;
+var
+  i, J, N: Integer;
+begin
+  if (Path = '') or (Path = '.') or (Path = '..') then
+    begin
+      Result := '';
+      Exit;
+    end;
+
+  Result := Path;
+  N      := 0;
+  if (Length(Result) > 2) and (Copy(Result, Length(Result) - 1, 2) = {$IFDEF MSWINDOWS} '\.'
+{$ELSE} '/.' {$ENDIF}) then
+    Result := Copy(Result, 1, Length(Result) - 2);
+
+  if Length(Result) > 1 then
+    begin
+      if (Result[1] = PathDelim) and (Result[2] = PathDelim) then
+        begin
+          N := 2;
+          while (N < Length(Result)) and (Result[N + 1] <> PathDelim) do
+            inc(N);
+        end
+      else if Result[2] = ':' then
+        N := 2;
+    end;
+
+  if (Copy(Result, N + 1, 5) = PathDelim) or (Copy(Result, N + 1, 5) = {$IFDEF MSWINDOWS} '\.'
+{$ELSE} '/.' {$ENDIF}) then
+    begin
+      Result := Copy(Result, 1, N + 1);
+      Exit;
+    end;
+
+  while TRUE do
+    begin
+      i := Pos({$IFDEF MSWINDOWS} '\.\' {$ELSE} '/./' {$ENDIF}, Result);
+      if i <= N then
+        Break;
+      Delete(Result, i, 2);
+    end;
+  while TRUE do
+    begin
+      i := Pos({$IFDEF MSWINDOWS} '\..' {$ELSE} '/..' {$ENDIF}, Result);
+      if i <= N then
+        Break;
+      J := i - 1;
+      while (J > N) and (Result[J] <> PathDelim) do
+        Dec(J);
+      if J <= N then
+        Delete(Result, J + 2, i - J + 2)
+      else
+        Delete(Result, J, i - J + 3);
+    end;
+end;
+
+function AdjustOSPathDelimiters(const Path: String): String;
+begin
+{$IFDEF MSWINDOWS}
+  Result := TranslateChar(Path, '/', '\');
+{$ELSE}
+  Result := TranslateChar(Path, '\', '/');
+{$ENDIF}
+end;
+
+function IsDirectory(const Path: String): boolean;
+{$IFDEF MSWINDOWS}
+var
+  Attr: DWORD;
+begin
+  // Result:= Winapi.ShLwApi.PathIsDirectory(PChar(Path)); // Modified by Delcio 16/12/2016 00:22:20
+  Attr   := GetFileAttributes(PChar(ExcludeTrailingPathdelimiter(Path)));
+  Result := (Attr <> MaxDWord) and ((Attr and FILE_ATTRIBUTE_DIRECTORY) <> 0);
+end;
+{$ENDIF}
+{$IFDEF POSIX}
+begin
+  Result := DirectoryExists(ExcludeTrailingPathdelimiter(Path));
+end;
+{$ENDIF}
+
 function FindParentPage(aControl: TControl): TNVBasePage;
 var
   CompTest: TControl;
@@ -93,7 +260,7 @@ begin
       Result := CompTest as TNVBasePage;
 end;
 
-function MakeValidFileUrl(const ARootUrl: string; const AFileUrl: string): string;
+function MakeValidFileUrl(const ARootUrl: string; const AFileUrl: string; aHostApp:TNVHostApp = nil ): string;
 var
   _RootUrl: string;
   _FileUrl: string;
@@ -101,17 +268,22 @@ var
   _LibDir: string;
   _DocDir: string;
 begin
-  TNVSessionThread.GetCurrent(_SessionTh);
+   if aHostApp = nil then
+    begin
+      if TNVSessionThread.GetCurrent(_SessionTh) then
+        aHostApp:= _SessionTh.HostApp;
+    end;
+
   //get root url
   if ARootUrl <> '' then   {TODO -oDelcio -cImprove : Remove _RootUrl Parameter if not Needed}
     _RootUrl := ARootUrl
-  else if Assigned(_SessionTh) then
-    _RootUrl := _SessionTh.HostApp.UrlBase;
+  else if aHostApp <> nil then
+    _RootUrl := aHostApp.UrlBase;
   //get doc and lib dir
-  if Assigned(_SessionTh) then
+  if Assigned(aHostApp) then
   begin
-    _LibDir := _SessionTh.HostApp.LibDir;
-    _DocDir := _SessionTh.HostApp.DocDir;
+    _LibDir := aHostApp.LibDir;
+    _DocDir := aHostApp.DocDir;
   end
   else
   begin
@@ -119,13 +291,14 @@ begin
     _DocDir := '';
   end;
 
-  _FileUrl := ReplaceStr(AFileUrl, '/<nvlibpath>/', _LibDir);
-  _FileUrl := ExtractRelativePath(_DocDir + '\', _FileUrl);
-  _FileUrl := StringReplace(_FileUrl, '\', '/', [rfReplaceAll]);
+  _FileUrl := ReplaceStr(AFileUrl, '/<nvlibpath>/', _LibDir); //replace components libdir tag to LibDir Path
+  _FileUrl := ExtractRelativePath(_DocDir + '\', _FileUrl); //relative to DocDir Path
+  _FileUrl := StringReplace(_FileUrl, '..\', '', [rfReplaceAll]); //if Doc Dir not subdir of Exe
+  _FileUrl := StringReplace(_FileUrl, '\', '/', [rfReplaceAll]);  //change win '\' to web '/'
   Result := { _RootUrl + } '/' + _FileUrl;
 end;
 
-function MakeValidFileUrl2(const ARootUrl: string; const AFileUrl: string; ADisableCache: boolean = True): string;
+function MakeValidFileUrl2(const ARootUrl: string; const AFileUrl: string; ADisableCache: boolean = True; aHostApp:TNVHostApp = nil ): string;
 var
   _DisableCache: boolean;
   _SessionTh: TNVSessionThread;
@@ -134,9 +307,16 @@ var
   _RefreshCacheParam: string;
 begin
   _DisableCache := ADisableCache;
-  if TNVSessionThread.GetCurrent(_SessionTh) then
+  if aHostApp = nil then
+    begin
+      if TNVSessionThread.GetCurrent(_SessionTh) then
+        aHostApp:= _SessionTh.HostApp;
+    end;
+
+
+  if aHostApp <> nil then
   begin
-    _LibDir := _SessionTh.HostApp.LibDir;
+    _LibDir := aHostApp.LibDir;
    // _DocDir := _SessionTh.HostApp.DocDir;
     _RefreshCacheParam := _SessionTh.HostApp.RefreshCacheParam;
   end
@@ -150,10 +330,10 @@ begin
   if AnsiStartsStr('//', AFileUrl) or AnsiContainsStr(AFileUrl, '://') then
   begin
     _DisableCache := False;
-    Result := ReplaceStr(AFileUrl, '/<dwlibpath>/', _LibDir);
+    Result := ReplaceStr(AFileUrl, '/<nvlibpath>/', _LibDir);
   end
   else
-    Result := MakeValidFileUrl(ARootUrl, AFileUrl);
+    Result := MakeValidFileUrl(ARootUrl, AFileUrl, aHostApp);
 
   if _DisableCache then
     Result := Result + '?v=' + _RefreshCacheParam;

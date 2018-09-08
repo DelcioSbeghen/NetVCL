@@ -126,7 +126,8 @@ begin
   // Register get handler class for item url and return the url for get item
 
   LHandler:= TDispatchCache.Create;
-  Result:=  NVSessionApp.Router.AddRoute(LUrl, LHandler);
+  NVSessionApp.Router.AddRoute(LUrl, LHandler);
+  Result:= LUrl;
 
  // Result:= DWApplication.RegisterGetHandler(aOwner, aFileName, TDWUrlHandlerCache);
 end;
