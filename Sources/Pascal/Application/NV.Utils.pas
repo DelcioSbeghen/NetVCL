@@ -21,6 +21,7 @@ function UrlDecode(const Url: String; SrcCodePage: LongWord = CP_ACP;
 function AbsolutisePath(const Path: String): String;
 function AdjustOSPathDelimiters(const Path: String): String;
 function IsDirectory(const Path: String): boolean;
+function RemoveDelimiters(const Path:string; Delimiter:Char = '/'):string;
 
 
   // Find a parent Page of one NV Control
@@ -460,6 +461,16 @@ begin
     if DebugHook <> 0 then
       raise;
   end;
+end;
+
+function RemoveDelimiters(const Path:string; Delimiter:Char = '/'):string;
+begin
+  if Path[Low(Path)] = Delimiter then
+    Result:= Copy(Path, 2, Path.Length -1)
+  else
+    Result:= Path;
+  if Result[High(Result)] = Delimiter then
+    SetLength(Result, Length(Result)-1);
 end;
 
 end.

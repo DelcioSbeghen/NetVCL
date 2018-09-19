@@ -3,7 +3,7 @@ unit NV.Router;
 interface
 
 uses
-  Classes, NV.Types, NV.Dispatcher, NV.Request;
+  Classes, SysUtils, NV.Types, NV.Dispatcher, NV.Request;
 
 type
   TNVRouteMethod = class
@@ -27,7 +27,7 @@ type
 implementation
 
 uses
-  NV.VCL.Controls, NV.VCL.Container;
+  NV.VCL.Controls, NV.VCL.Container, NV.Utils;
 
 { TNVRouter }
 
@@ -78,7 +78,8 @@ begin
   Result := TStringList.Create;
   Result.Delimiter := '/';
   Result.StrictDelimiter := True;
-  Result.Text := aRoute;
+  Result.QuoteChar:= #0;
+  Result.DelimitedText := RemoveDelimiters(aRoute);
 end;
 
 class function TNVRouter.CreateRouteStringList: TStringList;
@@ -96,9 +97,8 @@ begin
   if aRoutePath.Count < 1 then
     Exit;
   LRouteName := aRoutePath[0];
-  parei aqui
-  verificar não está achando a rota
-  if Self.Find(LRouteName, LIndex) then
+  LIndex:= IndexOf(LRouteName);
+  if LIndex > -1 then
   begin
     LObject := Objects[LIndex];
     if not Assigned(LObject) then

@@ -45,34 +45,34 @@ const
     '    </script> ' + sLineBreak + //
     '    <script src="netvcl/js/bootstrap.js"> ' + sLineBreak + //
     '    </script> ' + sLineBreak + //
-    '    <script src="netvcl/js/VXObject.js"> ' + sLineBreak + //
+    '    <script src="netvcl/js/NVObject.js"> ' + sLineBreak + //
     '    </script> ' + sLineBreak +  //
-    '    <script src="netvcl/js/VXMenu.js"> ' + sLineBreak +  //
+    '    <script src="netvcl/js/NVMenu.js"> ' + sLineBreak +  //
     '    </script> ' + sLineBreak +  //
-    '    <script src="netvcl/js/VXServer.js"> ' + sLineBreak +   //
+    '    <script src="netvcl/js/NVServer.js"> ' + sLineBreak +   //
     '    </script> ' + sLineBreak + //
-    '    <script src="netvcl/js/VXApplication.js"> ' + sLineBreak +   //
+    '    <script src="netvcl/js/NVApplication.js"> ' + sLineBreak +   //
     '    </script> ' + sLineBreak +  //
     '    <script src="netvcl/js/VCL.js"> ' + sLineBreak +   //
     '    </script> ' + sLineBreak +   //
-    '    <script src="netvcl/js/VXComponent.js"> ' + sLineBreak +  //
+    '    <script src="netvcl/js/NVComponent.js"> ' + sLineBreak +  //
     '    </script> ' + sLineBreak +  //
-    '    <script src="netvcl/js/VXUtils.js"> ' + sLineBreak +  //
+    '    <script src="netvcl/js/NVUtils.js"> ' + sLineBreak +  //
     '    </script> ' + sLineBreak + //
-    '    <script src="netvcl/js/VXInputBase.js"> ' + sLineBreak +   //
+    '    <script src="netvcl/js/NVInputBase.js"> ' + sLineBreak +   //
     '    </script> ' + sLineBreak + //
     ' ' + sLineBreak +    //
-    '    <script src="netvcl/js/VXContainer.js"> ' + sLineBreak +  //
+    '    <script src="netvcl/js/NVContainer.js"> ' + sLineBreak +  //
     '    </script> ' + sLineBreak +    //
-    '    <script src="netvcl/js/VXPage.js"> ' + sLineBreak +   //
+    '    <script src="netvcl/js/NVPage.js"> ' + sLineBreak +   //
     '    </script> ' + sLineBreak +  //
-    '    <script src="netvcl/js/VXDataset.js"> ' + sLineBreak + //
+    '    <script src="netvcl/js/NVDataset.js"> ' + sLineBreak + //
     '    </script> ' + sLineBreak +   //
-    '    <script src="netvcl/js/VXTextBase.js"> ' + sLineBreak +    //
+    '    <script src="netvcl/js/NVTextBase.js"> ' + sLineBreak +    //
     '    </script> ' + sLineBreak +    //
-    '    <script src="netvcl/js/VXText.js"> ' + sLineBreak +    //
+    '    <script src="netvcl/js/NVText.js"> ' + sLineBreak +    //
     '    </script> ' + sLineBreak +   //
-    '    <script src="netvcl/js/VXInput.js"> ' + sLineBreak +   //
+    '    <script src="netvcl/js/NVInput.js"> ' + sLineBreak +   //
     '    </script> ' + sLineBreak +   //
     '</head> ' + sLineBreak +  //
     ' ' + sLineBreak +   //
