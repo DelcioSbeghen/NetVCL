@@ -2,7 +2,7 @@
     <PropertyGroup>
         <ProjectGuid>{A369DCD3-AECC-4FA0-87A3-0458DE38E65A}</ProjectGuid>
         <MainSource>NetVCLServerRuntime.dpk</MainSource>
-        <ProjectVersion>18.4</ProjectVersion>
+        <ProjectVersion>18.6</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -63,12 +63,18 @@
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
         <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
+        <BRCC_IncludePath>..\Sources\Pascal\ThirdParty;$(BRCC_IncludePath)</BRCC_IncludePath>
+        <VerInfo_Locale>1046</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_UnitSearchPath>..\Sources\Pascal\ThirdParty;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <BRCC_IncludePath>..\Sources\Pascal\Common;$(BRCC_IncludePath)</BRCC_IncludePath>
+        <DCC_MapFile>3</DCC_MapFile>
+        <Debugger_HostApplication>C:\Program Files (x86)\Embarcadero\Studio\20.0\bin\bds.exe</Debugger_HostApplication>
+        <Debugger_RunParams>-r NetVCLDebug</Debugger_RunParams>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -85,10 +91,24 @@
         <DCCReference Include="IndySystem.dcp"/>
         <DCCReference Include="IndyProtocols.dcp"/>
         <DCCReference Include="IndyCore.dcp"/>
+        <DCCReference Include="NetVCLCommon.dcp"/>
         <DCCReference Include="..\Sources\Pascal\Server\NV.Server.HttpServer.pas"/>
         <DCCReference Include="..\Sources\Pascal\Server\NV.Server.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Common\NV.Common.HostAppInterface.pas"/>
-        <DCCReference Include="..\Sources\Pascal\Common\NV.Request.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclAnsiStrings.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclBase.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclDebug.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclFileUtils.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclHookExcept.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclLogic.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclPeImage.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclResources.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclStringConversions.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclStrings.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclSynch.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclSysInfo.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclSysUtils.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclTD32.pas"/>
+        <DCCReference Include="..\Sources\Pascal\ThirdParty\NVJclWin32.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -107,8 +127,10 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k250.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp250.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="C:\Delphi\Rio\Acbr\trunk2\Lib\Delphi\LibD26\ACBr_Integrador.bpl">ACBr - Integrador - (http://www.projetoacbr.com.br/)</Excluded_Packages>
+                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\Package1.bpl">File C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\Package1.bpl not found</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k260.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp260.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
                 <Source>
                     <Source Name="MainSource">NetVCLServerRuntime.dpk</Source>
@@ -135,7 +157,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl\NetVCLServerRuntime.bpl" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\NetVCLServerRuntime.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>NetVCLServerRuntime.bpl</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -146,13 +168,18 @@
                         <Operation>1</Operation>
                     </Platform>
                     <Platform Name="Win32">
-                        <RemoteDir>Contents\MacOS</RemoteDir>
                         <Operation>0</Operation>
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="AndroidClassesDexFile">
                     <Platform Name="Android">
                         <RemoteDir>classes</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="AndroidFileProvider">
+                    <Platform Name="Android">
+                        <RemoteDir>res\xml</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
@@ -189,6 +216,12 @@
                 <DeployClass Name="AndroidSplashStyles">
                     <Platform Name="Android">
                         <RemoteDir>res\values</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="AndroidSplashStylesV21">
+                    <Platform Name="Android">
+                        <RemoteDir>res\values-v21</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
@@ -268,12 +301,20 @@
                         <Operation>1</Operation>
                         <Extensions>.framework</Extensions>
                     </Platform>
+                    <Platform Name="OSX64">
+                        <Operation>1</Operation>
+                        <Extensions>.framework</Extensions>
+                    </Platform>
                     <Platform Name="Win32">
                         <Operation>0</Operation>
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="DependencyModule">
                     <Platform Name="OSX32">
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="OSX64">
                         <Operation>1</Operation>
                         <Extensions>.dylib</Extensions>
                     </Platform>
@@ -299,6 +340,10 @@
                         <Operation>1</Operation>
                         <Extensions>.dylib</Extensions>
                     </Platform>
+                    <Platform Name="OSX64">
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
                     <Platform Name="Win32">
                         <Operation>0</Operation>
                         <Extensions>.bpl</Extensions>
@@ -318,6 +363,9 @@
                         <Operation>0</Operation>
                     </Platform>
                     <Platform Name="OSX32">
+                        <Operation>0</Operation>
+                    </Platform>
+                    <Platform Name="OSX64">
                         <Operation>0</Operation>
                     </Platform>
                     <Platform Name="Win32">
@@ -430,10 +478,15 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
+                <DeployClass Name="ProjectOSXDebug"/>
                 <DeployClass Name="ProjectOSXEntitlements"/>
                 <DeployClass Name="ProjectOSXInfoPList"/>
                 <DeployClass Name="ProjectOSXResource">
                     <Platform Name="OSX32">
+                        <RemoteDir>Contents\Resources</RemoteDir>
+                        <Operation>1</Operation>
+                    </Platform>
+                    <Platform Name="OSX64">
                         <RemoteDir>Contents\Resources</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
@@ -456,6 +509,9 @@
                         <Operation>1</Operation>
                     </Platform>
                     <Platform Name="OSX32">
+                        <Operation>1</Operation>
+                    </Platform>
+                    <Platform Name="OSX64">
                         <Operation>1</Operation>
                     </Platform>
                     <Platform Name="Win32">
@@ -497,6 +553,7 @@
                 <ProjectRoot Platform="Win32" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
+                <ProjectRoot Platform="OSX64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
             </Deployment>
             <Platforms>

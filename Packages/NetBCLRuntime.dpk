@@ -1,0 +1,55 @@
+// JCL_DEBUG_EXPERT_GENERATEJDBG OFF
+// JCL_DEBUG_EXPERT_INSERTJDBG OFF
+package NetBCLRuntime;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  NetVCLRuntime,
+  NetVCLCommon,
+  vcldb;
+
+contains
+  NV.BS.Alerts in '..\Sources\Pascal\BCL\NV.BS.Alerts.pas',
+  NV.BS.Badges in '..\Sources\Pascal\BCL\NV.BS.Badges.pas',
+  NV.BS.Buttons in '..\Sources\Pascal\BCL\NV.BS.Buttons.pas',
+  NV.BS.Containers in '..\Sources\Pascal\BCL\NV.BS.Containers.pas',
+  NV.BS.Controls in '..\Sources\Pascal\BCL\NV.BS.Controls.pas',
+  NV.BS.Inputs in '..\Sources\Pascal\BCL\NV.BS.Inputs.pas',
+  NV.BS.Types in '..\Sources\Pascal\BCL\NV.BS.Types.pas',
+  NV.BS.Navbar in '..\Sources\Pascal\BCL\NV.BS.Navbar.pas',
+  NV.BS.HtmlControls in '..\Sources\Pascal\BCL\NV.BS.HtmlControls.pas',
+  NV.BS.Cards in '..\Sources\Pascal\BCL\NV.BS.Cards.pas',
+  NV.BS.Tabs in '..\Sources\Pascal\BCL\NV.BS.Tabs.pas',
+  NV.BS.Accordions in '..\Sources\Pascal\BCL\NV.BS.Accordions.pas',
+  NV.BS.DBCtrls in '..\Sources\Pascal\BCL\NV.BS.DBCtrls.pas',
+  NV.BS.Tables in '..\Sources\Pascal\BCL\NV.BS.Tables.pas';
+
+end.

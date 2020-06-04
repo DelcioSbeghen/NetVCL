@@ -13,6 +13,7 @@ exports
 
 implementation
 
+
 function LoadApp(aServer: INVServer):INVHostApp;
 var
   _App:TNVHostApp;
@@ -20,6 +21,8 @@ begin
   _App:= TNVHostApp.Create(nil);
   _App.Domain := 'localhost:888';
   _App.MainPage := TNVPage;
+//  _App.LibDir:=  'D:\Delcio\Projetos\NetVCL\Sources\Js\';
+ // _App.DocDir:=  'D:\Delcio\Projetos\NetVCL\Sources\Js\';
   Result:= _App;
 end;
 

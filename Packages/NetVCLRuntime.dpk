@@ -35,26 +35,30 @@ requires
   IndyProtocols,
   IndyCore,
   dbrtl,
-  NetVCLServerRuntime;
+  NetVCLCommon;
 
 contains
-  NV.HostApplication in '..\Sources\Pascal\Application\NV.HostApplication.pas',
-  NV.Session in '..\Sources\Pascal\Application\NV.Session.pas',
   NV.VCL.Page in '..\Sources\Pascal\VCL\NV.VCL.Page.pas',
-  NV.VCL.Container in '..\Sources\Pascal\VCL\NV.VCL.Container.pas',
   NV.Router in '..\Sources\Pascal\Application\NV.Router.pas',
-  NV.VCL.Controls in '..\Sources\Pascal\VCL\NV.VCL.Controls.pas',
   NV.Dispatcher in '..\Sources\Pascal\Application\NV.Dispatcher.pas',
   NV.Messages in '..\Sources\Pascal\Application\NV.Messages.pas',
-  NV.WebSocket in '..\Sources\Pascal\Application\NV.WebSocket.pas',
   NV.UserSession in '..\Sources\Pascal\Application\NV.UserSession.pas',
   NV.DispatcherPage in '..\Sources\Pascal\Application\NV.DispatcherPage.pas',
   NV.Interfaces in '..\Sources\Pascal\Application\NV.Interfaces.pas',
   NV.Types in '..\Sources\Pascal\Application\NV.Types.pas',
-  NV.JSON in '..\Sources\Pascal\Application\NV.JSON.pas',
-  NV.Languages in '..\Sources\Pascal\Application\NV.Languages.pas',
   NV.Classes in '..\Sources\Pascal\Application\NV.Classes.pas',
   NV.Cache in '..\Sources\Pascal\Application\NV.Cache.pas',
-  NV.Utils in '..\Sources\Pascal\Application\NV.Utils.pas';
+  NV.Utils in '..\Sources\Pascal\Application\NV.Utils.pas',
+  NV.Controls in '..\Sources\Pascal\VCL\NV.Controls.pas',
+  NV.Ajax in '..\Sources\Pascal\Application\NV.Ajax.pas',
+  NV.VCL.Frame in '..\Sources\Pascal\VCL\NV.VCL.Frame.pas',
+  NV.MergeSort in '..\Sources\Pascal\Application\NV.MergeSort.pas',
+  NV.VCL.Images in '..\Sources\Pascal\VCL\NV.VCL.Images.pas',
+  NV.VCL.DBCtrls in '..\Sources\Pascal\VCL\NV.VCL.DBCtrls.pas',
+  NV.Browser in '..\Sources\Pascal\Application\NV.Browser.pas',
+  NV.Request.Exe in '..\Sources\Pascal\Application\NV.Request.Exe.pas',
+  NV.VCL.Forms in '..\Sources\Pascal\VCL\NV.VCL.Forms.pas',
+  NV.VCL.Charts in '..\Sources\Pascal\VCL\NV.VCL.Charts.pas',
+  NV.VCL.Graphics in '..\Sources\Pascal\VCL\NV.VCL.Graphics.pas';
 
 end.

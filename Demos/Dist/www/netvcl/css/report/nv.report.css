@@ -1,0 +1,64 @@
+        .nvr-rounded {
+            border-radius: 6px;
+        }
+        
+        .nvr-rectangle {
+            border: 1px solid;
+            overflow: hidden;
+            position: absolute;
+        }
+        
+        .nvr-shadows {
+            box-shadow: -1px 2px 7px 0px #a09b9b;
+        }
+        
+        /*table {
+            width: 100%;
+            border-collapse: collapse;
+            word-break: break-all;
+            border-style: hidden;
+            font: inherit;
+        }
+        
+        td,
+        th {
+            border: 1px solid;
+            margin: 0;
+            padding: 5px;
+        }*/
+        
+        #btn-print {
+            top: 4px;
+            left: 95mm;
+            border-radius: 3px;
+            display: flex;
+            padding: 4px;
+            font-weight: bold;
+        }
+        
+        @media print {
+            @page {
+                size: A4;
+                /* DIN A4 standard, Europe */
+                margin: 0;
+                margin-bottom: 5mm;
+            }
+            html,
+            body {
+                width: 210mm;
+                /* height: 297mm; */
+                height: 282mm;
+                font-size: 11px;
+                background: #FFF;
+                overflow: visible;
+            }
+            body {
+                padding-top: 15mm;
+            }
+            .no-print {
+                display: none;
+            }
+            #btn-print {
+                display: none;
+            }
+        }

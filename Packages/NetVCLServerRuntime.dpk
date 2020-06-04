@@ -33,12 +33,26 @@ requires
   vcl,
   IndySystem,
   IndyProtocols,
-  IndyCore;
+  IndyCore,
+  NetVCLCommon;
 
 contains
   NV.Server.HttpServer in '..\Sources\Pascal\Server\NV.Server.HttpServer.pas',
   NV.Server in '..\Sources\Pascal\Server\NV.Server.pas',
-  NV.Common.HostAppInterface in '..\Sources\Pascal\Common\NV.Common.HostAppInterface.pas',
-  NV.Request in '..\Sources\Pascal\Common\NV.Request.pas';
+  NVJclAnsiStrings in '..\Sources\Pascal\ThirdParty\NVJclAnsiStrings.pas',
+  NVJclBase in '..\Sources\Pascal\ThirdParty\NVJclBase.pas',
+  NVJclDebug in '..\Sources\Pascal\ThirdParty\NVJclDebug.pas',
+  NVJclFileUtils in '..\Sources\Pascal\ThirdParty\NVJclFileUtils.pas',
+  NVJclHookExcept in '..\Sources\Pascal\ThirdParty\NVJclHookExcept.pas',
+  NVJclLogic in '..\Sources\Pascal\ThirdParty\NVJclLogic.pas',
+  NVJclPeImage in '..\Sources\Pascal\ThirdParty\NVJclPeImage.pas',
+  NVJclResources in '..\Sources\Pascal\ThirdParty\NVJclResources.pas',
+  NVJclStringConversions in '..\Sources\Pascal\ThirdParty\NVJclStringConversions.pas',
+  NVJclStrings in '..\Sources\Pascal\ThirdParty\NVJclStrings.pas',
+  NVJclSynch in '..\Sources\Pascal\ThirdParty\NVJclSynch.pas',
+  NVJclSysInfo in '..\Sources\Pascal\ThirdParty\NVJclSysInfo.pas',
+  NVJclSysUtils in '..\Sources\Pascal\ThirdParty\NVJclSysUtils.pas',
+  NVJclTD32 in '..\Sources\Pascal\ThirdParty\NVJclTD32.pas',
+  NVJclWin32 in '..\Sources\Pascal\ThirdParty\NVJclWin32.pas';
 
 end.

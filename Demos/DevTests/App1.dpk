@@ -34,8 +34,7 @@ requires
   dbrtl,
   IndySystem,
   IndyProtocols,
-  IndyCore,
-  NetVCLRuntime;
+  IndyCore;
 
 contains
   uApp1 in 'uApp1.pas',

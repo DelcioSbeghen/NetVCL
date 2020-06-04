@@ -1,19 +1,17 @@
 unit NV.Cache;
 
-
 interface
 
 uses
-  Classes, SysUtils, DB, IOUtils, IdCustomHTTPServer,
-  IdContext;
+  Classes, SysUtils;
 
 type
 
   TCacheItemBase = class(TObject)
   protected
     // FMemoryCacheStream:TMemoryStream;
-    FFilename: string;
-    FOwner: TComponent;
+    FFilename   : string;
+    FOwner      : TComponent;
     FContentType: string;
     // FFileCachePath:string;
   public
@@ -47,10 +45,10 @@ type
 
   end;
 
- (*) TDWUrlHandlerCache = class(TDWUrlHandlerBase)
-  public
+  (* ) TDWUrlHandlerCache = class(TDWUrlHandlerBase)
+    public
     function Execute(aReqTask: TObject; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo):Boolean; override;
-  end; *)
+    end; *)
 
   TNVCache = class
   public
@@ -64,10 +62,7 @@ type
 
 implementation
 
-uses NV.Utils, NV.Session, NV.Interfaces, NV.Dispatcher, NV.HostApplication;
-
-type
-  THack = class(TNVSessionApp);
+uses NV.Utils, NV.Interfaces, NV.Dispatcher;
 
   { TDWCache }
 
@@ -80,21 +75,23 @@ end;
 class function TNVCache.AddStreamToSessionFileCache(aOwner: TComponent; aStream: TStream;
   aFileName, aContentType: string): string;
 var
-  LItem: TCacheItemFile;
-  LUrl: string;
-  LHandler:TDispatchCache;
+  LItem   : TCacheItemFile;
+  LUrl    : string;
+  LHandler: TDispatchCache;
 begin
   // Create the cache item Object
   LItem := TCacheItemFile.Create(aOwner, aStream, aFileName, aContentType);
   // Get url for get item
   LUrl := LItem.URL;
   // add item to DWApplication cache list
-  THack(NVSessionApp).FCacheList.AddObject(LUrl, LItem);
+  {TODO -oDelcio -cCache : Need to implement Application.AddToCache}
+  // Application.AddToCache(LUrl, LItem);
   // Register get handler class for item url
-  LHandler:= TDispatchCache.Create;
-  NVSessionApp.Router.AddRoute(LUrl, LHandler);
+  LHandler := TDispatchCache.Create;
+ {TODO -oDelcio -cCache : Need to implement Application.AddRoute}
+  // NVSessionApp.Router.AddRoute(LUrl, LHandler);
 
- // DWApplication.RegisterGetHandler(aOwner, LUrl, TDWUrlHandlerCache);
+  // DWApplication.RegisterGetHandler(aOwner, LUrl, TDWUrlHandlerCache);
   // return the url for get item
   Result := LUrl;
 end;
@@ -102,34 +99,34 @@ end;
 class function TNVCache.AddStreamToSessionMemoryCache(aOwner: TComponent; aStream: TStream;
   aFileName: string; aContentType: string): string;
 var
-  LItem: TCacheItemMemory;
-  LUrl: string;
-  OldItemindex:Integer;
-  LHandler: TDispatchCache;
+  LItem       : TCacheItemMemory;
+  LUrl        : string;
+  OldItemindex: Integer;
+  LHandler    : TDispatchCache;
 begin
   // Create the cache item Object
   LItem := TCacheItemMemory.Create(aOwner, aStream, aFileName, aContentType);
   // Get url for get item
   LUrl := LItem.URL;
-  //remove old item with same url
-  OldItemindex:= THack(NVSessionApp).FCacheList.IndexOf(LUrl);
-  if OldItemindex > -1 then
-    THack(NVSessionApp).FCacheList.Delete(OldItemindex);
-  // add item to DWApplication cache list
-  THack(NVSessionApp).FCacheList.AddObject(LUrl, LItem);
-  //remove older gethandler
+//  // remove old item with same url
+//  OldItemindex := THack(NVSessionApp).FCacheList.IndexOf(LUrl);
+//  if OldItemindex > -1 then
+//    THack(NVSessionApp).FCacheList.Delete(OldItemindex);
+//  // add item to DWApplication cache list
+//  THack(NVSessionApp).FCacheList.AddObject(LUrl, LItem);
+//  // remove older gethandler
+//
+//  OldItemindex := NVSessionApp.Router.IndexOf(LUrl);
+//  // OldItemindex:= THack(DWApplication).GetHandlerList.IndexOf(LUrl);
+//  if OldItemindex > -1 then
+//    NVSessionApp.Router.Delete(OldItemindex);
+//  // Register get handler class for item url and return the url for get item
+//
+//  LHandler := TDispatchCache.Create;
+//  NVSessionApp.Router.AddRoute(LUrl, LHandler);
+//  Result := LUrl;
 
-  OldItemindex:= NVSessionApp.Router.IndexOf(LUrl);
-  //OldItemindex:= THack(DWApplication).GetHandlerList.IndexOf(LUrl);
-  if OldItemindex > -1 then
-    NVSessionApp.Router.Delete(OldItemindex);
-  // Register get handler class for item url and return the url for get item
-
-  LHandler:= TDispatchCache.Create;
-  NVSessionApp.Router.AddRoute(LUrl, LHandler);
-  Result:= LUrl;
-
- // Result:= DWApplication.RegisterGetHandler(aOwner, aFileName, TDWUrlHandlerCache);
+  // Result:= DWApplication.RegisterGetHandler(aOwner, aFileName, TDWUrlHandlerCache);
 end;
 
 { TCacheItem }
@@ -155,76 +152,75 @@ function TCacheItemBase.URL: string;
 var
   L_IControl: INVBase;
 begin
-   Result := '';
-  if (FOwner <> nil) and (Supports(FOwner, INVBase, L_IControl)) and (L_IControl <> nil)
-      then
+  Result := '';
+  if (FOwner <> nil) and (Supports(FOwner, INVBase, L_IControl)) and (L_IControl <> nil) then
     Result := '/' + L_IControl.ID + '.' + FileName
   else if (FOwner <> nil) then
     Result := '/' + FOwner.Name + '.' + FileName
   else
-    Result    := '/' + FileName;
+    Result := '/' + FileName;
 end;
 
 { TDWUrlHandlerCache }
- (*)
-function TDWUrlHandlerCache.Execute(aReqTask: TObject; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo):Boolean;
-var
+(* )
+  function TDWUrlHandlerCache.Execute(aReqTask: TObject; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo):Boolean;
+  var
   Status: string;
   LPath: string;
   LCacheList: TNVCacheList;
   Lindex: Integer;
   LCacheItem: TCacheItemBase;
-begin
+  begin
   Result:=False;
   Status     := '';
   LPath      := ARequestInfo.Document;
   LCacheList := THack(DWApplication).FCacheList;
   if LPath <> '' then
-    begin
-      Lindex := LCacheList.IndexOf(LPath);
-      if Lindex > -1 then
-        begin
-          LCacheItem := TCacheItemBase(LCacheList.GetObject(Lindex));
-         // LHeader    := 'Content-Disposition: attachment; filename="' + LCacheItem.FileName + '"';
-          // if is in memory cache
-          if LCacheItem is TCacheItemMemory then
-            begin
-              // load buffer from memory
-              if AResponseInfo.ContentStream = nil then
-                AResponseInfo.ContentStream:= TMemoryStream.Create;
+  begin
+  Lindex := LCacheList.IndexOf(LPath);
+  if Lindex > -1 then
+  begin
+  LCacheItem := TCacheItemBase(LCacheList.GetObject(Lindex));
+  // LHeader    := 'Content-Disposition: attachment; filename="' + LCacheItem.FileName + '"';
+  // if is in memory cache
+  if LCacheItem is TCacheItemMemory then
+  begin
+  // load buffer from memory
+  if AResponseInfo.ContentStream = nil then
+  AResponseInfo.ContentStream:= TMemoryStream.Create;
 
-              AResponseInfo.ContentStream.CopyFrom(TCacheItemMemory(LCacheItem).FStream, 0);
+  AResponseInfo.ContentStream.CopyFrom(TCacheItemMemory(LCacheItem).FStream, 0);
 
-              //TCacheItemMemory(LCacheItem).FStream.SaveToFile('c:/teste.pdf');
-              AResponseInfo.ContentType:= LCacheItem.FContentType;
+  //TCacheItemMemory(LCacheItem).FStream.SaveToFile('c:/teste.pdf');
+  AResponseInfo.ContentType:= LCacheItem.FContentType;
 
-              if ARequestInfo.Params.Values['attachment'] = 'true' then
-                AResponseInfo.ContentDisposition:= 'attachment; filename="' + LCacheItem.FileName + '";';
+  if ARequestInfo.Params.Values['attachment'] = 'true' then
+  AResponseInfo.ContentDisposition:= 'attachment; filename="' + LCacheItem.FileName + '";';
 
-              if ARequestInfo.Params.Values['deleteCache'] = 'true' then
-                begin
-                  LCacheList.Delete(Lindex);
-                  DWApplication.UnRegisterGethandler(LPath);
-                end;
-              // send
-              //AnswerStream(Status, LCacheItem.FContentType, LHeader);
-            end
-            // else if is in file cache
-          else if LCacheItem is TCacheItemFile then
-            begin
-              // load buffer from File
-              { TODO 1 -oDELCIO -cIMPLEMENT : !!!!! Need to implement this !!!!!!!}
+  if ARequestInfo.Params.Values['deleteCache'] = 'true' then
+  begin
+  LCacheList.Delete(Lindex);
+  DWApplication.UnRegisterGethandler(LPath);
+  end;
+  // send
+  //AnswerStream(Status, LCacheItem.FContentType, LHeader);
+  end
+  // else if is in file cache
+  else if LCacheItem is TCacheItemFile then
+  begin
+  // load buffer from File
+  { TODO 1 -oDELCIO -cIMPLEMENT : !!!!! Need to implement this !!!!!!!}
 
-             // AResponseInfo.DocStream :=
-             //   TIcsBufferedFileStream.Create(TCacheItemFile(LCacheItem).FPath,
-              //  fmOpenRead + fmShareDenyWrite, MAX_BUFSIZE);
-              // send
-              //AnswerStream(Status, LCacheItem.FContentType, LHeader);
-            end
-        end;
-    end;
- //Finish;
-end;*)
+  // AResponseInfo.DocStream :=
+  //   TIcsBufferedFileStream.Create(TCacheItemFile(LCacheItem).FPath,
+  //  fmOpenRead + fmShareDenyWrite, MAX_BUFSIZE);
+  // send
+  //AnswerStream(Status, LCacheItem.FContentType, LHeader);
+  end
+  end;
+  end;
+  //Finish;
+  end; *)
 
 { TCacheItemMemory }
 
@@ -267,21 +263,21 @@ begin
 end;
 
 class function TCacheItemFile.GetCacheFilePath(aOwner: TComponent; aFileName: string): string;
-var
-  _HostApp:TNVHostApp;
+//var
+ // _HostApp: TNVHostApp;
 begin
-  _HostApp:=NVSessionThread.HostApp;
-  // if is global cache
-  if (aOwner <> nil) and (aOwner = _HostApp) then
-    // path is in base cache dir
-    Result := _HostApp.DocDir + 'Cache\' + aFileName
-    // else if is Session Cache with Component Owner
-  else if (aOwner <> nil) then // path is in Session dir and owner dir
-    Result := _HostApp.DocDir + 'Cache\' + NVSessionApp.SessionID + '\' + aOwner.Name + '\' +
-      aFileName
-    // else is Session Cache without component Owner
-  else if aOwner = nil then
-    Result := _HostApp.DocDir + 'Cache\' + NVSessionApp.SessionID + '\' + aFileName;
+//  _HostApp := NVSessionApp.HostApp;
+//  // if is global cache
+//  if (aOwner <> nil) and (aOwner = _HostApp) then
+//    // path is in base cache dir
+//    Result := _HostApp.DocDir + 'Cache\' + aFileName
+//    // else if is Session Cache with Component Owner
+//  else if (aOwner <> nil) then // path is in Session dir and owner dir
+//    Result := _HostApp.DocDir + 'Cache\' + NVSessionApp.SessionID + '\' + aOwner.Name + '\' +
+//      aFileName
+//    // else is Session Cache without component Owner
+//  else if aOwner = nil then
+//    Result := _HostApp.DocDir + 'Cache\' + NVSessionApp.SessionID + '\' + aFileName;
 end;
 
 end.

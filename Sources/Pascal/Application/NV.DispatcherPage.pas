@@ -3,26 +3,27 @@ unit NV.DispatcherPage;
 interface
 
 uses
-  NV.Dispatcher, NV.VCL.Container, NV.Request;
+  NV.Dispatcher, NV.VCL.Page, NV.Request;
 
 type
   TDispatchPage = class(TDispatch)
   private
-    FPage: TNVModuleContainer;
+    FPage: TNVBasepage;
+    FPageClass: TNVBasepage;
   public
-    function Execute(aRequest: TNVRequestTask):Boolean; override;
-    constructor Create(aPage: TNVModuleContainer);
+    function Execute(aRequest: TNVRequestTask): Boolean; override;
+    constructor Create(aPage: TNVBasepage);
     destructor Destroy; override;
   end;
 
 implementation
 
 uses
-  NV.VCL.Page;
+  StrUtils, System.Classes, SysUtils, NV.JSON, IdGlobal, NV.Utils;
 
 { TDispatchPage }
 
-constructor TDispatchPage.Create(aPage: TNVModuleContainer);
+constructor TDispatchPage.Create(aPage: TNVBasepage);
 begin
   inherited Create;
   FPage := aPage;
@@ -34,68 +35,100 @@ begin
   inherited;
 end;
 
-function TDispatchPage.Execute(aRequest: TNVRequestTask):Boolean;
-const
-  Html =  sLineBreak +//
-    '<!DOCTYPE html>' + //
-    '<html> ' + sLineBreak +  //
-    ' ' + sLineBreak +   //
-    '<head> ' + sLineBreak +  //
-    '    <script src="netvcl/js/jquery.js"> ' + sLineBreak +   //
-    '    </script> ' + sLineBreak + //
-    '    <script src="netvcl/js/bootstrap.js"> ' + sLineBreak + //
-    '    </script> ' + sLineBreak + //
-    '    <script src="netvcl/js/NVObject.js"> ' + sLineBreak + //
-    '    </script> ' + sLineBreak +  //
-    '    <script src="netvcl/js/NVMenu.js"> ' + sLineBreak +  //
-    '    </script> ' + sLineBreak +  //
-    '    <script src="netvcl/js/NVServer.js"> ' + sLineBreak +   //
-    '    </script> ' + sLineBreak + //
-    '    <script src="netvcl/js/NVApplication.js"> ' + sLineBreak +   //
-    '    </script> ' + sLineBreak +  //
-    '    <script src="netvcl/js/VCL.js"> ' + sLineBreak +   //
-    '    </script> ' + sLineBreak +   //
-    '    <script src="netvcl/js/NVComponent.js"> ' + sLineBreak +  //
-    '    </script> ' + sLineBreak +  //
-    '    <script src="netvcl/js/NVUtils.js"> ' + sLineBreak +  //
-    '    </script> ' + sLineBreak + //
-    '    <script src="netvcl/js/NVInputBase.js"> ' + sLineBreak +   //
-    '    </script> ' + sLineBreak + //
-    ' ' + sLineBreak +    //
-    '    <script src="netvcl/js/NVContainer.js"> ' + sLineBreak +  //
-    '    </script> ' + sLineBreak +    //
-    '    <script src="netvcl/js/NVPage.js"> ' + sLineBreak +   //
-    '    </script> ' + sLineBreak +  //
-    '    <script src="netvcl/js/NVDataset.js"> ' + sLineBreak + //
-    '    </script> ' + sLineBreak +   //
-    '    <script src="netvcl/js/NVTextBase.js"> ' + sLineBreak +    //
-    '    </script> ' + sLineBreak +    //
-    '    <script src="netvcl/js/NVText.js"> ' + sLineBreak +    //
-    '    </script> ' + sLineBreak +   //
-    '    <script src="netvcl/js/NVInput.js"> ' + sLineBreak +   //
-    '    </script> ' + sLineBreak +   //
-    '</head> ' + sLineBreak +  //
-    ' ' + sLineBreak +   //
-    '<body> ' + sLineBreak +  //
-    '    <div id="content"></div> ' + sLineBreak +   //
-    '    <script> ' + sLineBreak +    //
-    '        p = new TPage(); ' + sLineBreak +     //
-    '        i = new TInput(p); ' + sLineBreak +  //
-    '        i2 = new TInput(p); ' + sLineBreak +  //
-    '        i3 = new TInput(p); ' + sLineBreak +  //
-    '        i4 = new TInput(p); ' + sLineBreak +  //
-    '        p.show(); ' + sLineBreak +  //
-    '        i.ShowCaption = true; ' + sLineBreak +  //
-    '        i.Caption = ''Caption''; ' + sLineBreak +   //
-    '    </script> ' + sLineBreak + //
-    '</body> ' + sLineBreak + //
-    ' ' + sLineBreak +  //
-    '</html> '; //
+function TDispatchPage.Execute(aRequest: TNVRequestTask): Boolean;
+  function Html: string;
+  var
+    _CssFiles: string;
+    I: Integer;
+  begin
+    _CssFiles := '';
+
+    // Page Css Files
+    for I := 0 to FPage.CssFiles.Count - 1 do
+    begin
+      _CssFiles := _CssFiles + sLineBreak + //
+        '    <link type="text/css" rel="stylesheet" href="' + //
+        MakeValidFileUrl('', FPage.CssFiles[I]) + //
+        '"> ';
+    end;
+
+    // Default CssFiles
+    if FPage.CssFiles.Count > 0 then
+      _CssFiles := _CssFiles + sLineBreak;
+
+    _CssFiles := _CssFiles + //
+      '    <link type="text/css" rel="stylesheet" href="./netvcl/css/nv.css"> '
+      + sLineBreak; //
+
+    Result := sLineBreak + //
+      '<!DOCTYPE html> ' + //
+      '<html lang="pt-br"> ' + sLineBreak + //
+      ' ' + sLineBreak + //
+      '<head> ' + sLineBreak + //
+      '    <meta charset="utf-8"> ' + sLineBreak + //
+      '    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">'
+      + sLineBreak + //
+      '    <meta http-equiv="cache-control"   content="no-cache" />' + //
+      '    <title></title> ' + sLineBreak + //
+      '    <script type="module" src="./netvcl/js/nv.forms.js"></script> ' +
+      sLineBreak + //
+      '    <script> ' + sLineBreak + //
+      '        function DoLoad() { ' + sLineBreak + //
+      '           App = new window.TApplication(""); ' + sLineBreak + //
+      IfThen( //
+      csDesigning in FPage.ComponentState //
+      , 'App.FDesign = true;' //
+      , '') + sLineBreak + //
+      '           App.ParseJson(' + //
+      FPage.Ajax.JSON.ToJSON + //
+      '); ' + sLineBreak + //
+      '' + sLineBreak + //
+      '        } ' + sLineBreak + //
+      '    </script> ' + sLineBreak + //
+      _CssFiles + sLineBreak + //
+    // '    <link type="text/css" rel="stylesheet" href="./netvcl/css/nv.css"> ' + sLineBreak + //
+      '    <meta id="last-css"> ' + sLineBreak + //
+      '</head> ' + sLineBreak + //
+      ' ' + sLineBreak + //
+      '<body onload="DoLoad()"> ' + sLineBreak + //
+      '    <script src="./netvcl/js/jquery-3.3.1.min.js"></script> ' +
+      sLineBreak + //
+      '    <script src="./netvcl/js/bs/bootstrap.min.js"></script> ' +
+      sLineBreak + //
+      '    <script type="module" src="./netvcl/js/bs/nv.bs.forms.js"></script> '
+      + sLineBreak + //
+      ' ' + sLineBreak + //
+      '        <meta id="last-js"> ' + sLineBreak + //
+      '</body> ' + sLineBreak + //
+      ' ' + sLineBreak + //
+      '</html> ';
+  end; //
+
+var
+  J: TJsonObject;
 begin
   inherited Execute(aRequest);
-  aRequest.Resp.ContentText:= Html;
-  Result:= True;
+  if aRequest.Req.Params.Values['callback'].IsEmpty then
+  begin
+    FPage.ReRender(False);
+    FPage.Render(nil);
+    aRequest.Resp.Text := Html;
+    FPage.Ajax.JSON.Clear;
+  end
+  else
+  begin
+    J := TJsonObject.Create;
+    try
+      J.FromJSON(aRequest.Req.Params[0]);
+      FPage.ProcessRequest(J);
+    finally
+      J.Free;
+    end;
+    aRequest.Resp.Text := FPage.Ajax.JSON.ToJSON;
+    FPage.Ajax.JSON.Clear;
+  end;
+
+  Result := True;
 end;
 
 end.
-

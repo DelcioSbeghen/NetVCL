@@ -3,10 +3,19 @@
         <ProjectGuid>{6F51EA1A-C3A9-4B97-B236-1C8B4F47A31D}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="Packages\NetVCLDesign.dproj">
+        <Projects Include="Packages\NetVCLCommon.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="Packages\NetVCLRuntime.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Packages\NetVCLDesign.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Packages\NetBCLRuntime.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Packages\NetBCLDesign.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="Demos\DevTests\DevTest.dproj">
@@ -15,10 +24,10 @@
         <Projects Include="Demos\DevTests\App1.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="Packages\NetVCLServerDesign.dproj">
+        <Projects Include="..\NetVCL-Browser\Sources\Dll\NVBrowserDll.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="Packages\NetVCLServerRuntime.dproj">
+        <Projects Include="..\NetVCL-Browser\Sources\SubProcess\NVCoreBrowser.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -29,14 +38,14 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="NetVCLDesign">
-        <MSBuild Projects="Packages\NetVCLDesign.dproj"/>
+    <Target Name="NetVCLCommon">
+        <MSBuild Projects="Packages\NetVCLCommon.dproj"/>
     </Target>
-    <Target Name="NetVCLDesign:Clean">
-        <MSBuild Projects="Packages\NetVCLDesign.dproj" Targets="Clean"/>
+    <Target Name="NetVCLCommon:Clean">
+        <MSBuild Projects="Packages\NetVCLCommon.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="NetVCLDesign:Make">
-        <MSBuild Projects="Packages\NetVCLDesign.dproj" Targets="Make"/>
+    <Target Name="NetVCLCommon:Make">
+        <MSBuild Projects="Packages\NetVCLCommon.dproj" Targets="Make"/>
     </Target>
     <Target Name="NetVCLRuntime">
         <MSBuild Projects="Packages\NetVCLRuntime.dproj"/>
@@ -46,6 +55,33 @@
     </Target>
     <Target Name="NetVCLRuntime:Make">
         <MSBuild Projects="Packages\NetVCLRuntime.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="NetVCLDesign">
+        <MSBuild Projects="Packages\NetVCLDesign.dproj"/>
+    </Target>
+    <Target Name="NetVCLDesign:Clean">
+        <MSBuild Projects="Packages\NetVCLDesign.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="NetVCLDesign:Make">
+        <MSBuild Projects="Packages\NetVCLDesign.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="NetBCLRuntime">
+        <MSBuild Projects="Packages\NetBCLRuntime.dproj"/>
+    </Target>
+    <Target Name="NetBCLRuntime:Clean">
+        <MSBuild Projects="Packages\NetBCLRuntime.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="NetBCLRuntime:Make">
+        <MSBuild Projects="Packages\NetBCLRuntime.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="NetBCLDesign">
+        <MSBuild Projects="Packages\NetBCLDesign.dproj"/>
+    </Target>
+    <Target Name="NetBCLDesign:Clean">
+        <MSBuild Projects="Packages\NetBCLDesign.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="NetBCLDesign:Make">
+        <MSBuild Projects="Packages\NetBCLDesign.dproj" Targets="Make"/>
     </Target>
     <Target Name="DevTest">
         <MSBuild Projects="Demos\DevTests\DevTest.dproj"/>
@@ -65,32 +101,32 @@
     <Target Name="App1:Make">
         <MSBuild Projects="Demos\DevTests\App1.dproj" Targets="Make"/>
     </Target>
-    <Target Name="NetVCLServerDesign">
-        <MSBuild Projects="Packages\NetVCLServerDesign.dproj"/>
+    <Target Name="NVBrowserDll">
+        <MSBuild Projects="..\NetVCL-Browser\Sources\Dll\NVBrowserDll.dproj"/>
     </Target>
-    <Target Name="NetVCLServerDesign:Clean">
-        <MSBuild Projects="Packages\NetVCLServerDesign.dproj" Targets="Clean"/>
+    <Target Name="NVBrowserDll:Clean">
+        <MSBuild Projects="..\NetVCL-Browser\Sources\Dll\NVBrowserDll.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="NetVCLServerDesign:Make">
-        <MSBuild Projects="Packages\NetVCLServerDesign.dproj" Targets="Make"/>
+    <Target Name="NVBrowserDll:Make">
+        <MSBuild Projects="..\NetVCL-Browser\Sources\Dll\NVBrowserDll.dproj" Targets="Make"/>
     </Target>
-    <Target Name="NetVCLServerRuntime">
-        <MSBuild Projects="Packages\NetVCLServerRuntime.dproj"/>
+    <Target Name="NVCoreBrowser">
+        <MSBuild Projects="..\NetVCL-Browser\Sources\SubProcess\NVCoreBrowser.dproj"/>
     </Target>
-    <Target Name="NetVCLServerRuntime:Clean">
-        <MSBuild Projects="Packages\NetVCLServerRuntime.dproj" Targets="Clean"/>
+    <Target Name="NVCoreBrowser:Clean">
+        <MSBuild Projects="..\NetVCL-Browser\Sources\SubProcess\NVCoreBrowser.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="NetVCLServerRuntime:Make">
-        <MSBuild Projects="Packages\NetVCLServerRuntime.dproj" Targets="Make"/>
+    <Target Name="NVCoreBrowser:Make">
+        <MSBuild Projects="..\NetVCL-Browser\Sources\SubProcess\NVCoreBrowser.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="NetVCLDesign;NetVCLRuntime;DevTest;App1;NetVCLServerDesign;NetVCLServerRuntime"/>
+        <CallTarget Targets="NetVCLCommon;NetVCLRuntime;NetVCLDesign;NetBCLRuntime;NetBCLDesign;DevTest;App1;NVBrowserDll;NVCoreBrowser"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="NetVCLDesign:Clean;NetVCLRuntime:Clean;DevTest:Clean;App1:Clean;NetVCLServerDesign:Clean;NetVCLServerRuntime:Clean"/>
+        <CallTarget Targets="NetVCLCommon:Clean;NetVCLRuntime:Clean;NetVCLDesign:Clean;NetBCLRuntime:Clean;NetBCLDesign:Clean;DevTest:Clean;App1:Clean;NVBrowserDll:Clean;NVCoreBrowser:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="NetVCLDesign:Make;NetVCLRuntime:Make;DevTest:Make;App1:Make;NetVCLServerDesign:Make;NetVCLServerRuntime:Make"/>
+        <CallTarget Targets="NetVCLCommon:Make;NetVCLRuntime:Make;NetVCLDesign:Make;NetBCLRuntime:Make;NetBCLDesign:Make;DevTest:Make;App1:Make;NVBrowserDll:Make;NVCoreBrowser:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

@@ -6,6 +6,7 @@ uses
   Classes, SysUtils, NV.Types, NV.Dispatcher, NV.Request;
 
 type
+  // Objet to respond one route with an method
   TNVRouteMethod = class
   private
     FNVRouteMethod: TNvRequestMethod;
@@ -13,43 +14,74 @@ type
     constructor Create(aMethod: TNvRequestMethod);
   end;
 
+  { TODO -oDelcio -cRouter : Change to TDictionary to speed up }
   TNVRouter = class(TStringList)
+  private
+    FDefault: TObject;
   public
+    constructor Create;
+    // Add an rote to any object: Subroute, Dispatch, Method //or Control(no more supported)
     function AddRoute(aRoute: string; aDest: TObject): TNVRouter; overload;
+    // Add an rote to respond with method
     function AddRoute(aRoute: string; aDest: TNvRequestMethod): TNVRouter; overload;
+    // Add an route to respond with an TDispatch
     function AddRoute(aRoute: string; aDest: TDispatch): TNVRouter; overload;
-    function AddSubRoute(aRoute: string; aDest: TNVRouter = nil): TNVRouter;
-    function Route(aRoutePath: TStrings; aRequest: TNVRequestTask): Boolean;
+    // Add an subroute
+    function AddSubRouter(aRoute: string; aDest: TNVRouter = nil): TNVRouter;
+    // Add default Object to respond for this route(for /)
+    function AddDefault(aDest: TObject): TNVRouter; overload;
+    // Add default Method to respond for this route(for /)
+    function AddDefault(aDest: TNvRequestMethod): TNVRouter; overload;
+    // Add default Dispatch to respond for this route(for /)
+    function AddDefault(aDest: TDispatch): TNVRouter; overload;
+    // Find next SubRoute and return this if encountered
+    function FindSubRouter(aRouteList: TStrings; var aRoute: TNVRouter): Boolean;
+    // find and execute an route
+    function Route(aRouteList: TStrings; aRequest: TNVRequestTask): Boolean; virtual;
     class function CreateRouteStringList: TStringList; overload;
     class function CreateRouteStringList(aRoute: string): TStringList; overload;
+  end;
+
+  TNVPageRouter = class(TNVRouter)
+  private
+    FPage: TObject;
+  public
+    constructor Create(aPage: TObject);
+    function Route(aRouteList: TStrings; aRequest: TNVRequestTask): Boolean; virtual;
   end;
 
 implementation
 
 uses
-  NV.VCL.Controls, NV.VCL.Container, NV.Utils;
+  NV.Controls, NV.Utils, NV.JSON;
 
 { TNVRouter }
 
 function TNVRouter.AddRoute(aRoute: string; aDest: TObject): TNVRouter;
 var
-  LMethod: TNVRouteMethod;
-  _RouteList: TStringList;
-  _LastRoute: TNVRouter;
+  _RouteList : TStringList;
+  _LastRouter: TNVRouter;
+  _Index     : Integer;
 begin
   _RouteList := CreateRouteStringList(aRoute);
-  _LastRoute := Self;
-  while _RouteList.Count > 0 do
-  begin
-    if _RouteList.Count = 1 then
-      _LastRoute.AddObject(_RouteList[0], aDest)
-    else
-     _LastRoute := AddSubRoute(_RouteList[0]);
 
+  // find last router in _RouteList
+  _LastRouter := Self;
+  while (_RouteList.Count > 0) and FindSubRouter(_RouteList, _LastRouter) do
     _RouteList.Delete(0);
-  end;
 
-  Result:= _LastRoute;
+  while _RouteList.Count > 0 do
+    begin
+
+      if _RouteList.Count = 1 then
+        _LastRouter.AddObject(_RouteList[0], aDest)
+      else
+        _LastRouter := AddSubRouter(_RouteList[0]);
+
+      _RouteList.Delete(0);
+    end;
+
+  Result := _LastRouter;
 end;
 
 function TNVRouter.AddRoute(aRoute: string; aDest: TNvRequestMethod): TNVRouter;
@@ -57,15 +89,34 @@ var
   LMethod: TNVRouteMethod;
 begin
   LMethod := TNVRouteMethod.Create(aDest);
-  Result:= AddRoute(aRoute,TObject(LMethod));
+  Result  := AddRoute(aRoute, TObject(LMethod));
+end;
+
+function TNVRouter.AddDefault(aDest: TObject): TNVRouter;
+begin
+  Result   := Self;
+  FDefault := aDest;
+end;
+
+function TNVRouter.AddDefault(aDest: TNvRequestMethod): TNVRouter;
+var
+  LMethod: TNVRouteMethod;
+begin
+  LMethod := TNVRouteMethod.Create(aDest);
+  Result  := AddDefault(TObject(LMethod));
+end;
+
+function TNVRouter.AddDefault(aDest: TDispatch): TNVRouter;
+begin
+  Result := AddDefault(TObject(aDest));
 end;
 
 function TNVRouter.AddRoute(aRoute: string; aDest: TDispatch): TNVRouter;
 begin
-  Result:= AddRoute(aRoute, TObject(aDest));
+  Result := AddRoute(aRoute, TObject(aDest));
 end;
 
-function TNVRouter.AddSubRoute(aRoute: string; aDest: TNVRouter): TNVRouter;
+function TNVRouter.AddSubRouter(aRoute: string; aDest: TNVRouter): TNVRouter;
 begin
   if aDest = nil then
     aDest := TNVRouter.Create;
@@ -73,63 +124,138 @@ begin
   Result := aDest;
 end;
 
+constructor TNVRouter.Create;
+begin
+  inherited Create;
+end;
+
 class function TNVRouter.CreateRouteStringList(aRoute: string): TStringList;
 begin
-  Result := TStringList.Create;
-  Result.Delimiter := '/';
+  Result                 := TStringList.Create;
+  Result.Delimiter       := '/';
   Result.StrictDelimiter := True;
-  Result.QuoteChar:= #0;
-  Result.DelimitedText := RemoveDelimiters(aRoute);
+  Result.QuoteChar       := #0;
+  Result.DelimitedText   := RemoveDelimiters(aRoute);
+end;
+
+function TNVRouter.FindSubRouter(aRouteList: TStrings; var aRoute: TNVRouter): Boolean;
+var
+  _RouteName: string;
+  _Index    : Integer;
+begin
+  Result := True;
+
+  if aRouteList.Count > 0 then
+    begin
+      _RouteName := aRouteList[0];
+
+      // this route
+      if _RouteName = '.' then
+        begin
+          aRoute := Self;
+          Exit;
+        end;
+
+      { TODO -oDelcio -cRoutes : Implement ".." UpRoute }
+
+      // find for exact math
+      _Index := IndexOf(_RouteName);
+      if (_Index > -1) and (Objects[_Index] is TNVRouter) then
+        begin
+          aRoute := TNVRouter(Objects[_Index]);
+          Exit;
+        end;
+
+      // not located an route with this name and has an wildcard route
+      if _Index = -1 then
+        begin
+          // find for wildcard math
+          _Index := IndexOf('*');
+          if (_Index > -1) and (Objects[_Index] is TNVRouter) then
+            begin
+              aRoute := TNVRouter(Objects[_Index]);
+              Exit;
+            end;
+        end;
+    end;
+
+  Result := False;
 end;
 
 class function TNVRouter.CreateRouteStringList: TStringList;
 begin
-  Result:=CreateRouteStringList('');
+  Result := CreateRouteStringList('');
 end;
 
-function TNVRouter.Route(aRoutePath: TStrings; aRequest: TNVRequestTask): Boolean;
+function TNVRouter.Route(aRouteList: TStrings; aRequest: TNVRequestTask): Boolean;
 var
-  LRouteName: string;
-  LIndex: Integer;
-  LObject: TObject;
+  LRouteName : string;
+  LIndex     : Integer;
+  LObject    : TObject;
+  _LastRouter: TNVRouter;
 begin
   Result := False;
-  if aRoutePath.Count < 1 then
-    Exit;
-  LRouteName := aRoutePath[0];
-  LIndex:= IndexOf(LRouteName);
-  if LIndex > -1 then
-  begin
-    LObject := Objects[LIndex];
-    if not Assigned(LObject) then
-      Exit;
-    if LObject is TNVRouter then
+
+  LObject:= nil;
+
+  // find last router in RoutePath
+  _LastRouter := Self;
+  while (aRouteList.Count > 0) and FindSubRouter(aRouteList, _LastRouter) do
+    aRouteList.Delete(0);
+
+  if aRouteList.Count > 0 then
     begin
-      aRoutePath.Delete(0);
-      TNVRouter(LObject).Route(aRoutePath, aRequest);
+      LRouteName := aRouteList[0];
+      // find for exact route
+      LIndex := IndexOf(LRouteName);
+      if LIndex > -1 then
+        LObject := Objects[LIndex]
+      else
+        begin
+          // find for wildcard(accept all)
+          LIndex := IndexOf('*');
+          if LIndex > -1 then
+            LObject := Objects[LIndex];
+        end;
     end
-    else if LObject is TDispatch then
+  else
+    LObject := _LastRouter.FDefault; // Default route
+
+  // no route found and not Default route set
+  if not Assigned(LObject) then
+    Exit;
+
+  if LObject is TDispatch then
     begin
+      if aRouteList.Count > 0 then
+        aRouteList.Delete(0);
       Result := TDispatch(LObject).Execute(aRequest);
     end
-    else if LObject is TNVControl then
+    // else if LObject is TNVControl then
+    // begin
+    // if aRouteList.Count > 0 then
+    // aRouteList.Delete(0);
+    // Result := TNVControl(LObject).Router.Route(aRouteList, aRequest);
+    // end
+    // else if LObject is TNvWinControl then
+    // begin
+    // if aRouteList.Count > 0 then
+    // aRouteList.Delete(0);
+    // Result := TNvWinControl(LObject).Router.Route(aRouteList, aRequest);
+    // end
+  else if LObject is TNVRouteMethod then
     begin
-      aRoutePath.Delete(0);
-      TNVControl(LObject).Router.Route(aRoutePath, aRequest);
-      Result := True;
+      if aRouteList.Count > 0 then
+        aRouteList.Delete(0);
+      Result := TNVRouteMethod(LObject).FNVRouteMethod(aRequest);
     end
-    else if LObject is TNVContainer then
+  else if LObject is TNVRouter then
     begin
-      aRoutePath.Delete(0);
-      TNVContainer(LObject).Router.Route(aRoutePath, aRequest);
-      Result := True;
-    end
-    else if LObject is TNVRouteMethod then
-    begin
-      TNVRouteMethod(LObject).FNVRouteMethod(aRequest);
-      Result := True;
+      if aRouteList.Count > 0 then
+        aRouteList.Delete(0);
+      Result := TNVRouter(LObject).Route(aRouteList, aRequest);
     end;
-  end;
+
 end;
 
 { TNVRouteMethod }
@@ -140,5 +266,28 @@ begin
   FNVRouteMethod := aMethod;
 end;
 
-end.
+{ TNVPageRouter }
 
+constructor TNVPageRouter.Create(aPage: TObject);
+begin
+  inherited Create;
+  FPage := aPage;
+end;
+
+function TNVPageRouter.Route(aRouteList: TStrings; aRequest: TNVRequestTask): Boolean;
+var
+  J: TJsonObject;
+begin
+  J := TJsonObject.Create;
+  try
+    J.FromJSON(aRequest.Req.Params[0]);
+
+    (FPage as TNVModuleContainer).ProcessRequest(J);
+
+  finally
+    J.Free;
+  end;
+  Result := inherited;
+end;
+
+end.

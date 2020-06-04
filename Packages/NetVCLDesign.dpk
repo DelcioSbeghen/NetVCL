@@ -39,13 +39,23 @@ requires
   IndySystem,
   IndyProtocols,
   IndyCore,
-  NetVCLRuntime;
+  NetVCLRuntime,
+  CEF4Delphi;
 
 contains
-  NV.Register in '..\Sources\Pascal\Design\NV.Register.pas',
+  NV.Design.Register in '..\Sources\Pascal\Design\NV.Design.Register.pas',
   NV.Design.AppWizard in '..\Sources\Pascal\Design\NV.Design.AppWizard.pas',
   NV.Design.AppModuleWizard in '..\Sources\Pascal\Design\NV.Design.AppModuleWizard.pas',
   NV.Design.PageWizard in '..\Sources\Pascal\Design\NV.Design.PageWizard.pas',
-  NV.Design.UserSessionWizard in '..\Sources\Pascal\Design\NV.Design.UserSessionWizard.pas';
+  NV.Design.UserSessionWizard in '..\Sources\Pascal\Design\NV.Design.UserSessionWizard.pas',
+  NV.Design.IDE in '..\Sources\Pascal\Design\NV.Design.IDE.pas',
+  NV.Design.IOTAUtils in '..\Sources\Pascal\Design\NV.Design.IOTAUtils.pas',
+  NV.Design.CopyFiles in '..\Sources\Pascal\Design\NV.Design.CopyFiles.pas',
+  NV.Design.ModuleDesigner in '..\Sources\Pascal\Design\NV.Design.ModuleDesigner.pas' {NvModuleDesigner},
+  NV.Design.RuntimeHook in '..\Sources\Pascal\Design\NV.Design.RuntimeHook.pas',
+  NV.Design.FrameWizard in '..\Sources\Pascal\Design\NV.Design.FrameWizard.pas',
+  NV.Design.ImagelistEditor in '..\Sources\Pascal\Design\NV.Design.ImagelistEditor.pas' {FrmImgListEditor},
+  NV.Design.JsonArrayEditor in '..\Sources\Pascal\Design\NV.Design.JsonArrayEditor.pas' {FrmJsonArrayEditor},
+  NV.Design.ImageIndexEditor in '..\Sources\Pascal\Design\NV.Design.ImageIndexEditor.pas' {FrmImgIdxEditor};
 
 end.

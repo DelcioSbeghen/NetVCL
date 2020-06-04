@@ -3,7 +3,7 @@ unit NV.Utils;
 interface
 
 uses
-  Classes, Controls, NV.VCL.Page, NV.Session, NV.Common.HostAppInterface, NV.HostApplication;
+  Classes, Controls, NV.VCL.Page, NV.Ajax, NV.Controls;
 
 type
   TJumpOfs = Integer;
@@ -14,22 +14,33 @@ type
     Jump: Byte;
     Offset: TJumpOfs;
   end;
+
 function TranslateChar(const Str: String; FromChar, ToChar: Char): String;
 function htoin(Value: PWideChar; Len: Integer): Integer;
 function UrlDecode(const Url: String; SrcCodePage: LongWord = CP_ACP;
-  DetectUtf8: boolean = TRUE): String;
+  DetectUtf8: boolean = True): String;
 function AbsolutisePath(const Path: String): String;
 function AdjustOSPathDelimiters(const Path: String): String;
 function IsDirectory(const Path: String): boolean;
-function RemoveDelimiters(const Path:string; Delimiter:Char = '/'):string;
+function RemoveDelimiters(const Path: string; Delimiter: Char = '/'): string;
+function GetRandomString(NumChar: UInt32): string;
+function ExtractBetweenTags(Const Line, TagI, TagF: string): string;
+function TextToHTML(const AText: string; ReplaceEOLs: boolean = True;
+  ReplaceSpaces: boolean = False): string;
 
+function FindDesigner(Component: TComponent): INVDesignerHook; overload;
+function FindDesigner(Component: TComponent; out aDesigner: INVDesignerHook): boolean; overload;
 
-  // Find a parent Page of one NV Control
+// Find a parent Page of one NV Control
 function FindParentPage(aControl: TControl): TNVBasePage;
+function FindAjax(aControl: TControl): TNvAjax;
 
-function MakeValidFileUrl(const ARootUrl: string; const AFileUrl: string; aHostApp:TNVHostApp = nil ): string;
+function MakeValidFileUrl(const ARootUrl: string; const AFileUrl: string): string;
 
-function MakeValidFileUrl2(const ARootUrl: string; const AFileUrl: string; ADisableCache: boolean = True; aHostApp:TNVHostApp = nil ): string;
+function MakeValidFileUrl2(const ARootUrl: string; const AFileUrl: string;
+  ADisableCache: boolean = True): string;
+
+function GetNVSourcesPath(ProjectPath: string): string;
 
 function IIf(Expressao: Variant; ParteTRUE, ParteFALSE: Variant): Variant;
 
@@ -45,18 +56,18 @@ procedure UnhookProc(Proc: Pointer; var BackupCode: TXRedirCode);
 
 procedure ReplaceVmtField(AClass: TClass; OldProc, NewProc: Pointer);
 
-// return the NVSessionApp for this session
-function NVSessionApp: TNVSessionApp;
+/// / return the NVSessionApp for this session
+// function NVSessionApp: TNVSessionApp;
+//
+/// / return the NVSessionThread for this session
+// function NVSessionThread: TNVSessionThread;
 
-// return the NVSessionThread for this session
-function NVSessionThread: TNVSessionThread;
-
-function NVServer: INVServer;
+// function NVServer: INVServer;
 
 implementation
 
 uses
-  Windows, SysUtils, StrUtils, NV.VCL.Controls, NV.VCL.Container;
+  Windows, SysUtils, StrUtils, System.Win.Registry, VCL.Dialogs, NV.VCL.Forms;
 
 type
   PWin9xDebugThunk = ^TWin9xDebugThunk;
@@ -73,6 +84,8 @@ type
     OpCode: Word; // $FF25(Jmp, FF /4)
     Addr: PPointer;
   end;
+
+  THackNVModuleContainer = class(TNVModuleContainer);
 
 function TranslateChar(const Str: String; FromChar, ToChar: Char): String;
 var
@@ -114,11 +127,11 @@ begin
 end;
 
 function UrlDecode(const Url: String; SrcCodePage: LongWord = CP_ACP;
-  DetectUtf8: boolean = TRUE): String;
-  var
+  DetectUtf8: boolean = True): String;
+var
   i, J, L: Integer;
-  U8Str: AnsiString;
-  Ch: AnsiChar;
+  U8Str  : AnsiString;
+  Ch     : AnsiChar;
 begin
   L := Length(Url);
   SetLength(U8Str, L);
@@ -186,14 +199,14 @@ begin
       Exit;
     end;
 
-  while TRUE do
+  while True do
     begin
       i := Pos({$IFDEF MSWINDOWS} '\.\' {$ELSE} '/./' {$ENDIF}, Result);
       if i <= N then
         Break;
       Delete(Result, i, 2);
     end;
-  while TRUE do
+  while True do
     begin
       i := Pos({$IFDEF MSWINDOWS} '\..' {$ELSE} '/..' {$ENDIF}, Result);
       if i <= N then
@@ -235,106 +248,109 @@ end;
 
 function FindParentPage(aControl: TControl): TNVBasePage;
 var
-  CompTest: TControl;
+  CompTest     : TControl;
+  ComponentTest: TComponent;
   // Check: IDWControl;
 begin
-  Result := nil;
+  Result   := nil;
   CompTest := aControl;
-  while Assigned(CompTest) and (not (CompTest.InheritsFrom(TNVBasePage))) do
-  begin
-    if Assigned(CompTest.Parent) then
-      CompTest := CompTest.Parent
-    else
-      CompTest := nil;
-  end;
-  if CompTest = nil then
-  begin
-    if TControl(aControl).Owner is TNVModuleContainer then
+
+  while Assigned(CompTest) and (not(CompTest.InheritsFrom(TNVBasePage))) do
     begin
-      CompTest := TControl(aControl.Owner.Owner);
-      while (CompTest <> nil) and (not (CompTest.InheritsFrom(TNVBasePage))) do
-        CompTest := TControl(CompTest.Owner);
+      if (CompTest is TNVModuleContainer) //
+        and (TNVModuleContainer(CompTest).Designer <> nil) then
+        begin
+          Result := TNVModuleContainer(CompTest).Designer.Page as TNVBasePage;
+          Exit;
+        end
+      else if Assigned(CompTest.Parent) then
+        CompTest := CompTest.Parent
+      else
+        CompTest := nil;
     end;
-  end;
-  if CompTest <> nil then
-    if CompTest.InheritsFrom(TNVBasePage) then
-      Result := CompTest as TNVBasePage;
+
+  if (CompTest <> nil) and (CompTest.InheritsFrom(TNVBasePage)) then
+    Result := CompTest as TNVBasePage
+  else
+    begin
+      ComponentTest := aControl;
+
+      while Assigned(ComponentTest) and (not(ComponentTest.InheritsFrom(TNVBasePage))) do
+        begin
+          if (ComponentTest is TNVModuleContainer) //
+            and (TNVModuleContainer(ComponentTest).Parent <> nil) then
+            ComponentTest := TNVModuleContainer(ComponentTest).Parent
+          else if Assigned(ComponentTest.Owner) then
+            ComponentTest := ComponentTest.Owner
+          else
+            ComponentTest := nil;
+        end;
+
+      if (ComponentTest <> nil) and (ComponentTest.InheritsFrom(TNVBasePage)) then
+        Result := ComponentTest as TNVBasePage;
+    end;
+
 end;
 
-function MakeValidFileUrl(const ARootUrl: string; const AFileUrl: string; aHostApp:TNVHostApp = nil ): string;
+function FindAjax(aControl: TControl): TNvAjax;
+var
+  _Page: TNVBasePage;
+begin
+  Result := nil;
+  _Page  := FindParentPage(aControl);
+  if _Page <> nil then
+    Result := _Page.Ajax;
+end;
+
+function MakeValidFileUrl(const ARootUrl: string; const AFileUrl: string): string;
 var
   _RootUrl: string;
   _FileUrl: string;
-  _SessionTh: TNVSessionThread;
-  _LibDir: string;
-  _DocDir: string;
+  _LibDir : string;
+  _DocDir : string;
 begin
-   if aHostApp = nil then
-    begin
-      if TNVSessionThread.GetCurrent(_SessionTh) then
-        aHostApp:= _SessionTh.HostApp;
-    end;
-
-  //get root url
-  if ARootUrl <> '' then   {TODO -oDelcio -cImprove : Remove _RootUrl Parameter if not Needed}
+  // get root url
+  if ARootUrl <> '' then { TODO -oDelcio -cImprove : Remove _RootUrl Parameter if not Needed }
     _RootUrl := ARootUrl
-  else if aHostApp <> nil then
-    _RootUrl := aHostApp.UrlBase;
-  //get doc and lib dir
-  if Assigned(aHostApp) then
-  begin
-    _LibDir := aHostApp.LibDir;
-    _DocDir := aHostApp.DocDir;
-  end
   else
-  begin
-    _LibDir := '';
-    _DocDir := '';
-  end;
+    _RootUrl := Application.UrlBase;
 
-  _FileUrl := ReplaceStr(AFileUrl, '/<nvlibpath>/', _LibDir); //replace components libdir tag to LibDir Path
-  _FileUrl := ExtractRelativePath(_DocDir + '\', _FileUrl); //relative to DocDir Path
-  _FileUrl := StringReplace(_FileUrl, '..\', '', [rfReplaceAll]); //if Doc Dir not subdir of Exe
-  _FileUrl := StringReplace(_FileUrl, '\', '/', [rfReplaceAll]);  //change win '\' to web '/'
-  Result := { _RootUrl + } '/' + _FileUrl;
+  // get doc and lib dir
+  _LibDir := Application.RootPath + 'netvcl\';
+  _DocDir := Application.RootPath;
+
+  _FileUrl := ReplaceStr(AFileUrl, '/<nvlibpath>/', _LibDir);
+  // replace components libdir tag to LibDir Path
+  _FileUrl := ExtractRelativePath(_DocDir + '\', _FileUrl);       // relative to DocDir Path
+  _FileUrl := StringReplace(_FileUrl, '..\', '', [rfReplaceAll]); // if Doc Dir not subdir of Exe
+  _FileUrl := StringReplace(_FileUrl, '\', '/', [rfReplaceAll]);  // change win '\' to web '/'
+  Result   := { _RootUrl + } './' + _FileUrl;
 end;
 
-function MakeValidFileUrl2(const ARootUrl: string; const AFileUrl: string; ADisableCache: boolean = True; aHostApp:TNVHostApp = nil ): string;
+function MakeValidFileUrl2(const ARootUrl: string; const AFileUrl: string;
+  ADisableCache: boolean = True): string;
 var
   _DisableCache: boolean;
-  _SessionTh: TNVSessionThread;
-  _LibDir: string;
-  //_DocDir: string;
+  _LibDir      : string;
+  // _DocDir: string;
   _RefreshCacheParam: string;
 begin
   _DisableCache := ADisableCache;
-  if aHostApp = nil then
-    begin
-      if TNVSessionThread.GetCurrent(_SessionTh) then
-        aHostApp:= _SessionTh.HostApp;
-    end;
 
+  _LibDir := Application.RootPath + 'netvcl\';
 
-  if aHostApp <> nil then
-  begin
-    _LibDir := aHostApp.LibDir;
-   // _DocDir := _SessionTh.HostApp.DocDir;
-    _RefreshCacheParam := _SessionTh.HostApp.RefreshCacheParam;
-  end
-  else
-  begin
-    _LibDir := '';
-   // _DocDir := '';
-    _RefreshCacheParam := '';
-  end;
+  // _DocDir := _SessionTh.HostApp.DocDir;
+  { TODO -oDelcio -cBrowserCache : MakeValidFileUrl2  RefreshCacheParam }
+  // _RefreshCacheParam := _SessionTh.SessionApp.HostApp.RefreshCacheParam;
+  _RefreshCacheParam := '';
 
   if AnsiStartsStr('//', AFileUrl) or AnsiContainsStr(AFileUrl, '://') then
-  begin
-    _DisableCache := False;
-    Result := ReplaceStr(AFileUrl, '/<nvlibpath>/', _LibDir);
-  end
+    begin
+      _DisableCache := False;
+      Result        := ReplaceStr(AFileUrl, '/<nvlibpath>/', _LibDir);
+    end
   else
-    Result := MakeValidFileUrl(ARootUrl, AFileUrl, aHostApp);
+    Result := MakeValidFileUrl(ARootUrl, AFileUrl);
 
   if _DisableCache then
     Result := Result + '?v=' + _RefreshCacheParam;
@@ -352,36 +368,37 @@ function GetProcAddr(Proc: Pointer): Pointer;
 
   function IsWin9xDebugThunk(AAddr: Pointer): boolean;
   begin
-    Result := (AAddr <> nil) and (PWin9xDebugThunk(AAddr).PUSH = $68) and (PWin9xDebugThunk(AAddr).JMP.Jump = $E9);
+    Result := (AAddr <> nil) and (PWin9xDebugThunk(AAddr).PUSH = $68) and
+      (PWin9xDebugThunk(AAddr).JMP.Jump = $E9);
   end;
 
 begin
   if Proc <> nil then
-  begin
-    if (Win32Platform <> VER_PLATFORM_WIN32_NT) and IsWin9xDebugThunk(Proc) then
-      Proc := PWin9xDebugThunk(Proc).Addr;
-    if (PAbsoluteIndirectJmp(Proc).OpCode = $25FF) then
-      Result := PAbsoluteIndirectJmp(Proc).Addr^
-    else
-      Result := Proc;
-  end
+    begin
+      if (Win32Platform <> VER_PLATFORM_WIN32_NT) and IsWin9xDebugThunk(Proc) then
+        Proc := PWin9xDebugThunk(Proc).Addr;
+      if (PAbsoluteIndirectJmp(Proc).OpCode = $25FF) then
+        Result := PAbsoluteIndirectJmp(Proc).Addr^
+      else
+        Result := Proc;
+    end
   else
     Result := nil;
 end;
 
 procedure HookProc(Proc, Dest: Pointer; var BackupCode: TXRedirCode);
 var
-  N: NativeUInt;
+  N   : NativeUInt;
   Code: TXRedirCode;
 begin
   Proc := GetProcAddr(Proc);
   Assert(Proc <> nil);
   if ReadProcessMemory(GetCurrentProcess, Proc, @BackupCode, SizeOf(BackupCode), N) then
-  begin
-    Code.Jump := $E9;
-    Code.Offset := PAnsiChar(Dest) - PAnsiChar(Proc) - SizeOf(Code);
-    WriteProcessMemory(GetCurrentProcess, Proc, @Code, SizeOf(Code), N);
-  end;
+    begin
+      Code.Jump   := $E9;
+      Code.Offset := PAnsiChar(Dest) - PAnsiChar(Proc) - SizeOf(Code);
+      WriteProcessMemory(GetCurrentProcess, Proc, @Code, SizeOf(Code), N);
+    end;
 end;
 
 procedure UnhookProc(Proc: Pointer; var BackupCode: TXRedirCode);
@@ -389,89 +406,267 @@ var
   N: NativeUInt;
 begin
   if (BackupCode.Jump <> 0) and (Proc <> nil) then
-  begin
-    Proc := GetProcAddr(Proc);
-    Assert(Proc <> nil);
-    WriteProcessMemory(GetCurrentProcess, Proc, @BackupCode, SizeOf(BackupCode), N);
-    BackupCode.Jump := 0;
-  end;
+    begin
+      Proc := GetProcAddr(Proc);
+      Assert(Proc <> nil);
+      WriteProcessMemory(GetCurrentProcess, Proc, @BackupCode, SizeOf(BackupCode), N);
+      BackupCode.Jump := 0;
+    end;
 end;
 
 procedure ReplaceVmtField(AClass: TClass; OldProc, NewProc: Pointer);
 type
   PVmt = ^TVmt;
 
-  TVmt = array[0..MaxInt div SizeOf(Pointer) - 1] of Pointer;
+  TVmt = array [0 .. MaxInt div SizeOf(Pointer) - 1] of Pointer;
 var
-  I: Integer;
+  i  : Integer;
   Vmt: PVmt;
-  N: NativeUInt;
-  P: Pointer;
+  N  : NativeUInt;
+  P  : Pointer;
 begin
   OldProc := GetProcAddr(OldProc);
   NewProc := GetProcAddr(NewProc);
 
-  I := vmtSelfPtr div SizeOf(Pointer);
+  i   := vmtSelfPtr div SizeOf(Pointer);
   Vmt := Pointer(AClass);
-  while (I < 0) or (Vmt[I] <> nil) do
-  begin
-    P := Vmt[I];
-    if (P <> OldProc) and (Integer(P) > $10000) and not IsBadReadPtr(P, 6) then
-      P := GetProcAddr(P);
-    if P = OldProc then
+  while (i < 0) or (Vmt[i] <> nil) do
     begin
-      WriteProcessMemory(GetCurrentProcess, @Vmt[I], @NewProc, SizeOf(NewProc), N);
-      Exit;
+      P := Vmt[i];
+      if (P <> OldProc) and (Integer(P) > $10000) and not IsBadReadPtr(P, 6) then
+        P := GetProcAddr(P);
+      if P = OldProc then
+        begin
+          WriteProcessMemory(GetCurrentProcess, @Vmt[i], @NewProc, SizeOf(NewProc), N);
+          Exit;
+        end;
+      inc(i);
     end;
-    Inc(I);
-  end;
 end;
 
-function NVSessionApp: TNVSessionApp;
-var
-  _SessionTh: TNVSessionThread;
-begin
-  if TNVSessionThread.GetCurrent(_SessionTh) then
-    Result := _SessionTh.SessionApp
-  else
-    Result := nil;
-  (*Result := nil;
-  if (TThread.CurrentThread is TNVAppThread) then
-    Result := TNVAppThread(TThread.Current).DWApp;
-  // else
-  // raise Exception.Create('Corrigir Isso'); *)
-end;
+// function NVSessionApp: TNVSessionApp;
+// var
+// _SessionTh: TNVSessionThread;
+// begin
+// if TNVSessionThread.GetCurrent(_SessionTh) then
+// Result := _SessionTh.SessionApp
+// else
+// Result := nil;
+// if (Result = nil) and Assigned(DesignSession) then
+// Result := DesignSession;
+//
+// (* Result := nil;
+// if (TThread.CurrentThread is TNVAppThread) then
+// Result := TNVAppThread(TThread.Current).DWApp;
+// // else
+// // raise Exception.Create('Corrigir Isso'); *)
+// end;
+//
+// function NVSessionThread: TNVSessionThread;
+// begin
+// TNVSessionThread.GetCurrent(Result);
+//
+// if (Result = nil) and Assigned(DesignSession) then
+// Result := DesignSession.SessionThread;
+//
+// (* Result := nil;
+// if (TThread.CurrentThread is TNVSessionThread) then
+// Result := TNVSessionThread(TThread.Current);
+// // else
+// // raise Exception.Create('Corrigir Isso'); *)
+// end;
+//
+// function NVServer: INVServer;
+// begin
+// try
+// Result := NVSessionApp.HostApp.GetServer;
+// except
+// Result := nil;
+// if DebugHook <> 0 then
+// raise;
+// end;
+// end;
 
-function NVSessionThread: TNVSessionThread;
-begin
-  TNVSessionThread.GetCurrent(Result);
-  (* Result := nil;
-  if (TThread.CurrentThread is TNVSessionThread) then
-    Result := TNVSessionThread(TThread.Current);
-  // else
-  // raise Exception.Create('Corrigir Isso');*)
-end;
-
-function NVServer: INVServer;
-begin
-  try
-    Result := NVSessionThread.HostApp.GetServer;
-  except
-    Result := nil;
-    if DebugHook <> 0 then
-      raise;
-  end;
-end;
-
-function RemoveDelimiters(const Path:string; Delimiter:Char = '/'):string;
+function RemoveDelimiters(const Path: string; Delimiter: Char = '/'): string;
 begin
   if Path[Low(Path)] = Delimiter then
-    Result:= Copy(Path, 2, Path.Length -1)
+    Result := '.' + Path
   else
-    Result:= Path;
-  if Result[High(Result)] = Delimiter then
-    SetLength(Result, Length(Result)-1);
+    Result := Path;
+
+  if Not Result.IsEmpty and (Result[High(Result)] = Delimiter) then
+    SetLength(Result, Length(Result) - 1);
+end;
+
+function GetRandomString(NumChar: UInt32): string;
+const
+  CharMap = 'qwertzuiopasdfghjklyxcvbnmQWERTZUIOPASDFGHJKLYXCVBNM1234567890'; { Do not Localize }
+  MaxChar: UInt32 = Length(CharMap) - 1;
+var
+  i: Integer;
+begin
+  randomize;
+  SetLength(Result, NumChar);
+  for i := 1 to NumChar do
+    begin
+      // Add one because CharMap is 1-based
+      Result[i] := CharMap[Random(MaxChar) + 1];
+    end;
+end;
+
+function FindDesigner(Component: TComponent): INVDesignerHook;
+var
+  _Component: TComponent;
+begin
+  if (csDesigning in Component.ComponentState) then
+    begin
+      _Component := Component;
+      while (_Component <> nil) do
+        begin
+          if (_Component is TNVModuleContainer) and
+            (THackNVModuleContainer(_Component).FDesigner <> nil) then
+            begin
+              Result := THackNVModuleContainer(_Component).FDesigner;
+              Exit;
+            end;
+          // else if (_Component is TCustomForm) and (TCustomForm(_Component).Designer <> nil) then
+          // begin
+          // Result := TCustomForm(_Component).Designer;
+          // Exit;
+          // end;
+          _Component := _Component.Owner;
+        end;
+    end;
+
+  Result := nil;
+end;
+
+function FindDesigner(Component: TComponent; out aDesigner: INVDesignerHook): boolean; overload;
+begin
+  aDesigner := FindDesigner(Component);
+  Result    := aDesigner <> nil;
+end;
+
+function ExtractBetweenTags(Const Line, TagI, TagF: string): string;
+var
+  i, f: Integer;
+begin
+  i := Pos(TagI, Line);
+  f := Pos(TagF, Copy(Line, i + Length(TagI), MaxInt));
+  if (i > 0) and (f > 0) then
+    Result := Copy(Line, i + Length(TagI), f - 1);
+end;
+
+function TextToHTML(const AText: string; ReplaceEOLs: boolean = True;
+  ReplaceSpaces: boolean = False): string;
+var
+  POrig, PDest: PChar;
+  // L_IsCallBack: Boolean;
+begin
+  // L_IsCallBack := DWApplication.IsCallback;
+  SetLength(Result, Length(AText) * 10);
+  POrig := PChar(AText);
+  PDest := PChar(Result);
+  while POrig^ <> #0 do
+    begin
+      case POrig^ of
+        '&':
+          begin
+            FormatBuf(PDest^, 10 { 5*2 } , '&amp;', 10 { 5*2 } , []);
+            inc(PDest, 4);
+          end;
+        '<', '>':
+          begin
+            if POrig^ = '<' then
+              FormatBuf(PDest^, 8 { 4*2 } , '&lt;', 8 { 4*2 } , [])
+            else
+              FormatBuf(PDest^, 8 { 4*2 } , '&gt;', 8 { 4*2 } , []);
+            inc(PDest, 3);
+          end;
+        '"':
+          begin
+            FormatBuf(PDest^, 12 { 6*2 } , '&quot;', 12 { 6*2 } , []);
+            inc(PDest, 5);
+          end;
+        '''':
+          begin
+            FormatBuf(PDest^, 10 { 5*2 } , '&#39;', 10 { 5*2 } , []);
+            inc(PDest, 4);
+          end;
+        '\':
+          begin
+            FormatBuf(PDest^, 10 { 5*2 } , '&#92;', 10 { 5*2 } , []);
+            inc(PDest, 4);
+          end;
+        #10:
+          if ReplaceEOLs then
+            begin
+              FormatBuf(PDest^, 8 { 4*2 } , '<br>', 8 { 4*2 } , []);
+              inc(PDest, 3);
+            end
+          else
+            PDest^ := POrig^;
+        #13:
+          if ReplaceEOLs then
+            begin
+              Dec(PDest);
+            end
+          else
+            PDest^ := POrig^;
+        #32:
+          if ReplaceSpaces then
+            begin
+              // if L_IsCallBack then
+              // begin
+              // FormatBuf(PDest^, 20, '&amp;nbsp;', 20, []);
+              // Inc(PDest, 9);
+              // end
+              // else
+              // begin
+              FormatBuf(PDest^, 12, '&nbsp;', 12, []);
+              inc(PDest, 5);
+              // end;
+            end
+          else
+            PDest^ := POrig^;
+      else PDest^  := POrig^
+      end;
+      inc(PDest);
+      inc(POrig);
+    end;
+  SetLength(Result, PDest - PChar(Result));
+end;
+
+function GetNVSourcesPath(ProjectPath: string): string;
+begin
+  Result := '';
+  with TRegistry.Create do
+    begin
+      RootKey := HKEY_CURRENT_USER;
+      if OpenKey('Software\SRP Sistemas\NetVCL', True) then
+        begin
+          if ValueExists('SourcePath') then
+            Result := ReadString('LibSourcePath')
+          else
+            WriteString('SourcePath', '');
+
+          if (Result <> '') and not FileExists(Result + 'NetVCLSourcesRoot.txt') then
+            Result := '';
+
+          while Result = '' do
+            begin
+              ShowMessage('NetVCL source path specified is not valid.');
+              if PromptForFileName(Result, 'NetVCLSourcesRoot.txt',
+                'Select NetVcl Script Library Path') then
+                begin
+                  Result := ExtractFilePath(Result);
+
+                  WriteString('LibSourcePath', Result);
+                end;
+            end;
+
+        end;
+    end;
 end;
 
 end.
-

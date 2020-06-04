@@ -1,0 +1,9 @@
+.design .design-div {
+    border: 1px dashed rgba(0, 0, 0, 0.137);
+    min-height: 10px;
+}
+
+/* center svg image in buttons and others */
+svg {
+    margin-top: -0.125em;
+}
