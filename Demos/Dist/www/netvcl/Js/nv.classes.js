@@ -1,23 +1,23 @@
 //Base
 export class TSubProperty {
 
-}    
+}
 
 export class TComponent {
 
-    constructor(o) {        
+    constructor(o) {
         this._CreateParams(o);
         this._ChangeParams(o);
         window.App ? App.AddComponentToList(this) : null;
     }
 
     _CreateParams(o) {
-        this.FId = o.Id; 
-        this.FName = o.Name || "";       
+        this.FId = o.Id;
+        this.FName = o.Name || "";
     }
 
-    _ChangeParams(o){
-        ChangeCompProps(this, o); 
+    _ChangeParams(o) {
+        ChangeCompProps(this, o);
     }
 
     Free() {
@@ -93,9 +93,50 @@ export class TNvLogger extends TSubProperty {
     }
 }
 
+export class TNvReceivedQueue {
+    constructor() {
+        this.FRecQueue = [];
+        this.FProcessing = 0;
+    }
+
+    _ProcessQueue() {
+        if (this.Count == 0)
+            return;
+        if (this.FProcessing == 0) {
+            this.FProcessing++;
+            this._ProcessNext();
+            this.FProcessing--;
+        }
+    }
+
+
+    _ProcessNext() {
+        let js = this.FRecQueue.shift();
+        App.ParseJsonNew(js).then(() => {
+            if (this.Count > 0)
+                this._ProcessNext()
+        });
+    }
+
+
+    QueueMessage(C) {
+        this.FRecQueue.push(C);
+        this._ProcessQueue();
+    }
+
+    get Count() {
+        return this.FRecQueue.length;
+    }
+
+}
+
+
+
+
+
 //-------------------- For Components decendants ----------------------------------------
 
-export function ChangeCompProps(Obj, Props, ignore = ["Change", "New", "Id", "Events"]){
+export function ChangeCompProps(Obj, Props, ignore = ["Change", "New", "Id", "Events"]) {
     Object.keys(Props).forEach(PropName => {
         //Ignore "Change", "New" and "Id" Props
         if ($.isInArray(PropName, ignore))
@@ -106,13 +147,13 @@ export function ChangeCompProps(Obj, Props, ignore = ["Change", "New", "Id", "Ev
 
 
 function ChangeCompProp(Obj, Prop, Value) {
-     //execute calls to component functions
+    //execute calls to component functions
     if (Prop === "Call") {
         Value.forEach(call => {
             if (Obj[call["function"]] !== undefined)
                 Obj[call["function"]](call["params"]);
         });
-    //process SubComponent Props
+        //process SubComponent Props
     } else if (Obj[Prop] instanceof TSubProperty && Value !== null) {
         var _SubObj = Obj[Prop];
         ChangeCompProps(_SubObj, Value)
@@ -123,22 +164,22 @@ function ChangeCompProp(Obj, Prop, Value) {
 
 //-------------------  For Objects  --------------------------
 
-export function ChangeObjProps(Obj, Props, ignore = []){
-    Object.keys(Props).forEach(PropName => {  
+export function ChangeObjProps(Obj, Props, ignore = []) {
+    Object.keys(Props).forEach(PropName => {
         ChangeObjProp(Obj, PropName, Props[PropName], ignore);
     });
 }
 
 
 function ChangeObjProp(Obj, Prop, Value, ignore) {
-     //Ignore "Change", "New" and "Id" Props
-     if ($.isInArray(Prop, ignore)){
+    //Ignore "Change", "New" and "Id" Props
+    if ($.isInArray(Prop, ignore)) {
         return
-    //process Array Props
-     } else if ($.isArray(Value)) {
+        //process Array Props
+    } else if ($.isArray(Value)) {
         Obj[Prop] = Value;
-    //process SubObj Props
-    } else if (Value instanceof Object  && Value !== null) {
+        //process SubObj Props
+    } else if (Value instanceof Object && Value !== null) {
         var _SubObj = Obj[Prop];
         ChangeObjProps(_SubObj, Value);
         //process Prop
@@ -340,7 +381,7 @@ $.extend({
     replaceTag: function (element, tagName, withDataAndEvents, deepWithDataAndEvents) {
         var newTag = $("<" + tagName + ">")[0];
         // From [Stackoverflow: Copy all Attributes](http://stackoverflow.com/a/6753486/2096729)
-        $.each(element.attributes, function() {
+        $.each(element.attributes, function () {
             newTag.setAttribute(this.name, this.value);
         });
         //$(element).children().clone(withDataAndEvents, deepWithDataAndEvents).appendTo(newTag);
@@ -352,7 +393,7 @@ $.extend({
 $.fn.extend({
     replaceTag: function (tagName, withDataAndEvents, deepWithDataAndEvents) {
         // Use map to reconstruct the selector with newly created elements
-        return this.map(function() {
+        return this.map(function () {
             return jQuery.replaceTag(this, tagName, withDataAndEvents, deepWithDataAndEvents);
         })
     }

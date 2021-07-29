@@ -9,12 +9,17 @@ export function RegisterClasses() {
     TApplication.RegisterClass('TPage', "./nv.forms.js");
     TApplication.RegisterClass('TNVFrame', "./nv.forms.js");
     TApplication.RegisterClass('TImage', "./nv.extctrls.js");
+    TApplication.RegisterClass('TNvMessageDialog', "./nv.dialogs.js");
     TApplication.RegisterClass('TTable', "./nv.table.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
     TApplication.RegisterClass('TNvChart', "./nv.charts.js")
         .RegisterClassModule(jsdir + 'Chart.bundle.min.js', 'js')
         .RegisterClassModule(cssdir + 'Chart.min.css', 'css');
+    TApplication.RegisterClass('TNvStatusBar', "./nv.stdctrls.js");
+
+
+
 
 
 
@@ -211,5 +216,9 @@ export function RegisterClasses() {
         .RegisterClassModule(bscss, 'css')
         .RegisterClassModule(jsdir + "bs/bootstrap-table.min.js", 'js')
         .RegisterClassModule(cssdir + "bs/bootstrap-table.min.css", 'css');
+
+    TApplication.RegisterClass('TNvBsImage', "./bs/nv.bs.images.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');
 
 }

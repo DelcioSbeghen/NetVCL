@@ -2,13 +2,14 @@
 import { TWinControl } from "./nv.controls.js";
 import { TServer } from "./nv.server.js";
 import { RegisterClasses } from "./nv.register.js";
-import { TNvLogger, ChangeCompProps } from "./nv.classes.js";
+import { TNvLogger, ChangeCompProps, TNvReceivedQueue } from "./nv.classes.js";
 
 class TApplication {
 
     constructor(o) {
         // TODO Add Debug handler function to send javascript errors to server
         this.FLogger = new TNvLogger(o.Logger || { Debug: true, HandlerFunc: null });
+        this.FMessages = new TNvReceivedQueue();
         this.FComponentList = {}; //Loaded components
         this.FClasses = {}; //loaded classes
         this.FChanges = {};//changes pending of send to server 
@@ -41,22 +42,39 @@ class TApplication {
     get Url() { return window.location.origin }
 
     ParseJson(J) {
+
+        this.Messages.QueueMessage(J);
+    }
+
+    ParseJsonNew(J){
         //       if (J.Reqs) {
         //           this._ParseRequires(J.Reqs, () => this._ParseComponentRequires(J.Comps));
         //       } else {
         // this._ParseComponentRequires(J.Comps);
         //     }
-        if (J.Comps)
-            this._ParseComponents(J.Comps);
-        this.FixUpParents();
-        if (J.Exec) {
-            this._ExecuteScrips(J.Exec);
-        }
+        this.Logger.Debug(JSON.stringify(J));
 
+        var $this = this;
 
-
+        return new Promise(function (resolve, reject) {
+            if (J.Comps)
+                $this._ParseComponents(J.Comps).then(() => { 
+                    resolve() 
+                })
+            else
+                // $this._ParseComponents(J.Comps); //Precisa de promisse ???
+                resolve();
+        })
+            .then((resolve) => {
+                $this.FixUpParents();
+                return resolve;
+            })
+            .then((resolve) => {
+                if (J.Exec)
+                    $this._ExecuteScrips(J.Exec);
+                return resolve;
+            })
     }
-
 
     //Check the ressourses loaded in initial html and add to loadded Requires
     _CheckLoadedRequires() {
@@ -138,8 +156,8 @@ class TApplication {
                     delete $this.FRequiresPending[required.Name];
                     promisses.push(
                         $this._getRequired(required).then(
-                            () => { 
-                                $this.Logger.Debug('Require Loaded:' + required.Name); 
+                            () => {
+                                $this.Logger.Debug('Require Loaded:' + required.Name);
                             },//resolved
                             (reqFailed) => { //rejected
                                 $this.FRequiresPending[reqFailed.Name] = reqFailed;
@@ -208,30 +226,38 @@ class TApplication {
     }
 
     _ParseComponents(Comps) {
-        if (Comps.length === 0)
-            return; //avoid loop
+        var $this = this;
+        return new Promise(function (resolve, reject) {
 
-        var _Comp = Comps.shift(); //remove first component from list
 
-        if (_Comp.New) {
-            //First check if component already exists(Delphi ReRender Method)
-            if (this.FComponentList[_Comp.New]) {
-                this.ChangeComponent(_Comp);
-                this._ParseComponents(Comps);
-            } else {
-                //create next component only after create this component to avoid errors because
-                //next components use this component properties reference (Next.Parent = Actual)
-                this.NewComponent(_Comp).then(() => { this._ParseComponents(Comps) });
+            if (Comps.length === 0) {
+                resolve();
+                return;//avoid loop
             }
-        }
-        else if (_Comp.Change) {
-            this.ChangeComponent(_Comp);
-            this._ParseComponents(Comps);
-        }
-        else if (_Comp.Del) {
-            this.DeleteComponent(_Comp);
-            this._ParseComponents(Comps);
-        }
+
+
+            var _Comp = Comps.shift(); //remove first component from list
+
+            if (_Comp.New) {
+                //First check if component already exists(Delphi ReRender Method)
+                if ($this.FComponentList[_Comp.New]) {
+                    $this.ChangeComponent(_Comp);
+                    $this._ParseComponents(Comps).then(()=> {resolve()});
+                } else {
+                    //create next component only after create this component to avoid errors because
+                    //next components use this component properties reference (Next.Parent = Actual)
+                    $this.NewComponent(_Comp).then(() => { $this._ParseComponents(Comps).then(()=> {resolve()}) });
+                }
+            }
+            else if (_Comp.Change) {
+                $this.ChangeComponent(_Comp);
+                $this._ParseComponents(Comps).then(()=> {resolve()});
+            }
+            else if (_Comp.Del) {
+                $this.DeleteComponent(_Comp);
+                $this._ParseComponents(Comps).then(()=> {resolve()});
+            }
+        })
     }
 
 
@@ -347,7 +373,7 @@ class TApplication {
 
     AddRequire(Type, Url, Name = '') {
         if (Name === '')
-            Name = $.getFileName(Url);    
+            Name = $.getFileName(Url);
         if ((!this.FRequiresLoded[Name]) && (!this.FRequiresPending[Name])) {
             var _req = this.FRequiresPending[Name] = {};
             _req.Type = Type;
@@ -361,6 +387,10 @@ class TApplication {
         if (!_Change)
             _Change = (this.FChanges[IdComp] = {});
         _Change[Prop] = Value;
+    }
+
+    get Messages() {
+        return this.FMessages;
     }
 
 
