@@ -2,91 +2,94 @@ import { TNvBsGridContainer, TNvBsContainer } from "./nv.bs.containers.js";
 import { TBsControl } from "./nv.bs.controls.js";
 import { TNvBSText, TNvBsLink } from "./nv.bs.htmlcontrols.js";
 
+
+
+
 export class TNvBsCard extends TNvBsContainer {
-    _CreateParams(o) {
-        super._CreateParams(o);
-        this.AddClass("card");
-        if (App.FDesign)
-            this.AddClass("design-div");
+    _DefaultParams(o) {
+        o.ClassCss ??= "card";
+        this.FDesignClass ??= "design design-div";
+        super._DefaultParams(o);
     }
 }
 
 export class TNvBsCardHeader extends TNvBsContainer {
-    _CreateParams(o) {
-        super._CreateParams(o);
-        this.AddClass("card-header");
+    _DefaultParams(o) {
+        o.ClassCss ??= "card-header";
+        super._DefaultParams(o);
     }
 }
 
 export class TNvBsCardBody extends TNvBsContainer {
-    _CreateParams(o) {
-        super._CreateParams(o);
-        this.AddClass("card-body");
-       }
+    _DefaultParams(o) {
+        o.ClassCss ??= "card-body";
+        super._DefaultParams(o);
+    }
 }
 
 export class TNvBsCardFooter extends TNvBsContainer {
-    _CreateParams(o) {
-        super._CreateParams(o);
-        this.AddClass("card-footer");
+    _DefaultParams(o) {
+        o.ClassCss ??= "card-footer";
+        super._DefaultParams(o);
     }
 }
 
 export class TNvBsCardImage extends TBsControl {
-    _CreateParams(o) {
-        super._CreateParams(o);
-        this.AddClass("card-image-top");
-       }
+    _DefaultParams(o) {
+        o.ClassCss ??= "card-img-top";
+        super._DefaultParams(o);
+    }
 }
 
 export class TNvBsCardTitle extends TNvBSText {
-    _CreateParams(o) {
-        super._CreateParams(o);
-        this.AddClass("card-title");
+    _DefaultParams(o) {
+        o.ClassCss ??= "card-title";
+        o.Tag ??= "h5";
+        super._DefaultParams(o);
     }
-    _Tag(){return 'h5'}
 }
 
 export class TNvBsCardSubtitle extends TNvBSText {
-    _CreateParams(o) {
-        super._CreateParams(o);
-        this.AddClass("card-subtitle");
+    _DefaultParams(o) {
+        o.ClassCss ??= "card-subtitle";
+        o.Tag ??= "h6";
+        super._DefaultParams(o);
     }
-    _Tag(){return 'h6'}
 }
 
+
 export class TNvBsCardLink extends TNvBsLink {
-    _CreateParams(o) {
-        super._CreateParams(o);
-        this.AddClass("card-link");
+    _DefaultParams(o) {
+        o.ClassCss ??= "card-link";
+        super._DefaultParams(o);
     }
 }
 
 export class TNvBsCardText extends TNvBSText {
-    _CreateParams(o) {
-        super._CreateParams(o);
-        this.AddClass("card-text");
-    }
-    _Tag(){return "p"}
-}
-
-export class TNvBsCardStats extends TNvBsCard{
-    _CreateParams(o) {
-        super._CreateParams(o);
-        this.AddClass("card-stats");
+    _DefaultParams(o) {
+        o.ClassCss ??= "card-text";
+        o.Tag ??= "p";
+        super._DefaultParams(o);
     }
 }
 
-export class TNvBsCardChart extends TNvBsCard{
-    _CreateParams(o) {
-        super._CreateParams(o);
-        this.AddClass("card-chart");
-    }  
+export class TNvBsCardStats extends TNvBsCard {
+    _DefaultParams(o) {
+        o.ClassCss ??= "card card-stats";
+        super._DefaultParams(o);
+    }
+}
+
+export class TNvBsCardChart extends TNvBsCard {
+    _DefaultParams(o) {
+        o.ClassCss ??= "card card-chart";
+        super._DefaultParams(o);
+    }
 }
 
 export class TNvBsCardTable extends TNvBsCard {
-    _CreateParams(o) {
-        super._CreateParams(o);
-        this.AddClass("card-table");
+    _DefaultParams(o) {
+        o.ClassCss ??= "card card-table";
+        super._DefaultParams(o);
     }
 }

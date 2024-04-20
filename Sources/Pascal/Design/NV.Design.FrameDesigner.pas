@@ -128,7 +128,8 @@ end;
 
 destructor TNvFrameDesigner.Destroy;
 begin
-  FPage.Free;
+  if Assigned(FPage) then
+    FPage.Free;
   inherited;
 end;
 

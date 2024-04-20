@@ -114,10 +114,12 @@ type
     FOnChange     : TNotifyEvent;
     FWidth        : string;
     FHeight       : string;
+    FVisible: Boolean;
     procedure SetImages(const Value: TNvCustomImageList);
     procedure SetImageIndex(const Value: Integer);
     procedure SetHeight(const Value: string);
     procedure SetWidth(const Value: string);
+    procedure SetVisible(const Value: Boolean);
   protected
     procedure AssignTo(Dest: TPersistent); override;
   public
@@ -125,6 +127,7 @@ type
     destructor Destroy; override;
     procedure Change; virtual;
     function IsValidImage: Boolean;
+    function IsVisible:Boolean;
     function Render: string;
     // To Change Image Json prop name
     property ImagePropName: string read FImagePropName write FImagePropName;
@@ -136,6 +139,7 @@ type
     property ImageIndex: Integer read FImageIndex write SetImageIndex default -1;
     property Height    : string read FHeight write SetHeight;
     property Width     : string read FWidth write SetWidth;
+    property Visible:Boolean read FVisible write SetVisible default True;
   end;
 
 implementation
@@ -230,7 +234,18 @@ begin
 end;
 
 destructor TNvCustomImageList.Destroy;
+var
+  Link: TNVImageListLink;
 begin
+  if FLinks <> nil then
+    begin
+      for Link in FLinks do
+        Link.FImages:= nil;
+
+      Flinks.DisposeOf;
+      FLinks:= nil;
+    end;
+
   FImages.Free;
   inherited;
 end;
@@ -517,8 +532,9 @@ begin
       D.ImagePropName := ImagePropName;
       D.IgnoreIndex   := IgnoreIndex;
       D.IgnoreImages  := IgnoreImages;
-      D.OnChange      := OnChange;
+     // D.OnChange      := OnChange;//Dont assign this
       D.ImageIndex    := ImageIndex;
+     // D.Visible:= Visible;//Dont assign this
     end
   else
     inherited;
@@ -542,7 +558,7 @@ begin
 
   FImageIndex    := -1;
   FImagePropName := 'Image';
-
+  FVisible := True;
   FControl := aControl;
 end;
 
@@ -558,9 +574,14 @@ begin
   Result := (Images <> nil) and (ImageIndex <> -1) and (ImageIndex < Images.Count);
 end;
 
+function TNVImageListLink.IsVisible: Boolean;
+begin
+  Result:= FVisible and IsValidImage;
+end;
+
 function TNVImageListLink.Render: string;
 begin
-  if IsValidImage then
+  if IsVisible then
     Result := Images.Render(ImageIndex, Width, Height)
   else
     Result := '';
@@ -595,6 +616,15 @@ begin
         Value.AddLink(Self);
       if not IgnoreImages then
         Change;
+    end;
+end;
+
+procedure TNVImageListLink.SetVisible(const Value: Boolean);
+begin
+  if Value <> FVisible then
+    begin
+      FVisible := Value;
+      Change;
     end;
 end;
 

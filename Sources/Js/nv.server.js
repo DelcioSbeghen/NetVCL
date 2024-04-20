@@ -7,13 +7,14 @@ export class TServer {
             this.FWebSocket = new TWebSocket('ws://' + document.location.host);
         this.FWebSocket.connect();
         this.FWebSocket.onmessage = function (message) {
-            App.ParseJson(JSON.parse(message));
+            App.Messages.QueueMessage(JSON.parse(message));
+            //App.ParseJson(JSON.parse(message));
         }
     }
 
     SendChanges() {
         if (this.FWebSocket.wsState == WsStateConnected) {
-            this.FWebSocket.postmessage(JSON.stringify(App.FChanges));
+            this.FWebSocket.postmessage($.stringifySafe(App.FChanges));
             App.FChanges = {};
         }
         else {
@@ -43,7 +44,8 @@ export class TServer {
     //process data received in callback
     _DoneSubmit(data, xhr) {
         App.FChanges = {};
-        App.ParseJson(data);
+        App.Messages.QueueMessage(data);
+        //App.ParseJson(data);
     }
 
     _FailSubmit(xhr) {

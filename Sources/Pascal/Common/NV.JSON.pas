@@ -974,7 +974,7 @@ type
   private
     FDataString: UTF8String;
   protected
-    function Realloc(var NewCapacity: Longint): Pointer; override;
+    function Realloc(var NewCapacity: {$IFDEF VER350}NativeInt{$ELSE} Longint{$ENDIF}): Pointer; override;
   public
     constructor Create;
     property DataString: UTF8String read FDataString;
@@ -985,7 +985,7 @@ type
   private
     FBytes: TBytes;
   protected
-    function Realloc(var NewCapacity: Longint): Pointer; override;
+    function Realloc(var NewCapacity: {$IFDEF VER350}NativeInt{$ELSE} Longint{$ENDIF}): Pointer; override;
   public
     constructor Create;
     property Bytes: TBytes read FBytes;
@@ -1046,7 +1046,7 @@ end;
 
 procedure ErrorUnsupportedVariantType(VarType: TVarType);
 begin
-  raise EJsonCastException.CreateResFmt(@NVLang.RsVarTypeNotSupported, [VarType]);
+  raise EJsonCastException.CreateResFmt(@LangRes.RsVarTypeNotSupported, [VarType]);
 end;
 
 {$IFDEF USE_NAME_STRING_LITERAL}
@@ -1097,7 +1097,7 @@ begin
       Dec(Count);
     end;
   if Count > 0 then
-    raise EJsonParserException.CreateResFmt(@NVLang.RsInvalidHexNumber, [P^]);
+    raise EJsonParserException.CreateResFmt(@LangRes.RsInvalidHexNumber, [P^]);
 end;
 
 function GetHexDigits(P: PChar; Count: Integer): LongWord;
@@ -1122,7 +1122,7 @@ begin
       Dec(Count);
     end;
   if Count > 0 then
-    raise EJsonParserException.CreateResFmt(@NVLang.RsInvalidHexNumber, [P^]);
+    raise EJsonParserException.CreateResFmt(@LangRes.RsInvalidHexNumber, [P^]);
 end;
 
 function UtcDateTimeToLocalDateTime(UtcDateTime: TDateTime): TDateTime;
@@ -1675,9 +1675,9 @@ end;
 procedure TJsonReader.AcceptFailed(TokenKind: TJsonTokenKind);
 begin
   if FLook.Kind = jtkEof then
-    raise EJsonParserException.CreateResFmt(@NVLang.RsUnexpectedEndOfFile,
+    raise EJsonParserException.CreateResFmt(@LangRes.RsUnexpectedEndOfFile,
       [JsonTokenKindToStr[TokenKind]]);
-  raise EJsonParserException.CreateResFmt(@NVLang.RsUnexpectedToken, [JsonTokenKindToStr[TokenKind],
+  raise EJsonParserException.CreateResFmt(@LangRes.RsUnexpectedToken, [JsonTokenKindToStr[TokenKind],
     JsonTokenKindToStr[FLook.Kind]]);
 end;
 
@@ -2918,7 +2918,7 @@ begin
               begin
                 if (Bytes[2] = 0) and (Bytes[3] = 0) then
                   begin
-                    raise EJsonException.CreateRes(@NVLang.RsUnsupportedFileEncoding);
+                    raise EJsonException.CreateRes(@LangRes.RsUnsupportedFileEncoding);
                     // Result := bomUtf32LE;
                     // BufStart := 4;
                   end
@@ -2937,7 +2937,7 @@ begin
               begin
                 if (Bytes[2] = $FE) and (Bytes[3] = $FF) then
                   begin
-                    raise EJsonException.CreateRes(@NVLang.RsUnsupportedFileEncoding);
+                    raise EJsonException.CreateRes(@LangRes.RsUnsupportedFileEncoding);
                     // Result := bomUtf32BE;
                     // BufStart := 4;
                   end;
@@ -3160,7 +3160,7 @@ const
     'DateTime', 'Bool', 'Array', 'Object', 'Raw' // raw datatype for IWBSFramework
     );
 begin
-  raise EJsonCastException.CreateResFmt(@NVLang.RsTypeCastError,
+  raise EJsonCastException.CreateResFmt(@LangRes.RsTypeCastError,
     [DataTypeNames[FTyp], DataTypeNames[ExpectedType]])
 {$IFDEF HAS_RETURN_ADDRESS} at ReturnAddress{$ENDIF};
 end;
@@ -4386,7 +4386,7 @@ begin
   if AObject = nil then
     Exit;
   if AObject.ClassInfo = nil then
-    raise EJsonException.CreateResFmt(@NVLang.RsMissingClassInfo, [AObject.ClassName]);
+    raise EJsonException.CreateResFmt(@LangRes.RsMissingClassInfo, [AObject.ClassName]);
 
   Count := GetPropList(AObject, PropList);
   if Count > 0 then
@@ -4474,7 +4474,7 @@ begin
   if AObject = nil then
     Exit;
   if AObject.ClassInfo = nil then
-    raise EJsonException.CreateResFmt(@NVLang.RsMissingClassInfo, [AObject.ClassName]);
+    raise EJsonException.CreateResFmt(@LangRes.RsMissingClassInfo, [AObject.ClassName]);
 
   Count := GetPropList(AObject, PropList);
   if Count > 0 then
@@ -4604,7 +4604,7 @@ var
   S: string;
 begin
   System.SetString(S, P, EndP - P);
-  raise EJsonPathException.CreateResFmt(@NVLang.RsInvalidJsonPath, [S]);
+  raise EJsonPathException.CreateResFmt(@LangRes.RsInvalidJsonPath, [S]);
 end;
 
 procedure TJsonObject.PathNullError(P, EndP: PChar);
@@ -4612,7 +4612,7 @@ var
   S: string;
 begin
   System.SetString(S, P, EndP - P);
-  raise EJsonPathException.CreateResFmt(@NVLang.RsJsonPathContainsNullValue, [S]);
+  raise EJsonPathException.CreateResFmt(@LangRes.RsJsonPathContainsNullValue, [S]);
 end;
 
 procedure TJsonObject.PathIndexError(P, EndP: PChar; Count: Integer);
@@ -4620,7 +4620,7 @@ var
   S: string;
 begin
   System.SetString(S, P, EndP - P);
-  raise EJsonPathException.CreateResFmt(@NVLang.RsJsonPathIndexError, [Count, S]);
+  raise EJsonPathException.CreateResFmt(@LangRes.RsJsonPathIndexError, [Count, S]);
 end;
 
 function TJsonObject.GetPath(const NamePath: string): TJsonDataValueHelper;
@@ -7265,7 +7265,7 @@ begin
   SetPointer(nil, 0);
 end;
 
-function TJsonUTF8StringStream.Realloc(var NewCapacity: Longint): Pointer;
+function TJsonUTF8StringStream.Realloc(var NewCapacity: {$IFDEF VER350}NativeInt{$ELSE} Longint{$ENDIF}): Pointer;
 var
   L: Longint;
 begin
@@ -7302,7 +7302,7 @@ begin
   SetPointer(nil, 0);
 end;
 
-function TJsonBytesStream.Realloc(var NewCapacity: Longint): Pointer;
+function TJsonBytesStream.Realloc(var NewCapacity: {$IFDEF VER350}NativeInt{$ELSE} Longint{$ENDIF}): Pointer;
 var
   L: Longint;
 begin

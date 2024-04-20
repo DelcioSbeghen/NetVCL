@@ -42,10 +42,12 @@ export function RegisterClasses() {
         .RegisterClassModule(bscss, 'css');
     TApplication.RegisterClass('TNvBsAlert', "./bs/nv.bs.alerts.js")
         .RegisterClassModule(bsjs, 'js')
-        .RegisterClassModule(bscss, 'css');
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
     TApplication.RegisterClass('TNvBsToast', "./bs/nv.bs.alerts.js")
         .RegisterClassModule(bsjs, 'js')
-        .RegisterClassModule(bscss, 'css');
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
     TApplication.RegisterClass('TNvBsButton', "./bs/nv.bs.buttons.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
@@ -144,9 +146,15 @@ export function RegisterClasses() {
     TApplication.RegisterClass('TBsNavBarBrand', "./bs/nv.bs.navbar.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
+    TApplication.RegisterClass('TBsNavBarToggler', "./bs/nv.bs.navbar.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');   
     TApplication.RegisterClass('TBsNavBarContent', "./bs/nv.bs.navbar.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
+    TApplication.RegisterClass('TBsNavBarNav', "./bs/nv.bs.navbar.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');        
     TApplication.RegisterClass('TBsNavBarItemLink', "./bs/nv.bs.navbar.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
@@ -220,5 +228,12 @@ export function RegisterClasses() {
     TApplication.RegisterClass('TNvBsImage', "./bs/nv.bs.images.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
+
+    TApplication.RegisterClass('TNvBsSearch', "./firedac/nv.bs.search.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');
+
+
+        
 
 }

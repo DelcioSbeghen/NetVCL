@@ -3,7 +3,9 @@ unit NV.VCL.Forms;
 interface
 
 uses
-  Classes, Windows, Messages, NV.VCL.Frame, NV.Browser, System.Generics.Collections;
+  Classes, Windows, Messages, SysUtils, Controls, NV.VCL.Frame, NV.Browser,
+  System.Generics.Collections,
+  NV.Ajax, NV.VCL.Page;
 
 const
   WM_NV = WM_APP + 10000;
@@ -11,6 +13,9 @@ const
   WM_SCR_DATA = WM_NV + 1;
 
 type
+  TNVForm = class;
+
+  TExceptionEvent = procedure(Sender: TObject; E: Exception) of object;
 
   TWMScreenData = record
     Msg: Cardinal;
@@ -22,25 +27,63 @@ type
 
   TNvScreen = class(TNVBrowser)
   private
+    FPage        : TNvPage;
     FDataId      : Integer;
     FDataReceived: TDictionary<Integer, String>;
+    FActive      : Boolean;
+    FForms       : TList;
+    FDataModules : TList;
+    FFrames      : Tlist;
   protected
-    procedure DataReceived(const Data: string);
+    // Browser requests
+    function DoResssourceRequest(Request: TNvResourceRequest; var Response: TNvResourceResponse)
+      : Boolean; override;
+    procedure LoadInitialPage(var Response: TNvResourceResponse);
+    procedure LoadNetVclFiles(Url: string; var Response: TNvResourceResponse);
+    procedure DataReceived(const Data: PChar);
     procedure MsgDataReceived(var Msg: TMessage);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure AddDataModule(DataModule: TDataModule);
+    procedure AddForm(AForm: TNVForm);
+    procedure AddFrame(AFrame: TNVBaseFrame);
+    procedure RemoveDataModule(DataModule: TDataModule);
+    procedure RemoveForm(AForm: TNVForm);
+    procedure RemoveFrame(AFrame: TNVBaseFrame);
+    function FormCount: Integer;
+    function FrameCount: Integer;
+    function DataModuleCount: Integer;
+    function Forms(Index: Integer): TNVForm;
+    function Frames(Index: Integer): TNVBaseFrame;
+    function DataModules(Index: Integer): TDataModule;
     procedure Show;
     procedure ShowDesign(aParent: TObject);
+    procedure Close;
     procedure UpdateScreen(Updates: string);
+    function Ajax: TNvAjax; inline;
+    function Active: Boolean;
+    property Page: TNVPage read FPage;
   end;
 
   TNVForm = class(TNvFrame)
+  private
+    class function SupportImage: Boolean; override;
+  private
+    procedure CMVisibleChanged(var Message: TMessage); message CM_VISIBLECHANGED;
+  protected
   public
-    procedure Show; override;
+    constructor Create(AOwner: TComponent); override;
+    function ShowModal: Integer; override;
+    property InModal;
+    property ModalResult;
   published
+    property Caption;
+    property ClassCss;
     property ClientWidth;
     property ClientHeight;
+    property ImageListLink;
+    property Visible default False;
   end;
 
   TNvApplication = class(TComponent)
@@ -53,26 +96,34 @@ type
     FTitle         : string;
     FHandle        : HWnd;
     FCssFile       : string;
+    FModalLevel    : Integer;
+    FOnException   : TExceptionEvent;
     procedure WndProc(var Message: TMessage);
     function GetRootPath: string;
     procedure SetCssFile(const Value: string);
+    function GetTitle: string;
   protected
     FMainForm      : TNVForm;
     FRunning       : Boolean;
     FDesignInstance: Boolean;
-    procedure HandleMessage;
-    procedure HandleException(Sender: TObject);
     function ProcessMessage(var Msg: TMsg): Boolean;
     procedure Idle(const Msg: TMsg);
     function IsPreProcessMessage(var Msg: TMsg): Boolean;
     procedure CreateHandle;
   public
     constructor Create(AOwner: TComponent); override;
+    procedure HandleException(Sender: TObject);
+    procedure HandleMessage;
+    procedure ProcessMessages;
+    procedure ModalStarted;
+    procedure ModalFinished;
     procedure CreateForm(InstanceClass: TComponentClass; var Reference);
     procedure ShowMessage(aMsg: string);
+    procedure ShowException(E: Exception);
     procedure Initialize;
     // For design only ???
     function Handle: THandle;
+    function ExeName: string;
     procedure Run; virtual;
     procedure Terminate;
     property CssFile: string read FCssFile write SetCssFile;
@@ -80,6 +131,9 @@ type
     property UrlBase: string read FUrlBase;
     property RootPath: string read GetRootPath write FRootPath;
     property Running: Boolean read FRunning;
+    property MainForm: TNVForm read FMainForm;
+    property Title: string read GetTitle write FTitle;
+    property OnException: TExceptionEvent read FOnException write FOnException;
   end;
 
 var
@@ -88,7 +142,8 @@ var
 
 implementation
 
-uses SysUtils, RTLConsts, Consts, NV.JSON, VCL.Controls;
+uses StrUtils, RTLConsts, Consts, NV.JSON, Rtti, NV.VCL.Dialogs,
+  NV.Request.Exe, NV.Dispatcher;
 
 var
   WindowClass: TWndClass = (style: 0; lpfnWndProc: @DefWindowProc; cbClsExtra: 0; cbWndExtra: 0;
@@ -114,7 +169,7 @@ begin
   FTitle := ModuleName;
   if not IsLibrary then
     CreateHandle;
-  FUrlBase := 'local://screen/';
+  FUrlBase := 'nvlocal://screen/';
 end;
 
 procedure TNvApplication.CreateForm(InstanceClass: TComponentClass;
@@ -197,11 +252,22 @@ begin
       end;
 end;
 
+function TNvApplication.ExeName: string;
+begin
+  Result := Paramstr(0);
+end;
+
 function TNvApplication.GetRootPath: string;
 begin
-  { TODO -oDelcio -cApplication : GetRootPath in design and runtime mode }
-  Result := 'D:\Delcio\Projetos\NetVCL\Demos\Dist\www\';
-  // Result := FRootPath;
+  Result := FRootPath;
+end;
+
+function TNvApplication.GetTitle: string;
+begin
+  if FTitle.IsEmpty and Assigned(FMainForm) then
+    Result := FMainForm.Caption
+  else
+    Result := FTitle;
 end;
 
 function TNvApplication.Handle: THandle;
@@ -210,8 +276,26 @@ begin
 end;
 
 procedure TNvApplication.HandleException(Sender: TObject);
+var
+  O: TObject;
 begin
+  if GetCapture <> 0 then
+    SendMessage(GetCapture, WM_CANCELMODE, 0, 0);
 
+  if FDesignInstance then
+    Exit;
+
+  O := ExceptObject;
+  if O is Exception then
+    begin
+      if not(O is EAbort) then
+        if Assigned(FOnException) then
+          FOnException(Sender, Exception(O))
+        else
+          ShowException(Exception(O));
+    end
+  else
+    SysUtils.ShowException(O, ExceptAddr);
 end;
 
 procedure TNvApplication.HandleMessage;
@@ -270,6 +354,9 @@ end;
 
 procedure TNvApplication.Initialize;
 begin
+  if FRootPath.IsEmpty then
+    FRootPath := ExtractFilePath(ParamStr(0)) + 'www\';
+
   { This used to call InitProc, which was only used for COM and CORBA.
     Neither is used with the .NET version }
 
@@ -292,6 +379,36 @@ begin
       LMessage.Result := 0;
       Screen.MsgDataReceived(LMessage);
     end;
+end;
+
+procedure TNvApplication.ModalFinished;
+begin
+  dec(FModalLevel);
+end;
+
+procedure TNvApplication.ModalStarted;
+var
+  _CurrentLevel: Integer;
+begin
+  inc(FModalLevel);
+  _CurrentLevel := FModalLevel;
+  Screen.Ajax.EndUpdate;
+  try
+    Screen.Ajax.Invalidate;
+    repeat
+      try
+        HandleMessage;
+      except
+        HandleException(Self);
+      end;
+
+      if Terminated then
+        Abort;
+
+    until (FModalLevel < _CurrentLevel);
+  finally
+    Screen.Ajax.BeginUpdate;
+  end;
 end;
 
 function TNvApplication.ProcessMessage(
@@ -319,7 +436,8 @@ begin
               Handled := False;
               { TODO -oDelcio -cApplication : Implement OnMessage Event }
               // if Assigned(FOnMessage) then FOnMessage(Msg, Handled);
-              if not IsPreProcessMessage(Msg) and { not IsHintMsg(Msg) and } not Handled { and
+              if not IsPreProcessMessage(Msg) and
+              { not IsHintMsg(Msg) and } not Handled { and
                 not IsMDIMsg(Msg) and not IsKeyMsg(Msg) and not IsDlgMsg(Msg) }
               then
                 begin
@@ -336,11 +454,15 @@ begin
     end;
 end;
 
+procedure TNvApplication.ProcessMessages;
+var
+  Msg: TMsg;
+begin
+  while ProcessMessage(Msg) do { loop };
+end;
+
 procedure TNvApplication.Run;
 begin
-  if FRootPath.IsEmpty then
-    FRootPath := ExtractFilePath(ParamStr(0)) + 'www/';
-
   FRunning := True;
   try
     if FMainForm <> nil then
@@ -378,9 +500,38 @@ begin
     end;
 end;
 
+procedure TNvApplication.ShowException(E: Exception);
+var
+  Msg : string;
+  SubE: Exception;
+begin
+  Msg := E.Message;
+  while True do
+    begin
+      SubE := E.GetBaseException;
+      if SubE <> E then
+        begin
+          E := SubE;
+          if E.Message <> '' then
+            Msg := E.Message;
+        end
+      else
+        Break;
+    end;
+  if (Msg <> '') and (Msg[Length(Msg)] > '.') then
+    Msg := Msg + '.';
+  { TODO -oDelcio -cDesign : Show Design exceptions }
+  if not FDesignInstance then
+    TThread.Synchronize(nil,
+    procedure
+    begin
+    NV.VCL.Dialogs.ShowMessage(Msg, FTitle, TMsgDlgType.mtError);
+    end);
+end;
+
 procedure TNvApplication.ShowMessage(aMsg: string);
 begin
-  //
+  NV.VCL.Dialogs.ShowMessage(aMsg);
 end;
 
 procedure TNvApplication.Terminate;
@@ -403,8 +554,9 @@ var
 {$ENDIF}
   procedure Default;
   begin
-    with Message do
-      Result := DefWindowProc(Handle, Msg, WParam, LParam);
+    if not(csDestroying in ComponentState) and (Handle > 0) then
+      with Message do
+        Result := DefWindowProc(Handle, Msg, WParam, LParam);
   end;
 
   procedure DrawAppIcon;
@@ -614,27 +766,175 @@ end;
 
 { TNvScreen }
 
+function TNvScreen.Active: Boolean;
+begin
+  Result := (FBrowser <> 0) and FActive;
+end;
+
+procedure TNvScreen.AddDataModule(DataModule: TDataModule);
+begin
+  FDataModules.Add(DataModule);
+end;
+
+procedure TNvScreen.AddForm(AForm: TNVForm);
+begin
+  FForms.Add(AForm);
+end;
+
+procedure TNvScreen.AddFrame(AFrame: TNVBaseFrame);
+begin
+  FFrames.Add(AFrame);
+end;
+
+function TNvScreen.Ajax: TNvAjax;
+begin
+  Result := FPage.Ajax;
+end;
+
+procedure TNvScreen.Close;
+begin
+  FActive := False;
+  Ajax.Json.Clear;
+  CloseBrowser;
+end;
+
 constructor TNvScreen.Create(AOwner: TComponent);
 begin
   inherited;
-  FDataReceived := TDictionary<Integer, string>.Create;
+  System.Classes.AddDataModule    := AddDataModule;
+  System.Classes.RemoveDataModule := RemoveDataModule;
+  FForms                          := TList.Create;
+  FDataModules                    := TList.Create;
+  FFrames                         := TList.Create;
+  FPage                           := TNvPage.Create(Self);
+  FDataReceived                   := TDictionary<Integer, string>.Create;
 end;
 
-procedure TNvScreen.DataReceived(const Data: string);
+function TNvScreen.DataModuleCount: Integer;
 begin
-  // Save Data to read on message TNvScreen.MsgDataReceived
-  inc(FDataId);
-  FDataReceived.Add(FDataId, PChar(Data));
+  Result := FDataModules.Count;
+end;
 
-  PostMessage(Application.Handle, WM_SCR_DATA, FDataId, 0);
+function TNvScreen.DataModules(Index: Integer): TDataModule;
+begin
+  Result := TDataModule(FDataModules[Index]);
+end;
+
+procedure TNvScreen.DataReceived(const Data: PChar);
+begin
+  if Data = 'close' then
+    PostMessage(Application.Handle, WM_CLOSE, 0, 0)
+  else if Data = 'Active' then
+    begin
+      FActive := True;
+      Ajax.Invalidate;
+    end
+  else // Save Data to read on message TNvScreen.MsgDataReceived
+    begin
+      inc(FDataId);
+      FDataReceived.Add(FDataId, PChar(Data));
+
+      PostMessage(Application.Handle, WM_SCR_DATA, FDataId, 0);
+    end;
 end;
 
 destructor TNvScreen.Destroy;
 begin
+  FDataReceived.Free;
+  FForms.Free;
+  FDataModules.Free;
+  FFrames.Free;
+  System.Classes.AddDataModule    := nil;
+  System.Classes.RemoveDataModule := nil;
   if Screen = Self then
     Screen := nil;
-  FDataReceived.Free;
   inherited;
+end;
+
+function TNvScreen.DoResssourceRequest(Request: TNvResourceRequest;
+  var Response: TNvResourceResponse): Boolean;
+var
+  _Response: ^TNvResourceResponse;
+begin
+  Response.Status := 404;
+
+  // To anonymous Method capture variable
+  _Response := @Response;
+
+  TThread.Synchronize(nil,
+    procedure
+    begin
+      if Request.Url = Application.UrlBase then
+        LoadInitialPage(_Response^)
+      else if StartsText(Application.UrlBase, Request.Url) then
+        LoadNetVclFiles(Request.Url, _Response^);
+    end);
+
+  Result := Response.Status <> 404;
+end;
+
+function TNvScreen.FormCount: Integer;
+begin
+  Result := FForms.Count;
+end;
+
+function TNvScreen.Forms(Index: Integer): TNVForm;
+begin
+  Result := TNVForm(FForms[Index]);
+end;
+
+function TNvScreen.FrameCount: Integer;
+begin
+  Result := FFrames.Count;
+end;
+
+function TNvScreen.Frames(Index: Integer): TNVBaseFrame;
+begin
+  Result := TNVBaseFrame(FFrames[Index]);
+end;
+
+procedure TNvScreen.LoadInitialPage(var Response: TNvResourceResponse);
+var
+  _Task: TNVExeRequestTask;
+begin
+  _Task := TNVExeRequestTask.Create;
+  try
+    FPage.Dispatcher.Execute(_Task);
+
+    Response.DataOut  := Integer(Pointer(_Task.Resp.Text));
+    Response.DataSize := Length(_Task.Resp.Text);
+    Response.MimeType := 'text/html';
+    Response.Status   := 200;
+
+  finally
+    _Task.Free;
+  end;
+end;
+
+procedure TNvScreen.LoadNetVclFiles(Url: string; var Response: TNvResourceResponse);
+var
+  _Task: TNVExeRequestTask;
+  _Disp: TDispatchDirFiles;
+begin
+  _Task := TNVExeRequestTask.Create;
+  _Disp := TDispatchDirFiles.Create;
+  try
+
+    (_Task.Req as TNvExeRequest).Initialize(Url);
+
+    _Disp.AllowedFlag := afBeginBy;
+    _Disp.Execute(_Task);
+
+    Response.DataOut  := Integer(Pointer(_Task.Resp.Text));
+    Response.DataSize := Length(_Task.Resp.Text);
+    Response.MimeType := PChar(_Task.Resp.CustomHeaderValue['Content-Type']);
+    Response.Status   := _Task.Resp.ResponseNo;
+
+  finally
+    _Task.Free;
+    _Disp.Free;
+  end;
+
 end;
 
 procedure TNvScreen.MsgDataReceived(var Msg: TMessage);
@@ -650,7 +950,8 @@ begin
 
   J := TJsonObject.Create;
   try
-    J.FromJSON(_Msg.Data);
+    if not _Msg.Data.IsEmpty then
+      J.FromJSON(_Msg.Data);
 
     FPage.ProcessRequest(J);
   finally
@@ -660,35 +961,122 @@ begin
   Msg.Result := 1;
 end;
 
+procedure TNvScreen.RemoveDataModule(DataModule: TDataModule);
+begin
+  FDataModules.Remove(DataModule);
+end;
+
+procedure TNvScreen.RemoveForm(AForm: TNVForm);
+begin
+  FForms.Remove(AForm);
+end;
+
+procedure TNvScreen.RemoveFrame(AFrame: TNVBaseFrame);
+begin
+  FFrames.Remove(AFrame);
+end;
+
 procedure TNvScreen.Show;
 begin
   CreateScreenBrowser(DataReceived);
   LoadUrl(Application.UrlBase);
+  // FActive := True;
 end;
 
 procedure TNvScreen.ShowDesign(aParent: TObject);
 begin
   ShowDesignBrowser(aParent as TWinControl, DataReceived);
   LoadUrl(Application.UrlBase);
+  // FActive := True;
 end;
 
 procedure TNvScreen.UpdateScreen(Updates: string);
 begin
+
   ExecuteJs(           //
     'App.ParseJson(' + //
     Updates            //
-    + ')'              //
+    + ');'             //
     );
 end;
 
 { TNVForm }
 
-procedure TNVForm.Show;
+procedure TNVForm.CMVisibleChanged(var Message: TMessage);
 begin
-  if Assigned(Screen) then
+  if (Message.WParam = ord(True)) and (Parent = nil) and Assigned(Screen) and not InModal then
     Parent := Screen.FPage;
   inherited;
 
 end;
+
+constructor TNVForm.Create(AOwner: TComponent);
+begin
+  CreateNew(AOwner);
+  Visible := False;
+
+  if (ClassType <> TNVForm) and not(csDesignInstance in ComponentState) then
+    begin
+      if not InitInheritedComponent(Self, TNVForm) then
+        raise EResNotFound.CreateFmt(SResNotFound, [ClassName]);
+    end;
+end;
+
+function TNVForm.ShowModal: Integer;
+begin
+  Result := inherited;
+end;
+
+class function TNVForm.SupportImage: Boolean;
+begin
+  Result := True;
+end;
+
+// procedure TNVForm.VisibleChanging;
+// begin
+// inherited;
+//
+// end;
+
+function FindGlobalComponent(const Name: string): TComponent;
+var
+  I: Integer;
+begin
+  for I := 0 to Screen.FormCount - 1 do
+    begin
+      Result := Screen.Forms(I);
+      if not(csInline in Result.ComponentState) and (CompareText(Name, Result.Name) = 0) then
+        Exit;
+    end;
+  for I := 0 to Screen.DataModuleCount - 1 do
+    begin
+      Result := Screen.DataModules(I);
+      if CompareText(Name, Result.Name) = 0 then
+        Exit;
+    end;
+  for I := 0 to Screen.FrameCount - 1 do
+    begin
+      Result := Screen.Frames(I);
+      if CompareText(Name, Result.Name) = 0 then
+        Exit;
+    end;
+  Result := nil;
+end;
+
+initialization
+
+// InitProcs;
+// RM_TaskBarCreated := RegisterWindowMessage('TaskbarCreated');
+// RM_TaskBarButtonCreated := RegisterWindowMessage('TaskbarButtonCreated');
+System.Classes.RegisterFindGlobalComponentProc(FindGlobalComponent);
+// IdleTimerHandle := 0;
+
+finalization
+
+// if Application <> nil then
+// DoneApplication;
+// if HintDoneEvent <> 0 then
+// CloseHandle(HintDoneEvent);
+System.Classes.UnregisterFindGlobalComponentProc(FindGlobalComponent);
 
 end.

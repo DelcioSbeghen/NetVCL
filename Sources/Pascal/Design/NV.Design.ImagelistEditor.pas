@@ -37,7 +37,7 @@ type
     Browser      : TNvBrowser;
     BrowserActive: Boolean;
     Selected     : TNvImageItem;
-    procedure ExecuteCallback(const Value: string);
+    procedure ExecuteCallback(const Value: PChar);
   protected
     procedure RefillListView;
 
@@ -144,10 +144,12 @@ begin
     end;
 end;
 
-procedure TFrmImgListEditor.ExecuteCallback(const Value: string);
+procedure TFrmImgListEditor.ExecuteCallback(const Value: PChar);
 var
   Idx: Integer;
 begin
+  if Not(csDestroying in ComponentState) then
+    begin
   Idx := StrToIntDef(Value, -1);
 
   if Idx >= 0 then
@@ -162,6 +164,7 @@ begin
 
   BtnReplace.Enabled := Selected <> nil;
   BtnDelete.Enabled  := ImgList.Count > 0;
+    end;
 end;
 
 procedure TFrmImgListEditor.FormCreate(Sender: TObject);

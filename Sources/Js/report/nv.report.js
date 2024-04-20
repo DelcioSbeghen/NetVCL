@@ -2,13 +2,15 @@ import { TWinControl, TControl } from "./../nv.controls.js";
 import { TTable } from './nv.table.js';
 
 export class TNvReport extends TWinControl {
+    _DefaultParams(o) {
+        this.FRenderPosition ??= True;
+        o.Width ??= "210mm";
+        super._DefaultParams(o);
+    }
 
     _CreateParams(o) {
-        this.FRenderPosition = false;
         super._CreateParams(o);
-        this.FRenderPosition = true;
         this.FWidth = '0';
-        this.Width = o.Width || "210mm";
     }
 
     set Width(W) {
@@ -20,13 +22,15 @@ export class TNvReport extends TWinControl {
 }
 
 export class TNvrPanel extends TWinControl {
+    _DefaultParams(o) {
+       o.ClassCss ??= "nvr-rectangle";
+       super._DefaultParams(o);
+    }
+
     _CreateParams(o) {
         super._CreateParams(o);
-        this.AddClass("nvr-rectangle");
         this.FRounded = true;
-        //this.Rounded = o.Rounded || true;
         this.FShadows = true;
-       // this.Shadows = o.Shadows || true;
     }
 
     set Rounded(R) {

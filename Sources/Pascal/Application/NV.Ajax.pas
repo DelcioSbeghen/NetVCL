@@ -3,17 +3,26 @@ unit NV.Ajax;
 interface
 
 uses
-  Classes, Controls, NV.Json;
+  Classes, Controls, NV.Json, Generics.Collections;
 
 type
+  TNvAjax = class;
+
   TReqType = (reqModule, reqJs, reqCss);
+
+  TNvObjChangeList = class(TObjectList<TObject>)
+  protected
+    procedure ProcessChanges;
+
+  end;
 
   TNvAjax = class(TObject)
   private
-    FForm       : TWinControl;
+    FPage       : TWinControl;
     FIncludes   : TJsonObject;
     FJson       : TJsonObject;
     FUpdateCount: Integer;
+    FChangeList : TNvObjChangeList;
   public
     constructor Create(aPage: TWinControl); reintroduce;
     destructor Destroy; override;
@@ -22,13 +31,17 @@ type
     // procedure AddUpdate(aId: string; aProp: string; aValue: Boolean); overload;
     function GetControlJson(aId: string; FirstRender: Boolean = False): TJsonObject;
     procedure AddDestruction(aId: string);
-    procedure AddCallFunction(aId, aFunction, aParams: string);
+    procedure AddCallFunction(aId, aFunction, aParam: string); overload;
+    procedure AddCallFunction(aId, aFunction: string; aParams: TJsonArray); overload;
     procedure Invalidate;
     function ExecJson: TJsonArray;
-    property Includes: TJsonObject read FIncludes;
-    property Json: TJsonObject read FJson;
     procedure BeginUpdate;
     procedure EndUpdate;
+    property Includes: TJsonObject read FIncludes;
+    property Json: TJsonObject read FJson;
+    property Page: TWinControl read FPage;
+    // new implementation
+    property ChangeList: TNvObjChangeList read FChangeList;
   end;
 
 function TypeReqToStr(aType: TReqType): string;
@@ -53,12 +66,21 @@ end;
 
 { TNvAjax }
 
-procedure TNvAjax.AddCallFunction(aId, aFunction, aParams: string);
+procedure TNvAjax.AddCallFunction(aId, aFunction, aParam: string);
 begin
   with GetControlJson(aId).A['Call'].AddObject do
     begin
       S['function'] := aFunction;
-      S['params']   := aParams;
+      S['params']   := aParam;
+    end;
+end;
+
+procedure TNvAjax.AddCallFunction(aId, aFunction: string; aParams: TJsonArray);
+begin
+  with GetControlJson(aId).A['Call'].AddObject do
+    begin
+      S['function'] := aFunction;
+      A['params']   := aParams;
     end;
 end;
 
@@ -147,15 +169,17 @@ end;
 constructor TNvAjax.Create(aPage: TWinControl);
 begin
   inherited Create;
-  FForm     := aPage;
-  FIncludes := TJsonObject.Create;
-  FJson     := TJsonObject.Create;
+  FPage       := aPage;
+  FIncludes   := TJsonObject.Create;
+  FJson       := TJsonObject.Create;
+  FChangeList := TNvObjChangeList.Create(False);
 end;
 
 destructor TNvAjax.Destroy;
 begin
   FIncludes.Free;
   FJson.Free;
+  FChangeList.Free;
   inherited;
 end;
 
@@ -201,10 +225,38 @@ begin
   if FUpdateCount <> 0 then
     Exit;
 
-  if (Json.Count > 0) and Application.Running and (Screen <> nil) then
+  if ((Json.Count > 0) or (FChangeList.Count > 0)) and Application.Running and (Screen <> nil) and
+    Screen.Active then
     begin
-      Screen.UpdateScreen(Json.ToJSON);
-      Json.Clear;
+      //ProcessChanges can be create new changes
+      BeginUpdate;
+      try
+        //
+        repeat
+          FChangeList.ProcessChanges;
+        until FChangeList.Count = 0;
+
+        Screen.UpdateScreen(Json.ToJSON);
+        Json.Clear;
+
+      finally
+        EndUpdate;
+      end;
+    end;
+end;
+
+{ TNvObjChangeList }
+
+procedure TNvObjChangeList.ProcessChanges;
+var
+  _Obj: TObject;
+begin
+  for _Obj in Self do
+    begin
+      if _Obj is TNvControl then
+        TNvControl(_Obj).RenderChanges
+      else if _Obj is TNvWinControl then
+        TNvWinControl(_Obj).RenderChanges;
     end;
 end;
 

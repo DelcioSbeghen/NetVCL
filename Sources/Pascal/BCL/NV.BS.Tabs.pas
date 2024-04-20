@@ -11,51 +11,59 @@ type
 
   TNvBsTabControl = class;
   TNvBsTab        = class;
+  TNVCloseAction  = NV.Types.TNVCloseAction;
 
   TNvBsTabs = class(TNvBsNav)
-
+  protected
+    class function DefaultClassCss: string; override;
   end;
 
-  TNvBsTabHeaderLink = class(TBsNavItemLink)
-  private
-    FTab       : TNvBsTab;
-    FShowClose : Boolean;
-    FTabControl: TNvBsTabControl;
-    procedure SetTab(const Value: TNvBsTab);
-    procedure SetShowClose(const Value: Boolean);
-    procedure SetHrefFromTab(const Value: TNvBsTab);
+  TNvBsTabHeaderLink = class(TBsNavItemLinkBase)
   protected
-    procedure InternalRender(Ajax: TNvAjax; JSON: TJsonObject); override;
+    class function DefaultClassCss: string; override;
+  private
+    FShowClose: Boolean;
+    procedure SetShowClose(const Value: Boolean);
+    procedure CMDesignHitTest(var Message: TCMDesignHitTest); message CM_DESIGNHITTEST;
+  protected
+    procedure InternalRender(JSON: TJsonObject); override;
+    procedure RenderShowClose(aJson: TJsonObject); dynamic;
     // events
     function ProcessEvent(AEventName: string; aEvent: TJsonObject): Boolean; override;
     procedure DoClose(aEvent: TJsonObject);
+    procedure Click; override;
   public
-    constructor CreateEx(aTbControl: TNvBsTabControl; aTab: TNvBsTab);
-    procedure Render(Ajax: TNvAjax); override;
+    constructor Create(AOwner: TComponent); override;
+    function Tab: TNvBsTab; inline;
   published
-    property Tab       : TNvBsTab read FTab write SetTab;
-    property TabControl: TNvBsTabControl read FTabControl write FTabControl;
-    property ShowClose : Boolean read FShowClose write SetShowClose default False;
-    property TextProps;
-    property Text;
+    property Link;
+    property ShowClose: Boolean read FShowClose write SetShowClose default False;
+    property Visible;
   end;
 
   TNvBsTab = class(TNvBsWinControl)
-  private
-    FTabHeader: TNvBsTabHeaderLink;
-    procedure CMVisibleChanged(var Message: TMessage); message CM_VISIBLECHANGED;
-    procedure SetTabHeader(const Value: TNvBsTabHeaderLink);
   protected
-    procedure SetParent(AParent: TWinControl); override;
+    class function DefaultClassCss: string; override;
+  private
+    FLastActiveTab: TNvBsTab;
+    FTabHeader    : TNvBsTabHeaderLink;
+    FTabControl   : TNvBsTabControl;
+    procedure CMVisibleChanged(var Message: TMessage); message CM_VISIBLECHANGED;
+    procedure SetTabControl(const Value: TNvBsTabControl);
+  protected
+    procedure InternalRender(JSON: TJsonObject); override;
   public
-    constructor CreateEx(aTbControl: TNvBsTabControl);
+    constructor Create(AOwner: TComponent); override;
     procedure Show;
   published
-    property TabHeader: TNvBsTabHeaderLink read FTabHeader write SetTabHeader;
+    property TabHeader : TNvBsTabHeaderLink read FTabHeader;
+    property TabControl: TNvBsTabControl read FTabControl write SetTabControl;
+    property ClassCss;
   end;
 
 
   // TNvBsTabDropdown = class(TBsNavItemDropdown)
+  // ClassCss  'nav-item dropdown'
   // private
   // FTabPane: TNvBsTabPane;
   // procedure SetTabPane(const Value: TNvBsTabPane);
@@ -64,13 +72,11 @@ type
   // end;
 
   TNvBsTabContent = class(TNvBsWinControl)
+  protected
+    class function DefaultClassCss: string; override;
   private
-    FTabs: TList<TNvBsTab>;
-    procedure InsertTab(aTab: TNvBsTab);
-    procedure RemoveTab(aTab: TNvBsTab);
   public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy;
+    property ClassCss;
   end;
 
   TNvBsTabCloseEvent = procedure(Sender: TObject; Tab: TNvBsTab; var CloseAction: TNVCloseAction)
@@ -79,25 +85,25 @@ type
   TNvBsTabControl = class(TNvBsGridContainer)
   private
     FActiveTab            : TNvBsTab;
-    FLastActiveTab        : TNvBsTab;
     FDefaultTabCloseAction: TNVCloseAction;
     FOnTabClose           : TNvBsTabCloseEvent;
-    function GetContent: TNvBsTabContent;
-    function GetTabs: TNvBsTabs;
+    FTabs                 : TNvBsTabs;
+    FContent              : TNvBsTabContent;
   protected
     procedure SetActiveTab(const Value: TNvBsTab); virtual;
     procedure DoTabClose(Tab: TNvBsTab; var CloseAction: TNVCloseAction); virtual;
-    // Tabs before Content
-    procedure SortControls; override;
   public
     constructor Create(AOwner: TComponent); override;
     //
     function AddNewTab: TNvBsTab;
     // function AddNewTabDropdown: TNvBsTabDropdown;
   published
-    property ActiveTab : TNvBsTab read FActiveTab write SetActiveTab;
-    property Tabs      : TNvBsTabs read GetTabs;          // write SetBrand;
-    property Content   : TNvBsTabContent read GetContent; // write SetContent;
+    property ActiveTab: TNvBsTab read FActiveTab write SetActiveTab;
+    property ClassCss;
+    property Content: TNvBsTabContent read FContent;
+    property Position;
+    property Tabs: TNvBsTabs read FTabs;
+    property Width_;
     property OnTabClose: TNvBsTabCloseEvent read FOnTabClose write FOnTabClose;
   end;
 
@@ -125,7 +131,7 @@ type
 implementation
 
 uses
-  NV.Utils, NV.BS.HtmlControls, NV.Controls, System.SysUtils;
+  NV.Utils, NV.BS.HtmlControls, NV.Controls, System.SysUtils, Winapi.Windows, NV.VCL.Forms;
 
 { TNvBsTabControl }
 
@@ -148,13 +154,18 @@ uses
 
 function TNvBsTabControl.AddNewTab: TNvBsTab;
 begin
-  Result := TNvBsTab.CreateEx(Self);
+  Result            := TNvBsTab.Create(Self.Owner);
+  Result.TabControl := Self;
 end;
 
 constructor TNvBsTabControl.Create(AOwner: TComponent);
 begin
   inherited;
   FDefaultTabCloseAction := caHide;
+  FTabs                  := TNvBsTabs.Create(Self);
+  FTabs.SetSubComponent(True, 'Tabs');
+  FContent := TNvBsTabContent.Create(Self);
+  FContent.SetSubComponent(True, 'Content');
 end;
 
 procedure TNvBsTabControl.DoTabClose(Tab: TNvBsTab; var CloseAction: TNVCloseAction);
@@ -163,145 +174,90 @@ begin
     FOnTabClose(Self, Tab, CloseAction);
 end;
 
-function TNvBsTabControl.GetContent: TNvBsTabContent;
-var
-  I: Integer;
-begin
-  Result := nil;
-  if (csLoading in Owner.ComponentState) or (csLoading in ComponentState) or
-    (csRecreating in ControlState) then
-    Exit;
-
-  for I := 0 to ControlCount - 1 do
-    begin
-      if Controls[I] is TNvBsTabContent then
-        begin
-          Result := TNvBsTabContent(Controls[I]);
-          Break;
-        end;
-    end;
-  if Result = nil then
-    begin
-      UpdateRecreatingFlag(True);
-      try
-        Result        := TNvBsTabContent.Create(Owner);
-        Result.Parent := Self;
-      finally
-        UpdateRecreatingFlag(False);
-      end;
-    end;
-
-end;
-
-function TNvBsTabControl.GetTabs: TNvBsTabs;
-var
-  I: Integer;
-begin
-  Result := nil;
-  if (csLoading in Owner.ComponentState) or (csLoading in ComponentState) or
-    (csRecreating in ControlState) then
-    Exit;
-
-  for I := 0 to ControlCount - 1 do
-    begin
-      if Controls[I] is TNvBsTabs then
-        begin
-          Result := TNvBsTabs(Controls[I]);
-          Break;
-        end;
-    end;
-  if Result = nil then
-    begin
-      UpdateRecreatingFlag(True);
-      try
-        Result        := TNvBsTabs.Create(Owner);
-        Result.Parent := Self;
-      finally
-        UpdateRecreatingFlag(False);
-      end;
-    end;
-
-end;
-
 procedure TNvBsTabControl.SetActiveTab(const Value: TNvBsTab);
 var
   _Tab: TNvBsTab;
 begin
   if FActiveTab <> Value then
     begin
-      Value.Show;
-      // for _Tab in Content.FTabs do
-      // _Tab.Visible := (_Tab = Value);
+
+      if Not(csLoading in ComponentState) //
+        and Assigned(Value) and not(csDestroying in Value.ComponentState) then
+        begin
+          Value.FLastActiveTab := FActiveTab;
+          Value.Show;
+        end;
+
       FActiveTab := Value;
     end;
 end;
 
-procedure TNvBsTabControl.SortControls;
-var
-  I: Integer;
+{ TNvBsTabHeaderLink }
+
+procedure TNvBsTabHeaderLink.Click;
 begin
   inherited;
-  // Move Tabs to first render element and Content to secound
-  for I := 0 to FControlsOrdered.Count - 1 do
-    begin
-      if FControlsOrdered[I] is TNvBsTabs then
-        FControlsOrdered.Move(I, 0)
-      else if FControlsOrdered[I] is TNvBsTabContent then
-        FControlsOrdered.Move(I, 1);
-    end;
+  if (Tab <> nil) then
+    Tab.Show;
 end;
 
-{ TNvBsTabLink }
-
-// constructor TNvBsTabLink.Create(AOwner: TComponent);
-// begin
-// inherited Create(AOwner);
-// // FTabPane := aTabPane;
-// end;
-
-constructor TNvBsTabHeaderLink.CreateEx(aTbControl: TNvBsTabControl; aTab: TNvBsTab);
+procedure TNvBsTabHeaderLink.CMDesignHitTest(var Message: TCMDesignHitTest);
 begin
-  inherited Create(aTbControl.Owner);
-  FTabControl := aTbControl;
-  Parent      := aTbControl.Tabs;
-  Tab         := aTab;
+  if (csDesigning in ComponentState) then
+    Message.Result := HTCLIENT;
+end;
+
+constructor TNvBsTabHeaderLink.Create(AOwner: TComponent);
+begin
+  inherited;
+  // FRenderInvisible := True; // Navigation not working if tabHeader invisible not rendered
+end;
+
+class function TNvBsTabHeaderLink.DefaultClassCss: string;
+begin
+  Result := 'nav-link';
 end;
 
 procedure TNvBsTabHeaderLink.DoClose(aEvent: TJsonObject);
 var
   _Action: TNVCloseAction;
 begin
-  if Assigned(FTabControl) then
+  if Assigned(Tab.TabControl) then
     begin
-      _Action := FTabControl.FDefaultTabCloseAction;
-      FTabControl.DoTabClose(Self.Tab, _Action);
+      _Action := Tab.TabControl.FDefaultTabCloseAction;
+      Tab.TabControl.DoTabClose(Self.Tab, _Action);
     end;
 
   case _Action of
     caHide:
       begin
-        Visible     := False;
-        Tab.Visible := False;
+        Visible                  := False;
+        Tab.Visible              := False;
+        Tab.TabControl.ActiveTab := Tab.FLastActiveTab;
       end;
     caFree:
       begin
+        Tab.TabControl.ActiveTab := Tab.FLastActiveTab;
         Tab.Free;
-        Free;
       end;
   end;
 end;
 
-procedure TNvBsTabHeaderLink.InternalRender(Ajax: TNvAjax; JSON: TJsonObject);
+procedure TNvBsTabHeaderLink.InternalRender(JSON: TJsonObject);
 begin
   inherited;
   JSON.A['Events'].Add('close');
   if FShowClose then
-    JSON.B['ShowClose'] := FShowClose;
+    RenderShowClose(JSON);
+  Link.HRef := '#' + Tab.ID;
+
+  if (Tab.TabControl <> nil) and (Tab.TabControl.ActiveTab = Tab) then
+    Screen.Ajax.AddCallFunction(ID, 'Show', '');
 end;
 
 function TNvBsTabHeaderLink.ProcessEvent(AEventName: string; aEvent: TJsonObject): Boolean;
 begin
-  inherited;
+  Result := inherited;
   if AEventName = 'close' then
     begin
       DoClose(aEvent);
@@ -309,97 +265,57 @@ begin
     end;
 end;
 
-procedure TNvBsTabHeaderLink.Render(Ajax: TNvAjax);
+procedure TNvBsTabHeaderLink.RenderShowClose(aJson: TJsonObject);
 begin
-  if csDesigning in ComponentState then
-    SetHrefFromTab(FTab);
-  inherited;
-end;
-
-procedure TNvBsTabHeaderLink.SetHrefFromTab(const Value: TNvBsTab);
-begin
-  if Value = nil then
-    HRef := '#'
-  else
-    HRef := '#' + Value.ID;
+  aJson.B['ShowClose'] := FShowClose
 end;
 
 procedure TNvBsTabHeaderLink.SetShowClose(const Value: Boolean);
 begin
   if Value <> FShowClose then
     begin
-      if NeedSendChange then
-        ControlAjaxJson.B['ShowClose'] := Value;
-      FShowClose                       := Value;
+      EnqueueChange('ShowClose', RenderShowClose);
+      FShowClose := Value;
       Invalidate;
     end;
 end;
 
-procedure TNvBsTabHeaderLink.SetTab(const Value: TNvBsTab);
+function TNvBsTabHeaderLink.Tab: TNvBsTab;
 begin
-  if FTab <> Value then
-    begin
-      SetHrefFromTab(Value);
-      FTab := Value;
-    end;
+  Result := Owner as TNvBsTab;
 end;
 
 // { TNvBsTabDropdown }
-//
-// procedure TNvBsTabDropdown.SetTabPane(const Value: TNvBsTabPane);
-// begin
-// FTabPane := Value;
-// end;
-
 { TNvBsTabContent }
 
-constructor TNvBsTabContent.Create(AOwner: TComponent);
+class function TNvBsTabContent.DefaultClassCss: string;
 begin
-  inherited;
-  FTabs := TList<TNvBsTab>.Create;
-end;
-
-destructor TNvBsTabContent.Destroy;
-begin
-  FTabs.Destroy;
-  inherited;
-end;
-
-procedure TNvBsTabContent.InsertTab(aTab: TNvBsTab);
-begin
-  FTabs.Add(aTab);
-end;
-
-procedure TNvBsTabContent.RemoveTab(aTab: TNvBsTab);
-begin
-  FTabs.Remove(aTab);
+  Result := 'tab-content';
 end;
 
 { TNvBsTabs }
 
-procedure TNvBsTab.SetParent(AParent: TWinControl);
+procedure TNvBsTab.SetTabControl(const Value: TNvBsTabControl);
 begin
-  if AParent <> Parent then
+  if Value <> FTabControl then
     begin
-      if (Parent <> nil) and (Parent is TNvBsTabContent) then
-        TNvBsTabContent(Parent).RemoveTab(Self);
-      inherited;
-      if (AParent <> nil) and (AParent is TNvBsTabContent) then
-        TNvBsTabContent(AParent).InsertTab(Self);
-    end
-  else
-    inherited;
-end;
-
-procedure TNvBsTab.SetTabHeader(const Value: TNvBsTabHeaderLink);
-begin
-  FTabHeader := Value;
+      FTabControl := Value;
+      Parent      := Value;
+    end;
 end;
 
 procedure TNvBsTab.Show;
 begin
   if NeedSendChange then
-    Ajax.AddCallFunction(TabHeader.ID, 'Show', '');
+    Screen.Ajax.AddCallFunction(TabHeader.ID, 'Show', '');
+  Invalidate;
+end;
+
+{ TNvBsTabs }
+
+class function TNvBsTabs.DefaultClassCss: string;
+begin
+  Result := 'nav-tabs';
 end;
 
 { TNvBsTab }
@@ -411,11 +327,22 @@ begin
     SetZOrder(True);
 end;
 
-constructor TNvBsTab.CreateEx(aTbControl: TNvBsTabControl);
+constructor TNvBsTab.Create(AOwner: TComponent);
 begin
-  inherited Create(aTbControl.Owner);
-  Parent     := aTbControl.Content;
-  FTabHeader := TNvBsTabHeaderLink.CreateEx(aTbControl, Self);
+  inherited;
+  FTabHeader := TNvBsTabHeaderLink.Create(Self);
+  FTabHeader.SetSubComponent(True, 'TabHeader');
+end;
+
+class function TNvBsTab.DefaultClassCss: string;
+begin
+  Result := 'tab-pane';
+end;
+
+procedure TNvBsTab.InternalRender(JSON: TJsonObject);
+begin
+  inherited;
+
 end;
 
 { TNvBsTDI }
@@ -457,11 +384,9 @@ var
   _Page: TNvBsTab;
 begin
   Result := nil;
-  if Assigned(Content.FindChildControl('Tab' + Name)) then
-    begin
-      _Page  := TNvBsTab(Content.FindChildControl('Tab' + Name));
-      Result := TNVBaseFrame(_Page.Controls[0]);
-    end;
+  _Page  := FindChildControl('Tab' + Name) as TNvBsTab;
+  if Assigned(_Page) and (_Page.ControlCount > 0) and (_Page.Controls[0] is TNVBaseFrame) then
+    Result := TNVBaseFrame(_Page.Controls[0]);
 end;
 
 function TNvBsTDI.NewTab(AFrameClass: TNvFrameClass; Name: string): TNVBaseFrame;
@@ -484,10 +409,11 @@ begin
   _LName := IIf(Name = '', Copy(AFrameClass.ClassName, 2, AFrameClass.ClassName.Length), Name);
 
   // check if _Tab is already open
-  if Assigned(Content.FindChildControl('Tab' + _LName)) then
+  _Tab := FindChildControl('Tab' + _LName) as TNvBsTab;
+  if Assigned(_Tab) then
     begin
       // activate the _Tab
-      ActiveTab := TNvBsTab(Content.FindChildControl('Tab' + _LName));
+      ActiveTab := _Tab;
       _Frame    := (ActiveTab.Controls[0] as AFrameClass);
       // ShowFrame
       _Frame.Show;
@@ -519,9 +445,19 @@ begin
 
     // Set _Tab Caption
     if _Frame.Caption <> '' then
-      _Tab.TabHeader.Caption := _Frame.Caption
+      _Tab.TabHeader.Link.Text := _Frame.Caption
     else
-      _Tab.TabHeader.Caption := _Frame.Name;
+      _Tab.TabHeader.Link.Text := _Frame.Name;
+
+    if _Frame.ImageListLink.IsValidImage then
+      with _Tab.TabHeader.Link.ImageListLink do
+        begin
+          Height     := _Frame.ImageListLink.Height;
+          Width      := _Frame.ImageListLink.Width;
+          Images     := _Frame.ImageListLink.Images;
+          ImageIndex := _Frame.ImageListLink.ImageIndex;
+        end;
+
   finally
     Result := _Frame;
   end;
@@ -537,11 +473,12 @@ begin
   Page := ActiveTab;
   if Assigned(Page) then
     begin
-      try
-        Frame := TNVBaseFrame(Page.Controls[0]);
-      except
+      if (Page.ControlCount = 1) //
+        and (Page.Controls[0] is TNVBaseFrame) then
+        Frame := TNVBaseFrame(Page.Controls[0])
+      else
         Frame := nil;
-      end;
+
       if Assigned(Frame) and Assigned(Frame.OnActivate) then
         Frame.OnActivate(Frame);
     end;
@@ -549,11 +486,7 @@ end;
 
 function TNvBsTDI.TabByFrame(aFrame: TNVBaseFrame): TNvBsTab;
 begin
-  Result := nil;
-  if Assigned(Content.FindChildControl('Tab' + aFrame.Name)) then
-    begin
-      Result := TNvBsTab(Content.FindChildControl('Tab' + aFrame.Name));
-    end;
+  Result := FindChildControl('Tab' + aFrame.Name) as TNvBsTab;
 end;
 
 function TNvBsTDI.WebClassType: string;

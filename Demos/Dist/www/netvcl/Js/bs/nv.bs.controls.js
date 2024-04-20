@@ -3,9 +3,11 @@ import { TControl, TWinControl } from "./../nv.controls.js";
 import { TSubProperty } from "../nv.classes.js";
 
 export class TBSmargins extends TSubProperty {
-    constructor(C, O) {
+    constructor(C, T, P, O) {
         super();
         this.FControl = C;
+        this.FPrefix = P;
+        this.FType = T;
         //defaults
         this.FRight = '';
         this.FBottom = '';
@@ -27,6 +29,69 @@ export class TBSmargins extends TSubProperty {
         this.Top = O.Top || '';
         this.Left = O.Left || '';
     }
+
+    get Right() { return this.Right };
+    get Bottom() { this.Bottom };
+    get X() { this.X };
+    get Y() { this.Y };
+    get All() { this.All };
+    get Top() { this.Top };
+    get Left() { this.Left };
+
+    _UpdateClass(prop, side, breakpoint, size){
+        this.FControl.FEl.removeClassRegex("(^|\\b)(" + prop +  side + breakpoint + "(auto|0|1|2|3|4|5|6)+)(\\b(?!-)|$)")
+               .addClass(prop +  side + breakpoint +  size); 
+    }
+
+    set Right(V) {
+        if (V != this.FRight) {
+            this._UpdateClass(this.FType, 'r-', this.FPrefix, V);
+            this.FRight = V;
+        }
+    }
+
+    set Bottom(V) {
+        if (V != this.FBottom) {
+            this._UpdateClass(this.FType, 'b-', this.FPrefix, V);
+            this.FBottom = V;
+        }
+    }
+
+    set X(V) {
+        if (V != this.FX) {
+            this._UpdateClass(this.FType, 'x-', this.FPrefix, V);
+            this.FX = V;
+        }
+    }
+
+    set Y(V) {
+        if (V != this.FY) {
+            this._UpdateClass(this.FType, 'y-', this.FPrefix, V);
+            this.FY = V;
+        }
+    }
+
+    set All(V) {
+        if (V != this.FAll) {
+            this._UpdateClass(this.FType, '-', this.FPrefix, V);
+            this.FAll = V;
+        }
+    }
+
+    set Top(V) {
+        if (V != this.FTop) {
+            this._UpdateClass(this.FType, 't-', this.FPrefix, V);
+            this.FTop = V;
+        }
+    }
+
+    set Left(V) {
+        if (V != this.FLeft) {
+            this._UpdateClass(this.FType, 'l-', this.FPrefix, V);
+            this.FLeft = V;
+        }
+    }
+
 }
 
 
@@ -50,8 +115,8 @@ export class TBSGridOptions extends TSubProperty {
         this.FFloat = '';
         this.FOffset = '';
         this.FSpan = '';
-        this.FPaddings = new TBSmargins(C, O.Paddings || {});
-        this.FMargins = new TBSmargins(C, O.Margins || {});;
+        this.FPaddings = new TBSmargins(C, 'p', this.FPrefix, O.Paddings || {});
+        this.FMargins = new TBSmargins(C, 'm', this.FPrefix, O.Margins || {});;
         this._CreateParams(O);
     }
 
@@ -93,7 +158,7 @@ export class TBSGridOptions extends TSubProperty {
 
     set AutoMargin(V) {
         if (V != this.FAutoMargin) {
-            this.FControl.removeClass("ml-auto mr-auto").addClass(V);
+            this.FControl.FEl.removeClass("ml-auto mr-auto").addClass(V);
             this.FAutoMargin = V;
         }
     }
@@ -106,7 +171,8 @@ export class TBSGridOptions extends TSubProperty {
     }
     set Direction(V) {
         if (V != this.FDirection) {
-
+            this.FControl.FEl.removeClassRegex("(^|\\b)(flex-" + this.FPrefix + "(row|row-reverse|column|column-reverse|)+)(\\b(?!-)|$)")
+            .addClass("flex-" + this.FPrefix + V);
             this.FDirection = V;
         }
     }
@@ -166,7 +232,8 @@ export class TBSGridOptions extends TSubProperty {
     }
     set Float(V) {
         if (V != this.FFloat) {
-
+            this.FControl.FEl.removeClassRegex("(^|\\b)(float-" + this.FPrefix + "(none|right|left)+)(\\b(?!-)|$)")
+                .addClass("float-" + this.FPrefix + V);
             this.FFloat = V;
         }
     }

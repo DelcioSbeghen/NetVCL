@@ -1,13 +1,10 @@
 //Bootstrap Form
-import { TPage } from "./../nv.forms.js";
+import { TNVPage } from "./../nv.forms.js";
 
-export class TBsPage extends TPage {
+export class TBsPage extends TNVPage {
 
     _CreateParams(o) {
         super._CreateParams(o);
-        //  this.AddClass("container");
     }
 }
 
-//TApplication.RegisterClass(TBsPage);
-TApplication.PageClass = TBsPage;

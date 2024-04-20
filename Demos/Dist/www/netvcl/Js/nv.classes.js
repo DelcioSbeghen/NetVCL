@@ -398,7 +398,20 @@ $.fn.extend({
         })
     }
 })
-
+$.fn.extend({
+    setTextPreserveChilds: function (text) {
+        let _add = true;
+        this.contents().filter(function () {
+            if (this.nodeType == Node.TEXT_NODE) {
+                _add = false;
+                this.nodeValue = text;
+            }
+        })
+        if (_add) {
+            this.append(text);
+        }
+    }
+})
 
 
 

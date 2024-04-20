@@ -1,23 +1,54 @@
 //Base
 export class TSubProperty {
+    static callAfterConstructor = true;
 
-}    
+    constructor(o) {
+        o ??= {};
+        if(this.constructor.callAfterConstructor)
+        this._AfterConstruction(o);
+    }
 
-export class TComponent {
-
-    constructor(o) {        
+    // dont change this
+    _AfterConstruction(o) {
+        this._DefaultParams(o);
         this._CreateParams(o);
         this._ChangeParams(o);
-        window.App ? App.AddComponentToList(this) : null;
+    }
+
+    _DefaultParams(o) {
+
     }
 
     _CreateParams(o) {
-        this.FId = o.Id; 
-        this.FName = o.Name || "";       
+
     }
 
-    _ChangeParams(o){
-        ChangeCompProps(this, o); 
+    _ChangeParams(o) {
+        ChangeCompProps(this, o);
+    }
+
+}
+
+export class TComponent {
+
+    constructor(o) {
+        this._DefaultParams(o);
+        this._CreateParams(o);
+        this._ChangeParams(o);
+    }
+
+    _DefaultParams(o) {
+        o.Name ??= "";
+    }
+
+    _CreateParams(o) {
+        this.FId = o.Id;
+        window.App ? App.AddComponentToList(this) : null;
+        this.FName = "";
+    }
+
+    _ChangeParams(o) {
+        ChangeCompProps(this, o);
     }
 
     Free() {
@@ -62,8 +93,8 @@ export class TComponent {
 export class TNvLogger extends TSubProperty {
     constructor(o) {
         super();
-        this.FDebug = o.Debug || false;
-        this.FHandler = o.HandlerFunc || null;
+        this.FDebug = o.Debug ?? false;
+        this.FHandler = o.HandlerFunc ?? null;
         window.onerror = function (msg, url, line, col, error) {
             // Note that col & error are new to the HTML 5 spec and may not be 
             // supported in every browser.  It worked for me in Chrome.
@@ -93,9 +124,71 @@ export class TNvLogger extends TSubProperty {
     }
 }
 
+export class TNvReceivedQueue {
+    constructor() {
+        this.FRecQueue = [];
+        this.FProcessing = 0;
+    }
+
+    _ProcessQueue() {
+        if (this.Count == 0)
+            return;
+        if (this.FProcessing == 0) {
+            this.FProcessing++;
+            this._ProcessNext();
+            this.FProcessing--;
+        }
+    }
+
+
+    _ProcessNext() {
+        let js = this.FRecQueue.shift();
+        App.ParseJsonNew(js).then(() => {
+            if (this.Count > 0)
+                this._ProcessNext()
+        });
+    }
+
+
+    QueueMessage(C) {
+        this.FRecQueue.push(C);
+        this._ProcessQueue();
+    }
+
+    get Count() {
+        return this.FRecQueue.length;
+    }
+
+}
+
+
+
+export const Typ = {
+    //modal results
+    mrNone: 0,
+    mrOk: 1,
+    mrCancel: 2,
+    mrAbort: 3,
+    mrRetry: 4,
+    mrIgnore: 5,
+    mrYes: 6,
+    mrNo: 7,
+    mrClose: 8,
+    mrHelp: 9,
+    mrTryAgain: 10,
+    mrContinue: 11,
+    mrAll: 12,
+    mrNoToAll: 13,
+    mrYesToAll: 14
+    //
+}
+
+
+
+
 //-------------------- For Components decendants ----------------------------------------
 
-export function ChangeCompProps(Obj, Props, ignore = ["Change", "New", "Id", "Events"]){
+export function ChangeCompProps(Obj, Props, ignore = ["Change", "New", "Id", "Events"]) {
     Object.keys(Props).forEach(PropName => {
         //Ignore "Change", "New" and "Id" Props
         if ($.isInArray(PropName, ignore))
@@ -106,45 +199,64 @@ export function ChangeCompProps(Obj, Props, ignore = ["Change", "New", "Id", "Ev
 
 
 function ChangeCompProp(Obj, Prop, Value) {
-     //execute calls to component functions
+    //execute calls to component functions
     if (Prop === "Call") {
         Value.forEach(call => {
-            if (Obj[call["function"]] !== undefined)
-                Obj[call["function"]](call["params"]);
+            if (Obj[call["function"]] !== undefined) {
+                if (typeof call["params"] === "object")
+                    Obj[call["function"]](...call["params"])
+                else
+                    Obj[call["function"]](call["params"])
+            }
+            else
+                App.Logger.Debug("Cannot Call Component Melhod. Component:" + Obj.constructor.name + ". Method:" + call["function"]);
         });
-    //process SubComponent Props
-    } else if (Obj[Prop] instanceof TSubProperty && Value !== null) {
+        //process SubComponent Props
+    } else if ((typeof Value == 'object') && ((Obj[Prop] instanceof TSubProperty) || (Obj[Prop] instanceof TComponent)) && Value !== null) {
         var _SubObj = Obj[Prop];
         ChangeCompProps(_SubObj, Value)
         //process Prop
     } else if (Obj[Prop] !== undefined)
-        Obj[Prop] = Value;
+        Obj[Prop] = Value
+    else
+        App.Logger.Debug("Cannot Set Component Property. Component:" + Obj.constructor.name + ". Property:" + Prop);
 };
 
 //-------------------  For Objects  --------------------------
 
-export function ChangeObjProps(Obj, Props, ignore = []){
-    Object.keys(Props).forEach(PropName => {  
+export function ChangeObjProps(Obj, Props, ignore = []) {
+    Object.keys(Props).forEach(PropName => {
         ChangeObjProp(Obj, PropName, Props[PropName], ignore);
     });
 }
 
 
 function ChangeObjProp(Obj, Prop, Value, ignore) {
-     //Ignore "Change", "New" and "Id" Props
-     if ($.isInArray(Prop, ignore)){
+    //Ignore "Change", "New" and "Id" Props
+    if ($.isInArray(Prop, ignore)) {
         return
-    //process Array Props
-     } else if ($.isArray(Value)) {
+        //process Array Props
+    } else if ($.isArray(Value)) {
         Obj[Prop] = Value;
-    //process SubObj Props
-    } else if (Value instanceof Object  && Value !== null) {
+        //process SubObj Props
+    } else if (Value instanceof Object && Value !== null) {
         var _SubObj = Obj[Prop];
         ChangeObjProps(_SubObj, Value);
         //process Prop
     } else //if (Obj[Prop] !== undefined)
         Obj[Prop] = Value;
 };
+
+
+export function BrowserDateFormat() {
+    let d = new Date(2013, 11, 31);
+    return d//
+        .toLocaleDateString()//
+        .replace("31", "dd")//
+        .replace("12", "mm")//
+        .replace("2013", "yyyy");
+}
+
 
 
 /* ***********************************************************
@@ -183,6 +295,25 @@ $.fn.insertAtIndex = function (elements, index) {
     }
     var before = children.eq(index);
     $(elements).insertBefore(before);
+    return this;
+};
+
+/* ***********************************************************
+extend jquery to add changeIndex function to change an element at index
+ex: $("#el").changeIndex(2);
+************************************************************ */
+
+$.fn.changeIndex = function (i) {
+    // The element we want to swap with
+    var $target = this.parent().children().eq(i);
+
+    // Determine the direction of the appended index so we know what side to place it on
+    if (this.index() > i) {
+        $target.before(this);
+    } else {
+        $target.after(this);
+    }
+
     return this;
 };
 
@@ -340,7 +471,7 @@ $.extend({
     replaceTag: function (element, tagName, withDataAndEvents, deepWithDataAndEvents) {
         var newTag = $("<" + tagName + ">")[0];
         // From [Stackoverflow: Copy all Attributes](http://stackoverflow.com/a/6753486/2096729)
-        $.each(element.attributes, function() {
+        $.each(element.attributes, function () {
             newTag.setAttribute(this.name, this.value);
         });
         //$(element).children().clone(withDataAndEvents, deepWithDataAndEvents).appendTo(newTag);
@@ -352,12 +483,103 @@ $.extend({
 $.fn.extend({
     replaceTag: function (tagName, withDataAndEvents, deepWithDataAndEvents) {
         // Use map to reconstruct the selector with newly created elements
-        return this.map(function() {
+        return this.map(function () {
             return jQuery.replaceTag(this, tagName, withDataAndEvents, deepWithDataAndEvents);
         })
     }
 })
+$.fn.extend({
+    setTextPreserveChilds: function (text) {
+        let _add = true;
+        this.contents().filter(function () {
+            if (this.nodeType == Node.TEXT_NODE) {
+                _add = false;
+                this.nodeValue = text;
+            }
+        })
+        if (_add) {
+            this.append(text);
+        }
+    }
+})
+
+/* ***********************************************************
+extend jquery to safe stringify objects with circular references
+************************************************************ */
 
 
+
+
+$.stringifySafe = function (o) {
+
+    const getCircularReplacer = () => {
+        const seen = new WeakSet();
+        return (key, value) => {
+            if (typeof value === 'object' && value !== null) {
+                if (seen.has(value)) {
+                    return;
+                }
+                seen.add(value);
+            }
+            return value;
+        };
+    };
+
+
+    return JSON.stringify(o, getCircularReplacer());
+}
+
+
+
+/* ***********************************************************
+extend string prototype to advanced trim(), 
+************************************************************ */
+String.prototype.trimStart = function (charlist) {
+    if (charlist === undefined)
+        charlist = "\s";
+
+    return this.replace(new RegExp("^[" + charlist + "]+"), "");
+};
+
+String.prototype.trimOld = String.prototype.trim;
+
+String.prototype.trim = function (charlist) {
+    if (charlist === undefined)
+        return this.trimOld()
+    else
+        return this.trimStart(charlist).trimEnd(charlist);
+};
+
+String.prototype.trimEnd = function (charlist) {
+    if (charlist === undefined)
+        charlist = "\s";
+
+    return this.replace(new RegExp("[" + charlist + "]+$"), "");
+};
+
+String.prototype.htmlEscape = function () {
+    return this
+        .replace(/&/g, '&amp;')
+        .replace(/'/g, '&#39;')
+        .replace(/"/g, '&quot;')
+        .replace(/>/g, '&gt;')   
+        .replace(/</g, '&lt;')
+        .replace(/\\/g, '&#92;')
+        .replace(/-x-0a/g, '<br>')
+        .replace(/x-0d/g, '')
+        .replace(/ /g, '&nbsp;') ;  
+};
+
+String.prototype.htmlUnescape = function () {
+    return this
+    .replace(/&amp;/g, '&')
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&gt;/g, '>')   
+    .replace(/&lt;/g, '<')
+    .replace(/&#92;/g, '\\')
+    .replace(/<br>/g, chr(13)+chr(10))
+    .replace(/&nbsp;/g, ' ');  
+};
 
 

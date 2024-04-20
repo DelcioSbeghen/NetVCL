@@ -1,3 +1,4 @@
+import { TNvBsButton } from "./nv.bs.buttons.js";
 import { TNvBsContainer, TNvBsGridContainer } from "./nv.bs.containers.js";
 
 
@@ -34,7 +35,7 @@ export class TBsNavItemLink extends TBsNavItem {
     }
 
     _DoTextChange(T) {
-        this.FLink.html(T);
+        this.FLink.setTextPreserveChilds(T);
         this.FText = T;
     }
 
@@ -84,6 +85,19 @@ export class TBsNavBarBrand extends TNvBsContainer {
     }
 }
 
+export class TBsNavBarToggler extends TNvBsButton {
+    _CreateParams(o) {
+        super._CreateParams(o);
+        this.El.removeClassStartingWith("btn").addClass("navbar-toggler");
+        this.DataToggle = o.DataToggle || "collapse";
+        this.DataTarget = o.DataTarget || this.Parent.El.children(".navbar-collapse")[o].id;
+        this.FEl.attr("aria-expanded", "false");
+        //    aria-label="Toggle navigation"
+    }
+
+
+}
+
 
 export class TBsNavBarItemLink extends TBsNavItemLink {
     _Tag() { return "div" }
@@ -104,6 +118,13 @@ export class TBsNavBarContent extends TNvBsContainer {
 
 }
 
+export class TBsNavBarNav extends TNvBsContainer {
+    _CreateParams(o) {
+        super._CreateParams(o);
+        this.AddClass("navbar-nav");
+    }
+
+}
 
 export class TNvBsNavBar extends TNvBsContainer {
     _CreateParams(o) {
@@ -116,6 +137,8 @@ export class TNvBsNavBar extends TNvBsContainer {
         this.FColor = '';
         this.Color = o.Color || 'light'; //light|dark
     }
+
+    _Tag() { return "nav" }
 
     get Expand() { return this.FExpand }
     set Expand(V) {

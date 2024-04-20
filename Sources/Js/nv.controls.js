@@ -5,71 +5,75 @@ import { TFont } from './nv.graphics.js';
 export class TControl extends TComponent {
     constructor(o) {
         super(o);
-        this._AttachEvents(o.Events || []);
+        this._AttachEvents(o.Events ?? []);
+    }
+
+    //override  and set default values before call super
+    _DefaultParams(o) {
+        o.Tag ??= "div";
+        o.ClassCss ??= "";
+        o.Role ??= "";
+        //Fxxx are non property values
+        this.FRenderPosition ??= true;
+        o.Position ??= (this.FRenderPosition ? "absolute" : "");
+        this.FDesignClass ??= "design";
+        // 
+        super._DefaultParams(o);
     }
 
     _CreateParams(o) {
         super._CreateParams(o);
-        if (this.FRenderPosition === undefined)
-            this.FRenderPosition = true;
-        this.FFont = new TFont({});
-        $(this.FFont).on("change", (e) => { this._DoFontChange(e) });
-        this.FTag = o.Tag || this._Tag();
+
+        //Create Html Element      
         this.FEl = null;
+        //Tag must to be set before create element
+        this.FTag ??= o.Tag;
         this._CreateElement();
-        this.FClass = '';
+
+        //Initialize params with values to fire (or not) changes on set prop values     
+        this.FClass = ""
+        this.FRole = "";
+        this.FPosition = "";
         this.FText = '';
-        this.FRole = '';
-        this.FPosition = '';
-        this.Position = o.Position || 'absolute';
         this.FTop = '';
-        // this.Top = o.Top || '';
         this.FLeft = '';
-        // this.Left = o.Left || '';
         this.FWidth = '';
-        //  this.Width = o.Width || '';
         this.FHeight = '';
-        //this.Height = o.Height || '';
         this.FParent = null;
-        if (App.FDesign)
-            this.Class = "design" + (o.Class ? " " && o.Class : "")
-        else
-            this.Class = o.Class || '';
-        this.AddClass(o.AddClass || '');
-        //this.Text = o.Text || '';
-        //this.Role = o.Role || '';
         this.FLayout = '';
-        //this.Layout = o.Layout || '';
         this.FOrientaion = '';
-        //this.Orientaion = o.Orientaion || '';
         this.FAlignament = '';
-        //this.Alignament = o.Alignament || '';
         this.FWordWrap = '';
-        //this.WordWrap = o.WordWrap || '';
-        //this.Parent = o.Parent || null;
         this.FVisible = true;
         this.FEnabled = true;
-        //this.Visible = o.Visible || true;
         this.FImage = "";
+        this.FDName = "";
+        this.FFont = new TFont({});
+        this.FRenderIndex = 0;
+        $(this.FFont).on("change", (e) => { this._DoFontChange(e) });
     }
 
-    //default element tag
-    _Tag() { return "div" }
+    _ChangeParams(o) {
+        //Force class first of other properties where can change element class
+        this.ClassCss = o.ClassCss;
+        super._ChangeParams(o);
+    }
 
     get Tag() { return this.FTag }
     set Tag(T) {
         if (T !== this.FTag) {
-            this.FEl = this.FEl.replaceTag(T, true, true);
+            if (this.FEl)//tag can be set before creating the element
+                this.FEl = this.FEl.replaceTag(T, true, true);
             this.FTag = T;
         }
     }
-
-
 
     _CreateElement() {
         if (this.FEl == null) {
             this.FEl = $(document.createElement(this.FTag)); //do not use JQuery for Create Element
             this.Attr("id", this.FId)
+            if (this.FDName)
+                this.Attr("d-name", this.FDName);
             // this.FEl.on("elementResize.NVjs", () => this._DoResize());
         }
     }
@@ -92,14 +96,7 @@ export class TControl extends TComponent {
         return this.FEl.attr(...a);
     }
 
-    set Parent(P) {
-        //support Id(string) or Object
-        if (typeof P !== 'object' && P !== null) {
-            var _Pstr = P;
-            P = App.GetComponentById(P) || null;
-            if (!P)
-                App.AddParentFixUp(this.Id, _Pstr);
-        };
+    _DoSetParent(P) {
 
         if (P != this.FParent) {
             if (P == this) throw this.Name && ' cannot parent itself';
@@ -115,11 +112,39 @@ export class TControl extends TComponent {
                  ScaleForPPI(GetParentCurrentDpi);
                  end; 
                  UpdateAnchorRules; */
-                this.FParent = P;
-                App.FResizeObserver.observe(this.FEl[0]);
+
+                if (this.FRenderPosition || App.FDesign)
+                    App.FResizeObserver.observe(this.FEl[0]);
                 // this.FEl.on("elementResize.NVjs", () => this._DoResize());
             };
+
+            this.FParent = P;
         };
+
+    }
+
+    get RenderIndex() { return this.FRenderIndex };
+    set RenderIndex(V) {
+        if (V != this.FRenderIndex) {
+            this.FRenderIndex = V;
+            if (this.ParentDefined())
+                this.Parent._DoInsertControl(this);
+        }
+    }
+
+
+    set Parent(P) {
+        //support Id(string) or Object
+        if (P === "")
+            P = null
+        else if ((typeof P !== 'object') && (P !== null)) {
+            var _Pstr = P;
+            P = App.GetComponentById(P) ?? null;
+            if (!P)
+                App.AddParentFixUp(this.Id, _Pstr);
+        };
+
+        this._DoSetParent(P);
     }
 
     get Parent() {
@@ -130,17 +155,31 @@ export class TControl extends TComponent {
         return this.FEl;
     }
 
-    set Class(C) {
+    get ClassCss() { return this.FClass }
+    set ClassCss(C) {
         if (C != this.FClass) {
-            this.FEl.removeClass().addClass(C);
+            this.FEl//
+                .removeClass(this.FClass)//
+                .addClass((App.FDesign ? this.FDesignClass + " " : "") + C);
             this.FClass = C;
         }
     }
 
-    AddClass(C) {
-        this.FEl.addClass(C);
+    // use to only add class to Element, the Component property ClassCss dont be changed;
+    //pass html element or Control.ID to E, default is this Html Element 
+    AddClassToEl(C, E = this.El) {
+        if (typeof E === "string")
+            E = App.FComponentList[E].El;
+        E.addClass(C);
     }
 
+    // use to only remove class rom Element, the Component property ClassCss dont be changed;
+    //pass html element or Control.ID to E, default is this Html Element  
+    RemoveClassFromEl(C, E = this.El) {
+        if (typeof E === "string")
+            E = App.FComponentList[E].El;
+        E.removeClass(C);
+    }
 
     set Text(T) {
         if (T != this.FText) {
@@ -159,11 +198,21 @@ export class TControl extends TComponent {
         }
     }
 
+    ParentDefined() {
+        return ((typeof this.FParent == "object") && (this.FParent !== null));
+    }
+
+    ParentIs(C) {
+        return (this.ParentDefined() && (this.FParent instanceof C))
+    }
+
+    get Role() { return this.FRole }
+
     _DoImageChange() {
         //override to change functionality
         if (this.FImage != "") {
             this.FElImage = $(this.FImage);
-            this.FElImage.addClass("rounded mr-2");
+            //this.FElImage.addClass("rounded");
             this.FEl.prepend(this.FElImage);
         } else if (this.FElImage) {
             this.FElImage.remove();
@@ -177,7 +226,7 @@ export class TControl extends TComponent {
         if (this.FText !== T) {
             // var _Resizer = this.FEl.children("iframe");
             // _Resizer.detach();
-            this.FEl.html(T);
+            this.FEl.setTextPreserveChilds(T.htmlEscape());
             // _Resizer.prependTo(this.FEl);
             this.FText = T;
         }
@@ -203,7 +252,7 @@ export class TControl extends TComponent {
     }
 
     _DoResize() {
-        if (typeof this.FParent == 'object' && P !== null) {
+        if (this.ParentDefined()) {
             //position relative to parent "NVControl"
             var P = this.FEl.offset();
             let PP = this.FParent.FEl.offset();
@@ -213,7 +262,7 @@ export class TControl extends TComponent {
         else
             var P = this.FEl.Position();
 
-       let _Changed = false;
+        let _Changed = false;
 
         if (this.FTop !== P.top) {
             _Changed = true;
@@ -240,8 +289,13 @@ export class TControl extends TComponent {
             App.Server.SendChanges();
     }
 
-    _DoEnabledChange(){
+    _DoEnabledChange() {
         this.FEl.prop("disabled", !this.FEnabled);
+    }
+
+    _DoPosition(P) {
+        if (this.FRenderPosition)
+            this.Css("position", P);
     }
 
     set Width(W) {
@@ -299,11 +353,12 @@ export class TControl extends TComponent {
 
     set Position(P) {
         if (P != this.FPosition) {
-            if (this.FRenderPosition)
-                this.Css("position", P);
-            this.FLeft = P;
+            this._DoPosition(P);
+            this.FPosition = P;
         }
     }
+
+    get Position() { return this.FPosition }
 
     get Font() {
         return this.FFont;
@@ -382,9 +437,9 @@ export class TControl extends TComponent {
         }
     }
 
-    get Enabled(){return this.FEnabled}
-    set Enabled(V){
-        if (V!==this.FEnabled){
+    get Enabled() { return this.FEnabled }
+    set Enabled(V) {
+        if (V !== this.FEnabled) {
             this.FEnabled = V;
             this._DoEnabledChange();
         }
@@ -398,15 +453,41 @@ export class TControl extends TComponent {
         }
     }
 
+    get DName() { return this.FDName }
+    set DName(V) {
+        if (V !== this.FDName) {
+            this.FDName = V;
+            this.Attr("d-name", this.FDName);
+        }
+    }
+
     _ProcessEvent(e) {
-        App.QueueChange(this.FId, e.type, e);
+        let evt;
+        if (["keypress", "keyup", "keydown"].includes(e.type)) {
+            evt = {
+                type: e.type,
+                alt: e.altKey,
+                ctrl: e.ctrlKey,
+                shift: e.shiftKey,
+                key: e.key,
+                keyCode: e.keyCode,
+                value: $(e.target).val()
+            }
+        } else
+            evt = e;
+        App.QueueChange(this.FId, evt.type, evt);
         App.Server.SendChanges();
     }
 
+
+
     _AttachEvents(E) {
-        E.forEach(evt => {
-            this.FEl.off(evt + ".nvjs").on(evt + ".nvjs", (e) => this._ProcessEvent(e));
-        });
+        if (typeof E == "object")
+            E.forEach(evt => {
+                this.FEl.off(evt + ".nvjs").on(evt + ".nvjs", (e) => this._ProcessEvent(e));
+            })
+        else
+            this.FEl.off(E + ".nvjs").on(E + ".nvjs", (e) => this._ProcessEvent(e));
     }
 }
 
@@ -421,17 +502,79 @@ export class TWinControl extends TControl {
         this.FControls = [];
     }
 
+    Free() {
+        if (this.FModal) {
+            this.FModal.remove();
+            this.FModal = undefined;
+        }
+        super.Free();
+    }
+
+    CloseModal() {
+        if (this.FModal) {
+            if (this.FParent)
+                this.FParent.InsertControl(this)
+            else
+                this.El.detach();
+            this.FModal.remove();
+            this.FModal = undefined;
+        }
+    }
+
+
+    ShowModal() {
+        if (this.FParent) this.FParent.RemoveControl(this);
+        this.FModal = TApplication.ShowModalProc(this.FEl, this.FCaption || this.FText);
+        this.FEl.one("close-modal.nvjs", (e, mr) => {
+            mr ? e.ModalResult = mr : null;
+            this._ProcessEvent(e)
+        });
+    }
+
+    _DoInsertControl(C) {
+        if (C.FRenderIndex > 0) {
+            let _Controls = this.FControls.sort((a, b) => b.FRenderIndex - a.FRenderIndex),
+                _Insert = false;
+            for (const prevEl of _Controls) {
+                if (C.FRenderIndex > prevEl.FRenderIndex) {
+                    C.FEl.insertAfter(prevEl.FEl);
+                    _Insert = true;
+                    break;
+                }
+            }
+            /*
+                        _Controls.forEach(prevEl => {
+                            if (C.FRenderIndex > prevEl.FRenderIndex) {
+                                C.FEl.insertAfter(prevEl.FEl);
+                                _Insert = true;
+                                break;
+                            }
+                        });*/
+            if (!_Insert)
+                this.El.append(C.FEl);
+        }
+        else {
+            C.FRenderIndex = this.FControls.length + 1;
+            this.El.append(C.FEl);
+        }
+    }
+
     InsertControl(C) {
         this.FControls.push(C);
-        this.El.append(C.FEl);
+        this._DoInsertControl(C);
+    }
+
+    _DoRemoveControl(C) {
+        C.El.detach(); //remove without free and remove data_events 
     }
 
     RemoveControl(C) {
         this.FControls = this.FControls.filter(item => item !== C);
-        C.El.detach(); //remove without free and remove data_events 
+        this._DoRemoveControl(C);
     }
 
 }
+
 
 
 

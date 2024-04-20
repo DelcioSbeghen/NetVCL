@@ -6,16 +6,18 @@ export class TNvBsAlert extends TNvBsGridContainer {
         if (!this.FBgPrefix) this.FBgPrefix = "alert-";
         if (!this.FBackground) this.FBackground = 'info';
         if (this.FFade == undefined) this.FFade = true;
+        this.FFloat = false;
         super._CreateParams(o);
         this.AddClass("alert alert-info");
         //this.FVariant = "info";
         //this.Variant = o.Variant || "info"; //'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'dark' | 'light' 
         //this.FGrids = new TBsGrids(this, o.Grids || {});
         if (this.FFade)
-            this.AddClass("fade show");
+            this.AddClass("fade");
         //this.Animated = o.Animated || this.FAnimated;
         this.FTimeout = 0;
         this.FShowClose = true;
+        this.FVisible = false;
     }
 
     _ChangeParams(o) {
@@ -76,12 +78,29 @@ export class TNvBsAlert extends TNvBsGridContainer {
     get Visible() { return super.Visible }
     set Visible(V) {
         super.Visible = V;
+        //re-insert DOM element removed by bootstrap
+        if (V && (!this.FEl.parent()) && (this.Parent != null)) {
+            this.Parent.InsertControl(this);
+            App.FResizeObserver.observe(this.FEl[0]);
+        };
+        if (V) this.AddClass("show");
         this._ApplyTimeout();
     }
 
     Close() {
         this.FEl.alert("Close");
     }
+
+    get Float() { return this.FFloat }
+    set Float(V) {
+        if (V != this.FFloat) {
+            if (V)
+                this.AddClass('alert-float')
+            else
+                this.RemoveClass('alert-float');
+        }
+    }
+
 
 }
 
@@ -151,7 +170,7 @@ export class TNvBsToast extends TNvBsAlert {
 
     _DoTextChange(T) {
         if (this.FText !== T) {
-            this.FBody.html(T);
+            this.FBody.setTextPreserveChilds(T);
             this.FText = T;
         }
     }

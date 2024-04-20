@@ -46,7 +46,7 @@ function TDispatchDirFiles.Execute(aRequest: TNVRequestTask): Boolean;
   function DocumentFile: string;
   begin
 
-    Result := StringReplace(aRequest.Req.Document, 'local://screen/', Application.RootPath, []);
+    Result := StringReplace(aRequest.Req.Document, 'nvlocal://screen/', Application.RootPath, []);
 
     Result := StringReplace(Result, '/', '\', [rfReplaceAll]);
 

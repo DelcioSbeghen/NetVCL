@@ -79,7 +79,7 @@ const
 implementation
 
 uses
-  SysUtils, System.Win.ComObj, NV.VCL.Page{, NV.VCL.Labels};
+  SysUtils, System.Win.ComObj, NV.VCL.Forms{, NV.VCL.Labels};
 
 procedure DebugMsg(const Msg: String);
 begin
@@ -182,7 +182,7 @@ end;
 
 function TNVPageModuleCreator.GetAncestorName: string;
 begin
-  Result := 'NVPage';
+  Result := 'NVForm';
   DebugMsg('GetAncestorName: ' + Result);
 end;
 
@@ -194,7 +194,7 @@ end;
 
 function TNVPageWizard.GetComment: string;
 begin
-  Result := 'Creates a new NVPage.';
+  Result := 'Creates a new NVForm.';
   DebugMsg('GetComment: ' + Result);
 end;
 
@@ -222,7 +222,7 @@ var
 begin
   if FIsMainForm then
     begin
-      Result := 'MainPage';
+      Result := 'MainForm';
     end
   else
     GetNewModuleAndClassName(Result, LImplFileName);
@@ -265,13 +265,13 @@ end;
 
 function TNVPageWizard.GetIDString: string;
 begin
-  Result := 'NetVCL.NVPage';
+  Result := 'NetVCL.NVForm';
 end;
 
 function TNVPageModuleCreator.GetImplFileName: string;
 begin
   if FIsMainForm then
-    Result := GetCurrentDir + '\uMainPage.pas'
+    Result := GetCurrentDir + '\uMainForm.pas'
   else
     Result := '';
 end;
@@ -288,7 +288,7 @@ end;
 
 function TNVPageWizard.GetName: string;
 begin
-  Result := 'NetVCL Page';
+  Result := 'NetVCL Form';
 end;
 
 function TNVPageModuleCreator.GetOwner: IOTAModule;
@@ -388,14 +388,15 @@ const
 
     'interface' + CrLf2 +
 
-    'uses' + CrLf + '  NV.VCL.Page;' + CrLf +
+    'uses' + CrLf + '  NV.VCL.Forms;' + CrLf +
 
     'type' + CrLf +
 
     '  T%1:s = class(T%2:s)' + CrLf + '  private' + CrLf + '    { private declarations }' + CrLf +
     '  public' + CrLf + '    { public declarations }' + CrLf + '  end;' + CrLf2 +
 
-    '{ !!! Do Not Declare Global Variables !!! }' + CrLf2 +
+    'var' + CrLf +
+    '%1:s:T%1:s;' + CrLf2 +
 
     'implementation' + CrLf2 +
 

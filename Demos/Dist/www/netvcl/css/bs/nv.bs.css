@@ -7,6 +7,13 @@
     margin-bottom: 0;
 }
 
+.alert-float {
+    position: absolute;
+    right: 5%;
+    z-index: 1099;
+}
+
+
 /* ######   Cards Dashboard ###### */
 
 .card-stats, .card-chart, .card-table {

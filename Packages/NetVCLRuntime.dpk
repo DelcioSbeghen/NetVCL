@@ -59,6 +59,7 @@ contains
   NV.Request.Exe in '..\Sources\Pascal\Application\NV.Request.Exe.pas',
   NV.VCL.Forms in '..\Sources\Pascal\VCL\NV.VCL.Forms.pas',
   NV.VCL.Charts in '..\Sources\Pascal\VCL\NV.VCL.Charts.pas',
-  NV.VCL.Graphics in '..\Sources\Pascal\VCL\NV.VCL.Graphics.pas';
+  NV.VCL.Graphics in '..\Sources\Pascal\VCL\NV.VCL.Graphics.pas',
+  NV.VCL.Dialogs in '..\Sources\Pascal\VCL\NV.VCL.Dialogs.pas';
 
 end.

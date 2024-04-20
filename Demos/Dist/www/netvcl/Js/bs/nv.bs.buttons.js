@@ -10,6 +10,8 @@ export class TNvBsButton extends TNvBsGridContainer {
         this.FVariant = "primary";
         this.FSize = ""; //""|sm|lg
         this.FBlock = false;
+        this.FDataToggle = "";
+        this.FDataTarget = "";
     }
 
     _Tag() {
@@ -44,6 +46,24 @@ export class TNvBsButton extends TNvBsGridContainer {
                 this.FEl.removeClass("btn-block");
         }
     }
+
+    get DataToggle(){return this.FDataToggle}
+    set DataToggle(V){
+        if (V != this.FDataToggle) {
+            this.FEl.attr("data-toggle", V);
+            
+            this.FDataToggle = V; 
+        }
+    }
+    
+    get DataTarget(){return this.FDataTarget}
+    set DataTarget(V){
+        if (V != this.FDataTarget) {
+            this.FEl.attr("data-target", V);
+            this.FEl.attr("aria-controls", V.substring(1));
+            this.FDataTarget = V; 
+        }
+    }   
 }
 
 export class TNvBsButtonGroup extends TNvBsGridContainer {

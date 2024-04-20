@@ -6,6 +6,8 @@ uses
   Classes, DB, NV.Ajax, NV.JSON;
 
 type
+  TPropChangeProc = procedure(aJson: TJsonObject) of object;
+
   // interface for all NV Controls and Containers
   INVBase = interface(IInterfaceComponentReference)
     ['{90AF0C4A-F1DF-4F5C-ABE5-B480F7A8E172}']
@@ -16,8 +18,11 @@ type
   // interface for all renderable properties and controls
   INVRenderableComponent = interface(INVBase)
     ['{D4268587-8C54-497F-B58C-ABF0B7C763A7}']
-    function Ajax: TNvAjax;
     function ControlAjaxJson: TJsonObject;
+    // procedure RemoveControlAjaxJson;
+    function NeedSendChange: Boolean;
+    procedure EnqueueChange(const aName: string; const aProc: TPropChangeProc);
+    procedure DequeueChange(const aName: string);
     function Rendered: Boolean;
     procedure ReRender(Now: Boolean = True);
     procedure Invalidate;
@@ -34,25 +39,6 @@ type
     // function InDesign: Boolean;
     procedure ProcessRequest(J: TJsonObject);
     property Enabled: Boolean read GetEnabled write SetEnabled;
-  end;
-
-  INvGrid  = interface(INvControl)
-  ['{964E20A1-D86B-46D3-9B85-40BBF746225A}']
-    procedure LayoutChanged;
-  end;
-
-  INvDbGrid = interface(INvGrid)
-    ['{EA1D3DE4-EFBA-496D-953E-2F9A748D7CDB}']
-    procedure LinkActive(Value: Boolean);
-    procedure DataChanged;
-    procedure Scroll(Distance: Integer);
-    procedure EditingChanged;
-    procedure RecordChanged(aField: TField);
-    procedure UpdateData;
-    function SelectedField: TField;
-    function Datalink:TDatalink;
-    procedure InvalidateRow(ARow: Longint);
-    function GetRow:LongInt;
   end;
 
   INVPage = interface(INvControl)

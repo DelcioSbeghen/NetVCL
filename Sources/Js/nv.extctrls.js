@@ -1,14 +1,14 @@
 import { TControl } from "./nv.controls.js";
 
 export class TImage extends TControl {
+    _DefaultParams(o) {
+        o.Tag ??= "img";
+        super._DefaultParams(o);
+    }
     _CreateParams(o) {
         super._CreateParams(o);
         this.FSrc = '';
        // this.Src = o.Src || '';
-    }
-
-    _Tag() {
-        return "img";
     }
 
     set Src(S) {

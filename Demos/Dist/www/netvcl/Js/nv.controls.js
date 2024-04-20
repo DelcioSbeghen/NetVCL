@@ -32,10 +32,10 @@ export class TControl extends TComponent {
         //this.Height = o.Height || '';
         this.FParent = null;
         if (App.FDesign)
-            this.Class = "design" + (o.Class ? " " && o.Class : "")
+            this.ClassCss = "design" + (o.ClassCss ? " " && o.ClassCss : "")
         else
-            this.Class = o.Class || '';
-        this.AddClass(o.AddClass || '');
+            this.ClassCss = o.ClassCss || '';
+        // this.AddClass(o.AddClass || '');
         //this.Text = o.Text || '';
         //this.Role = o.Role || '';
         this.FLayout = '';
@@ -51,6 +51,7 @@ export class TControl extends TComponent {
         this.FEnabled = true;
         //this.Visible = o.Visible || true;
         this.FImage = "";
+        this.FDName = "";
     }
 
     //default element tag
@@ -70,6 +71,8 @@ export class TControl extends TComponent {
         if (this.FEl == null) {
             this.FEl = $(document.createElement(this.FTag)); //do not use JQuery for Create Element
             this.Attr("id", this.FId)
+            if (this.FDName) 
+                this.Attr("d-name", this.FDName)
             // this.FEl.on("elementResize.NVjs", () => this._DoResize());
         }
     }
@@ -130,17 +133,25 @@ export class TControl extends TComponent {
         return this.FEl;
     }
 
-    set Class(C) {
+    get ClassCss() { return this.FClass }
+    set ClassCss(C) {
         if (C != this.FClass) {
-            this.FEl.removeClass().addClass(C);
+            this.FEl.removeClass(this.FClass).addClass(C);
             this.FClass = C;
         }
     }
 
     AddClass(C) {
-        this.FEl.addClass(C);
+        this.ClassCss = classNames(this.ClassCss.split(" "), C);
     }
 
+    RemoveClass(C) {
+        this.ClassCss = this.ClassCss
+            .split(" ")
+            .filter((_c) => {
+                return _c != C
+            });
+    }
 
     set Text(T) {
         if (T != this.FText) {
@@ -163,7 +174,7 @@ export class TControl extends TComponent {
         //override to change functionality
         if (this.FImage != "") {
             this.FElImage = $(this.FImage);
-            this.FElImage.addClass("rounded mr-2");
+            //this.FElImage.addClass("rounded");
             this.FEl.prepend(this.FElImage);
         } else if (this.FElImage) {
             this.FElImage.remove();
@@ -177,7 +188,7 @@ export class TControl extends TComponent {
         if (this.FText !== T) {
             // var _Resizer = this.FEl.children("iframe");
             // _Resizer.detach();
-            this.FEl.html(T);
+            this.FEl.setTextPreserveChilds(T);
             // _Resizer.prependTo(this.FEl);
             this.FText = T;
         }
@@ -213,7 +224,7 @@ export class TControl extends TComponent {
         else
             var P = this.FEl.Position();
 
-       let _Changed = false;
+        let _Changed = false;
 
         if (this.FTop !== P.top) {
             _Changed = true;
@@ -240,7 +251,7 @@ export class TControl extends TComponent {
             App.Server.SendChanges();
     }
 
-    _DoEnabledChange(){
+    _DoEnabledChange() {
         this.FEl.prop("disabled", !this.FEnabled);
     }
 
@@ -382,9 +393,9 @@ export class TControl extends TComponent {
         }
     }
 
-    get Enabled(){return this.FEnabled}
-    set Enabled(V){
-        if (V!==this.FEnabled){
+    get Enabled() { return this.FEnabled }
+    set Enabled(V) {
+        if (V !== this.FEnabled) {
             this.FEnabled = V;
             this._DoEnabledChange();
         }
@@ -395,6 +406,14 @@ export class TControl extends TComponent {
         if (V !== this.FImage) {
             this.FImage = V;
             this._DoImageChange();
+        }
+    }
+
+    get DName(){ return this.FDName }
+    set DName(V) {
+        if (V !== this.FDName) {
+            this.FDName = V;        
+            this.Attr("d-name", this.FDName);
         }
     }
 

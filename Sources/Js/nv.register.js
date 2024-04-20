@@ -6,15 +6,23 @@ export function RegisterClasses() {
 
 
     //Base
-    TApplication.RegisterClass('TPage', "./nv.forms.js");
+    TApplication.RegisterClass('TNVPage', "./nv.forms.js");
     TApplication.RegisterClass('TNVFrame', "./nv.forms.js");
     TApplication.RegisterClass('TImage', "./nv.extctrls.js");
+    TApplication.RegisterClass('TNvMessageDialog', "./nv.dialogs.js");
+    TApplication.RegisterClass('TNvButtonsDialog', "./nv.dialogs.js");
+
+
     TApplication.RegisterClass('TTable', "./nv.table.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
     TApplication.RegisterClass('TNvChart', "./nv.charts.js")
         .RegisterClassModule(jsdir + 'Chart.bundle.min.js', 'js')
         .RegisterClassModule(cssdir + 'Chart.min.css', 'css');
+    TApplication.RegisterClass('TNvStatusBar', "./nv.stdctrls.js");
+
+
+
 
 
 
@@ -37,20 +45,46 @@ export function RegisterClasses() {
         .RegisterClassModule(bscss, 'css');
     TApplication.RegisterClass('TNvBsAlert', "./bs/nv.bs.alerts.js")
         .RegisterClassModule(bsjs, 'js')
-        .RegisterClassModule(bscss, 'css');
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+    TApplication.RegisterClass('TNvBsBadge', "./bs/nv.bs.alerts.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+    TApplication.RegisterClass('TNvBsBadgeLink', "./bs/nv.bs.alerts.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
     TApplication.RegisterClass('TNvBsToast', "./bs/nv.bs.alerts.js")
         .RegisterClassModule(bsjs, 'js')
-        .RegisterClassModule(bscss, 'css');
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+    TApplication.RegisterClass('TNvBsSpinner', "./bs/nv.bs.alerts.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+
     TApplication.RegisterClass('TNvBsButton', "./bs/nv.bs.buttons.js")
         .RegisterClassModule(bsjs, 'js')
-        .RegisterClassModule(bscss, 'css');
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
     TApplication.RegisterClass('TNvBsButtonGroup', "./bs/nv.bs.buttons.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
     TApplication.RegisterClass('TNvBsButtonToolbar', "./bs/nv.bs.buttons.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
+    TApplication.RegisterClass('TButtonDropdown', "./bs/nv.bs.buttons.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');
+    TApplication.RegisterClass('TNvBsDropDown', "./bs/nv.bs.buttons.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');
 
+
+    TApplication.RegisterClass('TNvBsContainer', "./bs/nv.bs.containers.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');
     TApplication.RegisterClass('TNvBsRow', "./bs/nv.bs.containers.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
@@ -60,6 +94,19 @@ export function RegisterClasses() {
     TApplication.RegisterClass('TNvBsColumn', "./bs/nv.bs.containers.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
+    TApplication.RegisterClass('TNvBsListItem', "./bs/nv.bs.containers.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');   
+    TApplication.RegisterClass('TNvBsListGroup', "./bs/nv.bs.containers.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');
+
+    TApplication.RegisterClass('TNvBsScrollFocus', "./bs/nv.bs.scrollfocus.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+
+
 
     TApplication.RegisterClass('TNvBsCard', "./bs/nv.bs.cards.js")
         .RegisterClassModule(bsjs, 'js')
@@ -116,6 +163,9 @@ export function RegisterClasses() {
     TApplication.RegisterClass('TNvBsNav', "./bs/nv.bs.navbar.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
+    TApplication.RegisterClass('TNvBsNavLink', "./bs/nv.bs.navbar.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');
     TApplication.RegisterClass('TBsNavItemLink', "./bs/nv.bs.navbar.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
@@ -136,10 +186,19 @@ export function RegisterClasses() {
     TApplication.RegisterClass('TNvBsNavBar', "./bs/nv.bs.navbar.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
+    TApplication.RegisterClass('TBsNavBarContainer', "./bs/nv.bs.navbar.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');
     TApplication.RegisterClass('TBsNavBarBrand', "./bs/nv.bs.navbar.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
+    TApplication.RegisterClass('TBsNavBarToggler', "./bs/nv.bs.navbar.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');
     TApplication.RegisterClass('TBsNavBarContent', "./bs/nv.bs.navbar.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');
+    TApplication.RegisterClass('TBsNavBarNav', "./bs/nv.bs.navbar.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
     TApplication.RegisterClass('TBsNavBarItemLink', "./bs/nv.bs.navbar.js")
@@ -148,9 +207,13 @@ export function RegisterClasses() {
     TApplication.RegisterClass('TBsNavBarItemDropdown', "./bs/nv.bs.navbar.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
-    TApplication.RegisterClass('TNvBsCard', "./bs/nv.bs.containers.js")
+    TApplication.RegisterClass('TBsNavItemCollapse', "./bs/nv.bs.navbar.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css');
+    TApplication.RegisterClass('TNvBsSideBar', "./bs/nv.bs.navbar.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
 
 
     TApplication.RegisterClass('TNvBsTabControl', "./bs/nv.bs.tabs.js")
@@ -178,6 +241,22 @@ export function RegisterClasses() {
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css')
         .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+    TApplication.RegisterClass('TNvBsInputDate', "./bs/nv.bs.inputs.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(jsdir + 'bs/litepicker.min.js', 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+    TApplication.RegisterClass('TNvBsDateRange', "./bs/nv.bs.inputs.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(jsdir + 'bs/litepicker.min.js', 'js')
+        .RegisterClassModule(jsdir + 'bs/litepicker.ranges.js', 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+    TApplication.RegisterClass('TNvBsInputDateTime', "./bs/nv.bs.inputs.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(jsdir + 'bs/easepick.min.js', 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
     TApplication.RegisterClass('TNvBsSelect', "./bs/nv.bs.inputs.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css')
@@ -194,10 +273,42 @@ export function RegisterClasses() {
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css')
         .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+    TApplication.RegisterClass('TNvBsSwitch', "./bs/nv.bs.inputs.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
     TApplication.RegisterClass('TNvBsRadioGroup', "./bs/nv.bs.inputs.js")
         .RegisterClassModule(bsjs, 'js')
         .RegisterClassModule(bscss, 'css')
         .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+    TApplication.RegisterClass('TNvBsLookupSelect', "./bs/nv.bs.inputs.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+
+    TApplication.RegisterClass('TNvBsInputGroup', "./bs/nv.bs.inputs.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+    TApplication.RegisterClass('TNvBsInputAddonIcon', "./bs/nv.bs.inputs.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+    TApplication.RegisterClass('TNvBsInputAddonText', "./bs/nv.bs.inputs.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+    TApplication.RegisterClass('TNvBsInputAddonAction', "./bs/nv.bs.inputs.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css')
+        .RegisterClassModule(cssdir + "bs/nv.bs.css", 'css');
+
+
+
+
+
+
+
 
     TApplication.RegisterClass('TNvBsTable', "./bs/nv.bs.table.js")
         .RegisterClassModule(bsjs, 'js')
@@ -211,5 +322,24 @@ export function RegisterClasses() {
         .RegisterClassModule(bscss, 'css')
         .RegisterClassModule(jsdir + "bs/bootstrap-table.min.js", 'js')
         .RegisterClassModule(cssdir + "bs/bootstrap-table.min.css", 'css');
+
+    TApplication.RegisterClass('TNvDashboard', "./nv.dashboards.js")
+        .RegisterClassModule(jsdir + "gridstack-all.js", 'js')
+        .RegisterClassModule(cssdir + "gridstack.min.css", 'css');
+
+    TApplication.RegisterClass('TNvDashbdItem', "./nv.dashboards.js")
+        .RegisterClassModule(jsdir + "gridstack-all.js", 'js')
+        .RegisterClassModule(cssdir + "gridstack.min.css", 'css');
+
+    TApplication.RegisterClass('TNvBsImage', "./bs/nv.bs.images.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');
+
+    TApplication.RegisterClass('TNvBsSearch', "./firedac/nv.bs.search.js")
+        .RegisterClassModule(bsjs, 'js')
+        .RegisterClassModule(bscss, 'css');
+
+
+
 
 }

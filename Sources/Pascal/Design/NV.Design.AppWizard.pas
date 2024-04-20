@@ -6,8 +6,8 @@ uses
   Classes, System.SysUtils, Vcl.Dialogs, ToolsAPI, ExpertsModules;
 
 type
-  TNVAppWizard = class(TInterfacedObject, IOTAWizard, IOTANotifier,
-    IOTARepositoryWizard, IOTAProjectWizard)
+  TNVAppWizard = class(TInterfacedObject, IOTAWizard, IOTANotifier, IOTARepositoryWizard,
+    IOTAProjectWizard)
   public
     // IOTANotifier
     procedure AfterSave;
@@ -26,8 +26,8 @@ type
     function GetGlyph: Cardinal;
   end;
 
-  TNVAppCreator = class(TInterfacedObject, IOTACreator, IOTAProjectCreator,
-    IOTAProjectCreator50, IOTAProjectCreator80)
+  TNVAppCreator = class(TInterfacedObject, IOTACreator, IOTAProjectCreator, IOTAProjectCreator50,
+    IOTAProjectCreator80, IOTAProjectCreator160, IOTAProjectCreator190)
   private
     FOwner: IOTAProjectGroup;
   public
@@ -50,6 +50,14 @@ type
     procedure NewDefaultProjectModule(const Project: IOTAProject);
     // IOTAProjectCreator80
     function GetProjectPersonality: string;
+    // IOTAProjectCreator160
+    function GetFrameworkType: string;
+    function GetPlatforms: TArray<string>;
+    function GetPreferredPlatform: string;
+    procedure SetInitialOptions(const NewProject: IOTAProject);
+    // IOTAProjectCreator190
+    function GetSupportedPlatforms: TArray<string>;
+
   end;
 
   TNVAppSource = class(TInterfacedObject, IOTAFile)
@@ -65,7 +73,7 @@ type
 implementation
 
 uses
-  NV.Design.AppModuleWizard, NV.Design.PageWizard, NV.Design.UserSessionWizard;
+  NV.Design.AppModuleWizard, NV.Design.PageWizard, NV.Design.UserSessionWizard, PlatformAPI;
 
 { TNVAppWizard }
 
@@ -84,8 +92,7 @@ begin
 
 end;
 
-function GetActiveProjectGroup(const ModuleServices: IOTAModuleServices)
-  : IOTAProjectGroup;
+function GetActiveProjectGroup(const ModuleServices: IOTAModuleServices): IOTAProjectGroup;
 var
   I: Integer;
 begin
@@ -191,6 +198,11 @@ begin
   // ShowMessage('TNVAppCreator.GetFileSystem');
 end;
 
+function TNVAppCreator.GetFrameworkType: string;
+begin
+  Result := sFrameworkTypeVCL;
+end;
+
 function TNVAppCreator.GetOptionFileName: string;
 begin
   Result := '';
@@ -203,6 +215,18 @@ begin
   // ShowMessage('TNVAppCreator.GetOwner');
 end;
 
+function TNVAppCreator.GetPlatforms: TArray<string>;
+begin
+  SetLength(Result, 2);
+  Result[0] := cWin32Platform;
+  Result[1] := cWin64Platform;
+end;
+
+function TNVAppCreator.GetPreferredPlatform: string;
+begin
+  Result := cWin32Platform;
+end;
+
 function TNVAppCreator.GetProjectPersonality: string;
 begin
   Result := sDelphiPersonality;
@@ -213,6 +237,11 @@ function TNVAppCreator.GetShowSource: Boolean;
 begin
   Result := False;
   // ShowMessage('TNVAppCreator.GetShowSource');
+end;
+
+function TNVAppCreator.GetSupportedPlatforms: TArray<string>;
+begin
+  Result := ['Win32', 'Win64'];
 end;
 
 function TNVAppCreator.GetUnnamed: Boolean;
@@ -233,11 +262,11 @@ begin
   // ShowMessage('TNVAppCreator.NewDefaultProjectModule');
   ModuleServices := BorlandIDEServices as IOTAModuleServices;
   // Create the Server Main Form
-  ModuleServices.CreateModule(TNVAppModuleCreator.Create(Project));
+  // ModuleServices.CreateModule(TNVAppModuleCreator.Create(Project));
   // Created the Web main Form
   ModuleServices.CreateModule(TNVPageModuleCreator.Create(Project, True));
   // Cteate the UserSession DataModule
-  ModuleServices.CreateModule(TNVUserSessionModuleCreator.Create(Project));
+  // ModuleServices.CreateModule(TNVUserSessionModuleCreator.Create(Project));
 end;
 
 function TNVAppCreator.NewOptionSource(const ProjectName: string): IOTAFile;
@@ -258,6 +287,11 @@ begin
   // ShowMessage(Result.Source);
 end;
 
+procedure TNVAppCreator.SetInitialOptions(const NewProject: IOTAProject);
+begin
+
+end;
+
 { TNVAppSource }
 
 constructor TNVAppSource.Create(const ProjectName: string);
@@ -275,51 +309,26 @@ end;
 
 function TNVAppSource.GetSource: string;
 begin
-  Result :=                                   //
-    'package ' + FProjectName + ';' + CrLf2 + //
-    '{$R *.res}' + CrLf +                     //
-    '{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}' + CrLf +
-  //
-    '{$ALIGN 8}' + CrLf +           //
-    '{$ASSERTIONS ON}' + CrLf +     //
-    '{$BOOLEVAL OFF}' + CrLf +      //
-    '{$DEBUGINFO OFF}' + CrLf +     //
-    '{$EXTENDEDSYNTAX ON}' + CrLf + //
-    '{$IMPORTEDDATA ON}' + CrLf +   //
-    '{$IOCHECKS ON}' + CrLf +       //
-    '{$LOCALSYMBOLS ON}' + CrLf +   //
-    '{$LONGSTRINGS ON}' + CrLf +    //
-    '{$OPENSTRINGS ON}' + CrLf +    //
-    '{$OPTIMIZATION OFF}' + CrLf +  //
-    '{$OVERFLOWCHECKS OFF}' + CrLf +
-  ///
-    '{$RANGECHECKS OFF}' + CrLf +        //
-    '{$REFERENCEINFO ON}' + CrLf +       //
-    '{$SAFEDIVIDE OFF}' + CrLf +         //
-    '{$STACKFRAMES ON}' + CrLf +         //
-    '{$TYPEDADDRESS OFF}' + CrLf +       //
-    '{$VARSTRINGCHECKS ON}' + CrLf +     //
-    '{$WRITEABLECONST OFF}' + CrLf +     //
-    '{$MINENUMSIZE 1}' + CrLf +          //
-    '{$IMAGEBASE $400000}' + CrLf +      //
-    '{$DEFINE DEBUG}' + CrLf +           //
-    '{$ENDIF IMPLICITBUILDING}' + CrLf + //
-    '{$IMPLICITBUILD ON}' + CrLf2 +      //
-  //
-    'requires' + CrLf +         //
-    '  rtl,' + CrLf +           //
-    '  vcl,' + CrLf +           //
-    '  dbrtl,' + CrLf +         //
-    '  IndySystem,' + CrLf +    //
-    '  IndyProtocols,' + CrLf + //
-    '  IndyCore;' + CrLf2 +     //
-  //
-    'contains' + CrLf +                   //
-    '  uApp in ''uApp.pas'',' + CrLf +           //
-    '  uMainPage in ''uMainPage.pas'',' + CrLf +           //
-    '  uNVUserSession in ''uNVUserSession.pas'';' + CrLf2 + //
-  //
-    'end.' + CrLf;
+  Result := 'program DevTest;' + crlf2 +                          //
+    '' + crlf +                                                   //
+    'uses' + crlf +                                               //
+    'NV.VCl.Forms,' + crlf +                                      //
+    'NV.VCl.Charts,' + crlf +                                     //
+    'uMainForm in ''uMainForm.pas'' {NVForm1: TNVForm};' + crlf + //
+    '' + crlf +                                                   //
+    '{$R *.res}' + crlf +                                         //
+    '' + crlf +                                                   //
+    '' + crlf +                                                   //
+    'begin' + crlf +                                              //
+    'Application.Initialize;' + crlf +                            //
+    'Application.CreateForm(TMainForm, MainForm);' + crlf +         //
+    ' Application.Run;' + crlf +                                  //
+    '' + crlf +                                                   //
+    '' + crlf +                                                   //
+    'end.' + crlf                                                 //
+
+
+
   // ShowMessage('TNVAppSource.GetSource');
 end;
 

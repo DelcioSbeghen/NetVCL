@@ -3,7 +3,8 @@ unit NV.VCL.Page;
 interface
 
 uses
-  Classes, RTLConsts, Controls, NV.Controls, NV.Dispatcher, NV.Ajax, NV.Router, NV.Interfaces,
+  Classes, RTLConsts, Controls, Generics.Collections, NV.Controls, NV.Dispatcher, NV.Ajax,
+  NV.Router, NV.Interfaces,
   NV.JSON;
 
 type
@@ -16,12 +17,14 @@ type
     FRouter    : TNVRouter;
     FRouteName : string;
     FDispatcher: TDispatch;
+    FModalList : TList<TNvWinControl>;
     procedure SetRouteName(const Value: string);
     procedure SetDispatcher(const Value: TDispatch);
     function GetDispatcher: TDispatch;
   protected
     FCssFiles: TStringList;
     procedure CreateRouter; virtual;
+
     // to remove module from FControlsList in design
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -30,9 +33,12 @@ type
     procedure AfterConstruction; override;
     procedure AddCssFile(aFile: string);
     procedure RemoveCssFile(aFile: string);
+    procedure AddModal(aControl: TNvWinControl);
+    procedure RemoveModal(aControl: TNvWinControl);
     procedure ProcessRequest(J: TJsonObject); override;
-    procedure Render(Ajax: TNvAjax); override;
-    function Ajax: TNvAjax; override;
+    procedure Render; override;
+    procedure ReRender(Now: Boolean = True); override;
+    function Ajax: TNvAjax;
     property CssFiles: TStringList read FCssFiles;
     property Router: TNVRouter read FRouter;
     property Dispatcher: TDispatch read GetDispatcher write SetDispatcher;
@@ -70,6 +76,11 @@ begin
     end;
 end;
 
+procedure TNVBasepage.AddModal(aControl: TNvWinControl);
+begin
+  FModalList.Add(aControl);
+end;
+
 procedure TNVBasepage.AfterConstruction;
 begin
   inherited;
@@ -83,8 +94,10 @@ end;
 constructor TNVBasepage.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FAjax     := TNvAjax.Create(Self);
-  FCssFiles := TStringList.Create;
+  FRenderPosition:= False;
+  FModalList := TList<TNvWinControl>.Create;
+  FAjax      := TNvAjax.Create(Self);
+  FCssFiles  := TStringList.Create;
   CreateRouter;
   // FlowDesign:=True;
   // FRouteName:= Name;
@@ -128,6 +141,7 @@ begin
   FCssFiles.Free;
   inherited;
   FreeAndNil(FAjax);
+  FModalList.Free;
 end;
 
 function TNVBasepage.GetDispatcher: TDispatch;
@@ -137,11 +151,11 @@ end;
 
 procedure TNVBasepage.Notification(AComponent: TComponent; Operation: TOperation);
 begin
-  inherited;
   // Remove only design instances
   if (csDesignInstance in AComponent.ComponentState) //
     and (Operation = opRemove) then
     FControlsOrdered.Remove(AComponent);
+  inherited;
 end;
 
 procedure TNVBasepage.ProcessRequest(J: TJsonObject);
@@ -166,30 +180,28 @@ begin
     end;
 end;
 
-procedure TNVBasepage.Render(Ajax: TNvAjax);
+procedure TNVBasepage.RemoveModal(aControl: TNvWinControl);
+begin
+  FModalList.Remove(aControl);
+end;
+
+procedure TNVBasepage.Render;
 var
   I: Integer;
 begin
-  if Ajax = nil then
-    Ajax := FAjax;
+  inherited Render;
 
-  SortControls;
+  for I := 0 to FModalList.Count - 1 do
+    FModalList[I].Render;
+end;
 
-  // Do not render Self
-  for I := 0 to FControlsOrdered.Count - 1 do
-    begin
-      if FControlsOrdered[I] is TNvControl then
-        TNvControl(FControlsOrdered[I]).Render(Ajax)
-      else if FControlsOrdered[I] is TNvWinControl then
-        TNvWinControl(FControlsOrdered[I]).Render(Ajax)
-    end;
-
-  FRendered := True;
-
-  // //Frame in design is parented from TNvDesignPanel
-  // if (Parent <> nil) and (Parent is TNVDesignPanel) then
-  // TNVFrame(Designer.GetRoot).Render(Ajax);
-
+procedure TNVBasepage.ReRender(Now: Boolean);
+var
+  I: Integer;
+begin
+  for I := 0 to FModalList.Count - 1 do
+    FModalList[I].ReRender(Now);
+  inherited;
 end;
 
 procedure TNVBasepage.SetDispatcher(const Value: TDispatch);

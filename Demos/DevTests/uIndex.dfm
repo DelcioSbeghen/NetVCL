@@ -1,36 +1,36 @@
 object NVPage1: TNVPage1
   Left = 0
   Top = 0
-  Width = 1275
+  Width = 1369
   Height = 914
   object NvBsRow2: TNvBsRow
     Left = -12
     Top = 0
-    Width = 1299
-    Height = 829
+    Width = 1391
+    Height = 825
     Background = bsbgLight
     object SideBar: TNvBsColumn
       Left = 1
       Top = 1
-      Width = 216
-      Height = 827
+      Width = 231
+      Height = 823
       Grids.XS.Span = 12
       Grids.MD.Span = 3
       Grids.XL.Span = 2
       object SideBarHeader: TNvBsFormRow
         Left = 13
         Top = 1
-        Width = 190
+        Width = 205
         Height = 45
         object NvBsColumn2: TNvBsColumn
           Left = 1
           Top = 1
-          Width = 188
+          Width = 203
           Height = 43
           object NvBSText9: TNvBSText
             Left = 1
             Top = 1
-            Width = 186
+            Width = 201
             Height = 33
             TextProps.Align = bstaCenter
             Text = 'Net VCL'
@@ -41,7 +41,7 @@ object NVPage1: TNVPage1
       object NvBsNav2: TNvBsNav
         Left = 13
         Top = 46
-        Width = 190
+        Width = 205
         Height = 210
         Grids.MD.Direction = bsDirColumn
         object BsNavItemLink1: TBsNavItemLink
@@ -70,7 +70,7 @@ object NVPage1: TNVPage1
         object BsNavItemLink3: TBsNavItemLink
           Left = 0
           Top = 140
-          Width = 98
+          Width = 96
           Height = 70
           ImageListLink.Images = NvSvgImageList1
           ImageListLink.ImageIndex = 41
@@ -81,37 +81,37 @@ object NVPage1: TNVPage1
       end
     end
     object Content: TNvBsColumn
-      Left = 217
+      Left = 232
       Top = 1
-      Width = 1080
-      Height = 827
+      Width = 1157
+      Height = 823
       object NvBsNavBar2: TNvBsNavBar
         Left = 13
         Top = 1
-        Width = 1054
+        Width = 1131
         Height = 80
         object BsNavBarBrand1: TBsNavBarBrand
-          Left = 0
+          Left = 942
           Top = 20
           Width = 96
           Height = 40
           Text = 'Dashboard'
         end
         object BsNavBarContent1: TBsNavBarContent
-          Left = 112
+          Left = 0
           Top = 8
-          Width = 942
+          Width = 1019
           Height = 64
           object NvBsButtonToolbar2: TNvBsButtonToolbar
-            Left = 706
+            Left = 764
             Top = 12
-            Width = 235
+            Width = 254
             Height = 39
             Grids.MD.Span = 3
             object NvBsButton2: TNvBsButton
               Left = 0
               Top = 0
-              Width = 58
+              Width = 63
               Height = 39
               Block = False
               Variant = bsbLight
@@ -123,9 +123,9 @@ object NVPage1: TNVPage1
               ImageListLink.Width = '1.5em'
             end
             object NvBsButton3: TNvBsButton
-              Left = 58
+              Left = 63
               Top = 0
-              Width = 58
+              Width = 63
               Height = 39
               Block = False
               Variant = bsbLight
@@ -137,9 +137,9 @@ object NVPage1: TNVPage1
               ImageListLink.Width = '1.5em'
             end
             object NvBsButton4: TNvBsButton
-              Left = 117
+              Left = 127
               Top = 0
-              Width = 58
+              Width = 63
               Height = 39
               Block = False
               Variant = bsbLight
@@ -151,9 +151,9 @@ object NVPage1: TNVPage1
               ImageListLink.Width = '1.5em'
             end
             object NvBsButton5: TNvBsButton
-              Left = 176
+              Left = 191
               Top = 0
-              Width = 58
+              Width = 63
               Height = 39
               Block = False
               Variant = bsbLight
@@ -166,16 +166,16 @@ object NVPage1: TNVPage1
             end
           end
           object NvBsColumn10: TNvBsColumn
-            Left = 471
+            Left = 509
             Top = 0
-            Width = 235
+            Width = 254
             Height = 64
             Grids.MD.Span = 3
             Grids.MD.Offset = 6
             object NvBsInput2: TNvBsInput
               Left = 1
               Top = 1
-              Width = 233
+              Width = 252
               Height = 62
               Caption = ''
               Value = 'Search'
@@ -186,13 +186,13 @@ object NVPage1: TNVPage1
       object NvBsRow3: TNvBsRow
         Left = 1
         Top = 81
-        Width = 1078
-        Height = 242
+        Width = 1155
+        Height = 225
         object NvBsColumn3: TNvBsColumn
           Left = 1
           Top = 1
-          Width = 269
-          Height = 240
+          Width = 288
+          Height = 223
           Grids.XS.Span = 12
           Grids.SM.Span = 12
           Grids.MD.Span = 6
@@ -200,13 +200,13 @@ object NVPage1: TNVPage1
           object NvBsCardStats5: TNvBsCardStats
             Left = 23
             Top = 51
-            Width = 223
+            Width = 242
             Height = 171
             Background = bsbgInfo
             object NvBsCardHeader: TNvBsCardHeader
               Left = 1
               Top = 1
-              Width = 221
+              Width = 240
               Height = 111
               ImageListLink.Images = NvSvgImageList1
               ImageListLink.ImageIndex = 335
@@ -216,7 +216,7 @@ object NVPage1: TNVPage1
               object NvBSText2: TNvBSText
                 Left = 20
                 Top = 82
-                Width = 181
+                Width = 200
                 Height = 17
                 Text = 'Responsive'
               end
@@ -224,7 +224,7 @@ object NVPage1: TNVPage1
             object NvBsCardFooter1: TNvBsCardFooter
               Left = 16
               Top = 132
-              Width = 191
+              Width = 210
               Height = 28
               object NvBSText3: TNvBSText
                 Left = 0
@@ -237,10 +237,10 @@ object NVPage1: TNVPage1
           end
         end
         object NvBsColumn4: TNvBsColumn
-          Left = 270
+          Left = 289
           Top = 1
-          Width = 269
-          Height = 240
+          Width = 288
+          Height = 223
           Grids.XS.Span = 12
           Grids.SM.Span = 12
           Grids.MD.Span = 6
@@ -248,14 +248,14 @@ object NVPage1: TNVPage1
           object NvBsCardStats6: TNvBsCardStats
             Left = 23
             Top = 51
-            Width = 223
-            Height = 188
+            Width = 242
+            Height = 154
             Background = bsbgSuccess
             object NvBsCardHeader3: TNvBsCardHeader
               Left = 1
               Top = 1
-              Width = 221
-              Height = 111
+              Width = 240
+              Height = 94
               ImageListLink.Images = NvSvgImageList1
               ImageListLink.ImageIndex = 92
               ImageListLink.Height = '4em'
@@ -263,17 +263,17 @@ object NVPage1: TNVPage1
               Text = 'NetVCL'
               object NvBSText4: TNvBSText
                 Left = 20
-                Top = 82
-                Width = 181
+                Top = 47
+                Width = 200
                 Height = 17
                 Text = 'Multiplatform'
               end
             end
             object NvBsCardFooter3: TNvBsCardFooter
               Left = 16
-              Top = 132
-              Width = 191
-              Height = 45
+              Top = 115
+              Width = 210
+              Height = 28
               object NvBSText5: TNvBSText
                 Left = 0
                 Top = 0
@@ -285,10 +285,10 @@ object NVPage1: TNVPage1
           end
         end
         object NvBsColumn5: TNvBsColumn
-          Left = 539
+          Left = 577
           Top = 1
-          Width = 269
-          Height = 240
+          Width = 288
+          Height = 223
           Grids.XS.Span = 12
           Grids.SM.Span = 12
           Grids.MD.Span = 6
@@ -296,13 +296,13 @@ object NVPage1: TNVPage1
           object NvBsCardStats7: TNvBsCardStats
             Left = 23
             Top = 51
-            Width = 223
+            Width = 242
             Height = 154
             Background = bsbgWarning
             object NvBsHeaderBeaut: TNvBsCardHeader
               Left = 1
               Top = 1
-              Width = 221
+              Width = 240
               Height = 94
               ImageListLink.Images = NvSvgImageList1
               ImageListLink.ImageIndex = 767
@@ -312,7 +312,7 @@ object NVPage1: TNVPage1
               object NvBSText7: TNvBSText
                 Left = 20
                 Top = 47
-                Width = 181
+                Width = 200
                 Height = 17
                 Text = 'Beautifull'
               end
@@ -320,7 +320,7 @@ object NVPage1: TNVPage1
             object NvBsCardFooter4: TNvBsCardFooter
               Left = 16
               Top = 115
-              Width = 191
+              Width = 210
               Height = 28
               object NvBSText16: TNvBSText
                 Left = 0
@@ -333,10 +333,10 @@ object NVPage1: TNVPage1
           end
         end
         object NvBsColumn6: TNvBsColumn
-          Left = 808
+          Left = 866
           Top = 1
-          Width = 269
-          Height = 240
+          Width = 288
+          Height = 223
           Grids.XS.Span = 12
           Grids.SM.Span = 12
           Grids.MD.Span = 6
@@ -344,13 +344,13 @@ object NVPage1: TNVPage1
           object NvBsCardStats8: TNvBsCardStats
             Left = 23
             Top = 51
-            Width = 223
+            Width = 242
             Height = 171
             Background = bsbgDanger
             object NvBsCardHeader5: TNvBsCardHeader
               Left = 1
               Top = 1
-              Width = 221
+              Width = 240
               Height = 94
               ImageListLink.Images = NvSvgImageList1
               ImageListLink.ImageIndex = 298
@@ -360,7 +360,7 @@ object NVPage1: TNVPage1
               object NvBSText17: TNvBSText
                 Left = 20
                 Top = 47
-                Width = 181
+                Width = 200
                 Height = 17
                 Text = 'Scalability'
               end
@@ -368,7 +368,7 @@ object NVPage1: TNVPage1
             object NvBsCardFooter5: TNvBsCardFooter
               Left = 16
               Top = 115
-              Width = 191
+              Width = 210
               Height = 45
               object NvBSText18: TNvBSText
                 Left = 0
@@ -383,31 +383,31 @@ object NVPage1: TNVPage1
       end
       object NvBsRow4: TNvBsRow
         Left = 1
-        Top = 323
-        Width = 1078
-        Height = 282
+        Top = 306
+        Width = 1155
+        Height = 295
         object NvBsColumn7: TNvBsColumn
           Left = 1
           Top = 1
-          Width = 358
-          Height = 280
+          Width = 384
+          Height = 293
           object NvBsCardChart2: TNvBsCardChart
             Left = 23
             Top = 51
-            Width = 312
-            Height = 228
+            Width = 338
+            Height = 241
             Background = bsbgSuccess
             object NvBsCardHeader1: TNvBsCardHeader
               Left = 1
               Top = 1
-              Width = 310
-              Height = 129
+              Width = 336
+              Height = 142
               Text = ''
               object NvChart1: TNvChart
                 Left = 0
                 Top = 0
-                Width = 310
-                Height = 129
+                Width = 336
+                Height = 142
                 Series = <
                   item
                     SerieType = dwstLine
@@ -430,33 +430,33 @@ object NVPage1: TNVPage1
                   'Two'
                   'Three'
                   'Four')
-                ExplicitWidth = 271
+                ExplicitWidth = 297
               end
             end
             object NvBsCardBody1: TNvBsCardBody
               Left = 1
-              Top = 122
-              Width = 310
+              Top = 143
+              Width = 336
               Height = 59
               object NvBsCardTitle1: TNvBsCardTitle
                 Left = 15
                 Top = 0
-                Width = 280
+                Width = 306
                 Height = 24
                 Text = 'Data Description'
               end
               object NvBsCardSubtitle1: TNvBsCardSubtitle
                 Left = 15
                 Top = 30
-                Width = 280
+                Width = 306
                 Height = 19
                 Text = 'What happened'
               end
             end
             object NvBsCardFooter2: TNvBsCardFooter
               Left = 16
-              Top = 181
-              Width = 280
+              Top = 202
+              Width = 306
               Height = 28
               object NvBSText1: TNvBSText
                 Left = 0
@@ -469,27 +469,27 @@ object NVPage1: TNVPage1
           end
         end
         object NvBsColumn9: TNvBsColumn
-          Left = 359
+          Left = 385
           Top = 1
-          Width = 358
-          Height = 280
+          Width = 384
+          Height = 293
           object NvBsCardChart3: TNvBsCardChart
             Left = 23
             Top = 51
-            Width = 312
-            Height = 228
+            Width = 338
+            Height = 241
             Background = bsbgWarning
             object NvBsCardHeader2: TNvBsCardHeader
               Left = 1
               Top = 1
-              Width = 310
-              Height = 129
+              Width = 336
+              Height = 142
               Text = ''
               object NvChart2: TNvChart
                 Left = 0
                 Top = 0
-                Width = 310
-                Height = 129
+                Width = 336
+                Height = 142
                 Series = <
                   item
                     SerieType = dwstLine
@@ -512,33 +512,33 @@ object NVPage1: TNVPage1
                   'Two'
                   'Three'
                   'Four')
-                ExplicitWidth = 271
+                ExplicitWidth = 297
               end
             end
             object NvBsCardBody2: TNvBsCardBody
               Left = 1
-              Top = 122
-              Width = 310
+              Top = 143
+              Width = 336
               Height = 59
               object NvBsCardTitle2: TNvBsCardTitle
                 Left = 15
                 Top = 0
-                Width = 280
+                Width = 306
                 Height = 24
                 Text = 'Data Description'
               end
               object NvBsCardSubtitle2: TNvBsCardSubtitle
                 Left = 15
                 Top = 30
-                Width = 280
+                Width = 306
                 Height = 19
                 Text = 'What happened'
               end
             end
             object NvBsCardFooter6: TNvBsCardFooter
               Left = 16
-              Top = 181
-              Width = 280
+              Top = 202
+              Width = 306
               Height = 28
               object NvBSText6: TNvBSText
                 Left = 0
@@ -551,27 +551,27 @@ object NVPage1: TNVPage1
           end
         end
         object NvBsColumn8: TNvBsColumn
-          Left = 718
+          Left = 770
           Top = 1
-          Width = 358
-          Height = 280
+          Width = 384
+          Height = 293
           object NvBsCardChart4: TNvBsCardChart
             Left = 23
             Top = 51
-            Width = 312
-            Height = 228
+            Width = 338
+            Height = 241
             Background = bsbgDanger
             object NvBsCardHeader4: TNvBsCardHeader
               Left = 1
               Top = 1
-              Width = 310
-              Height = 129
+              Width = 336
+              Height = 142
               Text = ''
               object NvChart3: TNvChart
                 Left = 0
                 Top = 0
-                Width = 310
-                Height = 129
+                Width = 336
+                Height = 142
                 Series = <
                   item
                     SerieType = dwstLine
@@ -594,33 +594,33 @@ object NVPage1: TNVPage1
                   'Two'
                   'Three'
                   'Four')
-                ExplicitWidth = 271
+                ExplicitWidth = 297
               end
             end
             object NvBsCardBody3: TNvBsCardBody
               Left = 1
-              Top = 122
-              Width = 310
+              Top = 143
+              Width = 336
               Height = 59
               object NvBsCardTitle3: TNvBsCardTitle
                 Left = 15
                 Top = 0
-                Width = 280
+                Width = 306
                 Height = 24
                 Text = 'Data Description'
               end
               object NvBsCardSubtitle3: TNvBsCardSubtitle
                 Left = 15
                 Top = 30
-                Width = 280
+                Width = 306
                 Height = 19
                 Text = 'What happened'
               end
             end
             object NvBsCardFooter7: TNvBsCardFooter
               Left = 16
-              Top = 181
-              Width = 280
+              Top = 202
+              Width = 306
               Height = 28
               object NvBSText8: TNvBSText
                 Left = 0
@@ -635,24 +635,24 @@ object NVPage1: TNVPage1
       end
       object NvBsRow5: TNvBsRow
         Left = 1
-        Top = 605
-        Width = 1078
+        Top = 601
+        Width = 1155
         Height = 221
         object NvBsColumn13: TNvBsColumn
           Left = 1
           Top = 1
-          Width = 538
+          Width = 576
           Height = 219
           object NvBsCardTable2: TNvBsCardTable
             Left = 23
             Top = 51
-            Width = 492
+            Width = 530
             Height = 167
             Background = bsbgDanger
             object NvBsCardHeader6: TNvBsCardHeader
               Left = 16
               Top = -29
-              Width = 460
+              Width = 498
               Height = 75
               ImageListLink.Images = NvSvgImageList1
               ImageListLink.ImageIndex = 139
@@ -661,21 +661,21 @@ object NVPage1: TNVPage1
               Text = 'Data Title'
               object NvBSText10: TNvBSText
                 Left = 20
-                Top = 42
-                Width = 420
+                Top = 44
+                Width = 458
                 Height = 19
                 Text = 'Data Description'
               end
             end
             object NvBsCardBody4: TNvBsCardBody
               Left = 1
-              Top = 44
-              Width = 490
+              Top = 46
+              Width = 528
               Height = 120
               object NvBsTable1: TNvBsTable
                 Left = 20
                 Top = 10
-                Width = 450
+                Width = 488
                 Height = 90
                 Columns = <
                   item
@@ -701,43 +701,43 @@ object NVPage1: TNVPage1
           end
         end
         object NvBsColumn14: TNvBsColumn
-          Left = 539
+          Left = 577
           Top = 1
-          Width = 538
+          Width = 576
           Height = 219
           object NvBsCardTable3: TNvBsCardTable
             Left = 23
             Top = 51
-            Width = 492
-            Height = 148
+            Width = 530
+            Height = 167
             Background = bsbgDanger
             object NvBsCardHeader7: TNvBsCardHeader
               Left = 16
               Top = -29
-              Width = 460
-              Height = 56
+              Width = 498
+              Height = 75
               ImageListLink.Images = NvSvgImageList1
               ImageListLink.ImageIndex = 10
               ImageListLink.Height = '2rem'
               ImageListLink.Width = '2rem'
               Text = 'Data Title'
               object NvBSText11: TNvBSText
-                Left = -784
-                Top = -629
-                Width = 0
-                Height = 0
+                Left = 20
+                Top = 44
+                Width = 458
+                Height = 19
                 Text = 'Data Description'
               end
             end
             object NvBsCardBody5: TNvBsCardBody
               Left = 1
-              Top = 44
-              Width = 490
+              Top = 46
+              Width = 528
               Height = 120
               object NvBsTable2: TNvBsTable
                 Left = 20
                 Top = 10
-                Width = 450
+                Width = 488
                 Height = 90
                 Columns = <
                   item

@@ -19,7 +19,11 @@ type
 implementation
 
 uses
-  StrUtils, System.Classes, SysUtils, NV.JSON, IdGlobal, NV.Utils;
+  StrUtils, System.Classes, SysUtils, NV.JSON, IdGlobal, NV.Utils, NV.VCL.Forms;
+
+type
+ THackApplication  = class(TNvApplication);
+
 
 { TDispatchPage }
 
@@ -76,7 +80,7 @@ function TDispatchPage.Execute(aRequest: TNVRequestTask): Boolean;
       '        function DoLoad() { ' + sLineBreak + //
       '           App = new window.TApplication(""); ' + sLineBreak + //
       IfThen( //
-      csDesigning in FPage.ComponentState //
+      THackApplication(NV.VCL.Forms.Application).FDesignInstance //
       , 'App.FDesign = true;' //
       , '') + sLineBreak + //
       '           App.ParseJson(' + //
@@ -85,10 +89,10 @@ function TDispatchPage.Execute(aRequest: TNVRequestTask): Boolean;
       '' + sLineBreak + //
       '        } ' + sLineBreak + //
       '    </script> ' + sLineBreak + //
+      '    <meta id="last-css"> ' + sLineBreak + //
       _CssFiles + sLineBreak + //
     // '    <link type="text/css" rel="stylesheet" href="./netvcl/css/nv.css"> ' + sLineBreak + //
-      '    <meta id="last-css"> ' + sLineBreak + //
-      '</head> ' + sLineBreak + //
+        '</head> ' + sLineBreak + //
       ' ' + sLineBreak + //
       '<body onload="DoLoad()"> ' + sLineBreak + //
       '    <script src="./netvcl/js/jquery-3.3.1.min.js"></script> ' +
@@ -111,7 +115,7 @@ begin
   if aRequest.Req.Params.Values['callback'].IsEmpty then
   begin
     FPage.ReRender(False);
-    FPage.Render(nil);
+    FPage.Render;
     aRequest.Resp.Text := Html;
     FPage.Ajax.JSON.Clear;
   end

@@ -30,6 +30,9 @@
         <Projects Include="..\NetVCL-Browser\Sources\SubProcess\NVCoreBrowser.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="Packages\NetVCLDebug.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -119,14 +122,23 @@
     <Target Name="NVCoreBrowser:Make">
         <MSBuild Projects="..\NetVCL-Browser\Sources\SubProcess\NVCoreBrowser.dproj" Targets="Make"/>
     </Target>
+    <Target Name="NetVCLDebug">
+        <MSBuild Projects="Packages\NetVCLDebug.dproj"/>
+    </Target>
+    <Target Name="NetVCLDebug:Clean">
+        <MSBuild Projects="Packages\NetVCLDebug.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="NetVCLDebug:Make">
+        <MSBuild Projects="Packages\NetVCLDebug.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="NetVCLCommon;NetVCLRuntime;NetVCLDesign;NetBCLRuntime;NetBCLDesign;DevTest;App1;NVBrowserDll;NVCoreBrowser"/>
+        <CallTarget Targets="NetVCLCommon;NetVCLRuntime;NetVCLDesign;NetBCLRuntime;NetBCLDesign;DevTest;App1;NVBrowserDll;NVCoreBrowser;NetVCLDebug"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="NetVCLCommon:Clean;NetVCLRuntime:Clean;NetVCLDesign:Clean;NetBCLRuntime:Clean;NetBCLDesign:Clean;DevTest:Clean;App1:Clean;NVBrowserDll:Clean;NVCoreBrowser:Clean"/>
+        <CallTarget Targets="NetVCLCommon:Clean;NetVCLRuntime:Clean;NetVCLDesign:Clean;NetBCLRuntime:Clean;NetBCLDesign:Clean;DevTest:Clean;App1:Clean;NVBrowserDll:Clean;NVCoreBrowser:Clean;NetVCLDebug:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="NetVCLCommon:Make;NetVCLRuntime:Make;NetVCLDesign:Make;NetBCLRuntime:Make;NetBCLDesign:Make;DevTest:Make;App1:Make;NVBrowserDll:Make;NVCoreBrowser:Make"/>
+        <CallTarget Targets="NetVCLCommon:Make;NetVCLRuntime:Make;NetVCLDesign:Make;NetBCLRuntime:Make;NetBCLDesign:Make;DevTest:Make;App1:Make;NVBrowserDll:Make;NVCoreBrowser:Make;NetVCLDebug:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

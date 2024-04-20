@@ -55,7 +55,7 @@ export class TNvBsAccordionItem extends TNvBsCard {
 
     _DoTextChange(T) {
         if (this.FText !== T) {
-            this.FTitleLink.html(T);
+            this.FTitleLink.setTextPreserveChilds(T);
             this._DoImageChange();
             this.FText = T;
         }
@@ -66,6 +66,10 @@ export class TNvBsAccordionItem extends TNvBsCard {
         if (C instanceof TNvBsAccordionBody){
             C.El.appendTo(this.FCollapse);           
         }
+    }
+
+    Show(){
+        this.FCollapse.collapse("show");
     }
     
 }

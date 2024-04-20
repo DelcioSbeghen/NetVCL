@@ -117,7 +117,7 @@ Begin
       if _Dest = '' then
         Exit;
 
-      _Source := GetNVSourcesPath(_Dest);
+      _Source := GetNVSourcesPath;
       _Dest   := _Dest + 'www' + PathDelim + 'netvcl' + PathDelim;
 
       ForceDirectories(_Dest + 'js');

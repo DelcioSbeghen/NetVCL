@@ -16,7 +16,7 @@ unit NV.Design.IOTAUtils;
 interface
 
 uses
-  ToolsAPI;
+  ToolsAPI, NV.Controls;
 
 function GetDelphiRootDirectory: string;
 function GetProjectOutputDir(const Project: IOTAProject): string;
@@ -24,12 +24,14 @@ function GetProjectSourceEditor(const Project: IOTAProject): IOTASourceEditor;
 function GetTargetExt(const Project: IOTAProject): string;
 function GetTargetFileName(const Project: IOTAProject): string;
 // other functions
-function GetNVSourcesPath(ProjectPath: string): string;
+function GetNVSourcesPath: string;
+function GetActiveFormEditor: IOTAFormEditor;
+function IsNvFormModule: Boolean;
 
 implementation
 
 uses
-  Registry, Windows, Classes, SysUtils, IniFiles, Dialogs;
+  Registry, Windows, Classes, SysUtils, IniFiles, Dialogs, NV.Design.Register;
 
 {$IFNDEF DELPHI_6_UP}
 function ExcludeTrailingPathDelimiter(const S: string): string; forward;
@@ -411,7 +413,7 @@ var
     end;
 {$ENDIF}
 
-    function GetNVSourcesPath(ProjectPath: string): string;
+    function GetNVSourcesPath: string;
     begin
       Result := '';
       with TRegistry.Create do
@@ -441,6 +443,40 @@ var
 
             end;
         end;
+    end;
+
+function GetActiveFormEditor: IOTAFormEditor;
+var
+  Module: IOTAModule;
+  Editor: IOTAEditor;
+  i: Integer;
+begin
+Result := nil;
+  Module := (BorlandIDEServices as IOTAModuleServices).CurrentModule;
+if Module <> nil then
+  begin
+    for i := 0 to Module.GetModuleFileCount - 1 do
+    begin
+      Editor := Module.GetModuleFileEditor(i);
+      if Supports(Editor, IOTAFormEditor, Result) then
+        Break;
+    end;
+  end;
+end;
+
+
+    function IsNvFormModule: Boolean;
+    var
+      Editor: IOTAFormEditor;
+    begin
+      Result   := False;
+      Editor := GetActiveFormEditor;
+
+      if (Editor <> nil) and  ((Editor as INTAFormEditor).FormDesigner.Root is TNVWinControl) then
+        begin
+          Result := True;
+        end;
+
     end;
 
 end.

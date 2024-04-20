@@ -3,39 +3,102 @@ import { TControl, TWinControl } from "./../nv.controls.js";
 import { TSubProperty } from "../nv.classes.js";
 
 export class TBSmargins extends TSubProperty {
-    constructor(C, O) {
-        super();
+    static callAfterConstructor = false;
+    constructor(C, T, P, o) {
+        super(o);
         this.FControl = C;
-        //defaults
-        this.FRight = '';
+        this.FPrefix = P;
+        this.FType = T;
+        this._AfterConstruction(o);
+    }
+
+    _CreateParams(o) {
+        super._CreateParams(o);
+        this.FEnd = '';
         this.FBottom = '';
         this.FX = '';
         this.FY = '';
         this.FAll = '';
         this.FTop = '';
-        this.FLeft = '';
-        //set
-        this._CreateParams(O);
+        this.FStart = '';
     }
 
-    _CreateParams(O) {
-        this.Right = O.Right || '';
-        this.Bottom = O.Bottom || '';
-        this.X = O.X || '';
-        this.Y = O.Y || '';
-        this.All = O.All || '';
-        this.Top = O.Top || '';
-        this.Left = O.Left || '';
+    get End() { return this.FEnd };
+    get Bottom() { return this.FBottom };
+    get X() { return this.FX };
+    get Y() { return this.FY };
+    get All() { return this.FAll };
+    get Top() { return this.FTop };
+    get Start() { return this.FStart };
+
+    _UpdateClass(prop, side, breakpoint, size) {
+        this.FControl.FEl.removeClassRegex("(^|\\b)(" + prop + side + breakpoint + "(auto|0|1|2|3|4|5|6)+)(\\b(?!-)|$)")
+            .addClass(prop + side + breakpoint + size);
     }
+
+    set End(V) {
+        if (V != this.FEnd) {
+            this._UpdateClass(this.FType, 'e-', this.FPrefix, V);
+            this.FEnd = V;
+        }
+    }
+
+    set Bottom(V) {
+        if (V != this.FBottom) {
+            this._UpdateClass(this.FType, 'b-', this.FPrefix, V);
+            this.FBottom = V;
+        }
+    }
+
+    set X(V) {
+        if (V != this.FX) {
+            this._UpdateClass(this.FType, 'x-', this.FPrefix, V);
+            this.FX = V;
+        }
+    }
+
+    set Y(V) {
+        if (V != this.FY) {
+            this._UpdateClass(this.FType, 'y-', this.FPrefix, V);
+            this.FY = V;
+        }
+    }
+
+    set All(V) {
+        if (V != this.FAll) {
+            this._UpdateClass(this.FType, '-', this.FPrefix, V);
+            this.FAll = V;
+        }
+    }
+
+    set Top(V) {
+        if (V != this.FTop) {
+            this._UpdateClass(this.FType, 't-', this.FPrefix, V);
+            this.FTop = V;
+        }
+    }
+
+    set Start(V) {
+        if (V != this.FStart) {
+            this._UpdateClass(this.FType, 's-', this.FPrefix, V);
+            this.FStart = V;
+        }
+    }
+
 }
 
 
 export class TBSGridOptions extends TSubProperty {
-    constructor(C, P, O) {
-        super();
+    static callAfterConstructor = false;
+    constructor(C, P, o) {
+        super(o);
         this.FControl = C;
         this.FPrefix = P;
-        this.FAutoMargin = '';
+        this._AfterConstruction(o);
+    }
+
+    _CreateParams(o) {
+        super._CreateParams(o);
         this.FDisplay = '';
         this.FDirection = '';
         this.FGrow = '';
@@ -50,31 +113,13 @@ export class TBSGridOptions extends TSubProperty {
         this.FFloat = '';
         this.FOffset = '';
         this.FSpan = '';
-        this.FPaddings = new TBSmargins(C, O.Paddings || {});
-        this.FMargins = new TBSmargins(C, O.Margins || {});;
-        this._CreateParams(O);
-    }
-
-    _CreateParams(O) {
-        this.AutoMargin = O.AutoMargin || '';
-        this.Display = O.Display || '';
-        this.Direction = O.Direction || '';
-        this.Grow = O.Grow || '';
-        this.AlignItems = O.AlignItems || '';
-        this.JustifyContent = O.JustifyContent || '';
-        this.Order = O.Order || '';
-        this.Shrink = O.Shrink || '';
-        this.Wrap = O.Wrap || '';
-        this.AlignSelf = O.AlignSelf || '';
-        this.Fill = O.Fill || '';
-        this.AlignContent = O.AlignContent || '';
-        this.Float = O.Float || '';
-        this.Offset = O.Offset || '';
-        this.Span = O.Span || '';
+        this.FPaddings = new TBSmargins(this.FControl, 'p', this.FPrefix, o.Paddings || {});
+        this.FMargins = new TBSmargins(this.FControl, 'm', this.FPrefix, o.Margins || {});;
+        this.FHeight = '';
+        this.FViewportPos = '';
     }
 
 
-    get AutoMargin() { return this.FAutoMargin; }
     get Display() { return this.FDisplay; }
     get Direction() { return this.FDirection; }
     get Grow() { return this.FGrow; }
@@ -89,24 +134,22 @@ export class TBSGridOptions extends TSubProperty {
     get Float() { return this.FFloat; }
     get Offset() { return this.FOffset; }
     get Span() { return this.FSpan; }
+    get Margins() { return this.FMargins }
+    get Paddings() { return this.FPaddings }
+    get Height() { return this.FHeight }
+    get ViewportPos() { return this.FViewportPos };
 
-
-    set AutoMargin(V) {
-        if (V != this.FAutoMargin) {
-            this.FControl.removeClass("ml-auto mr-auto").addClass(V);
-            this.FAutoMargin = V;
-        }
-    }
     set Display(V) {
         if (V != this.FDisplay) {
-            this.FControl.FEl.removeClassRegex("(^|\\b)(d-" + this.FPrefix + "(none|inline|inline-block|block|table|table-cell|table-row|flex|inline-flex)+)(\\b(?!-)|$)")
+            this.FControl.FEl.removeClassRegex("(^|\\b)(d-" + this.FPrefix + "(none|inline|inline-block|block|table|table-cell|table-row|flex|inline-flex|grid|inline-grid)+)(\\b(?!-)|$)")
                 .addClass("d-" + this.FPrefix + V);
             this.FDisplay = V
         }
     }
     set Direction(V) {
         if (V != this.FDirection) {
-
+            this.FControl.FEl.removeClassRegex("(^|\\b)(flex-" + this.FPrefix + "(row|row-reverse|column|column-reverse|)+)(\\b(?!-)|$)")
+                .addClass("flex-" + this.FPrefix + V);
             this.FDirection = V;
         }
     }
@@ -166,7 +209,8 @@ export class TBSGridOptions extends TSubProperty {
     }
     set Float(V) {
         if (V != this.FFloat) {
-
+            this.FControl.FEl.removeClassRegex("(^|\\b)(float-" + this.FPrefix + "(none|end|start)+)(\\b(?!-)|$)")
+                .addClass("float-" + this.FPrefix + V);
             this.FFloat = V;
         }
     }
@@ -184,24 +228,48 @@ export class TBSGridOptions extends TSubProperty {
             this.FSpan = V;
         }
     }
+    set Height(V) {
+        if (V != this.FHeight) {
+            let _prefix = this.FPrefix ? "-" + this.FPrefix.trimEnd("-") : "";
+            this.FControl.FEl.css("--hg" + _prefix, "")
+                .css("--hg" + this.FPrefix, V);
+            this.FHeight = V;
+        }
+    }
+    set ViewportPos(V) {
+        if (V != this.FViewportPos) {
+            this.FControl.FEl.removeClassRegex("(^|\\b)((fixed-|sticky-)" + this.FPrefix + "(top|bottom)+)(\\b(?!-)|$)");
+            if (V != "")
+                this.FControl.FEl.addClass(V.replace("-", "-" + this.FPrefix));
+            this.FViewportPos = V;
+        }
+    }
+
 }
 
 export class TBSPrintOptions extends TSubProperty {
-    constructor(C, O) {
-        super();
+    constructor(C, o) {
+        super(o);
     }
 }
 
 
 export class TBsGrids extends TSubProperty {
-    constructor(C, O) {
-        super();
-        this.FXS = new TBSGridOptions(C, "", O.XS || {});
-        this.FSM = new TBSGridOptions(C, "sm-", O.SM || {});
-        this.FMD = new TBSGridOptions(C, "md-", O.MD || {});
-        this.FLG = new TBSGridOptions(C, "lg-", O.LG || {});
-        this.FXL = new TBSGridOptions(C, "xl-", O.XL || {});
-        this.FPrint = new TBSPrintOptions(C, O.Print || {});
+    static callAfterConstructor = false;
+    constructor(C, o) {
+        super(o);
+        this.FControl = C;
+        this._AfterConstruction(o);
+    }
+
+    _CreateParams(o) {
+        super._CreateParams(o);
+        this.FXS = new TBSGridOptions(this.FControl, "", o.XS || {});
+        this.FSM = new TBSGridOptions(this.FControl, "sm-", o.SM || {});
+        this.FMD = new TBSGridOptions(this.FControl, "md-", o.MD || {});
+        this.FLG = new TBSGridOptions(this.FControl, "lg-", o.LG || {});
+        this.FXL = new TBSGridOptions(this.FControl, "xl-", o.XL || {});
+        this.FPrint = new TBSPrintOptions(this.FControl, o.Print || {});
     }
 
     get XS() { return this.FXS; }
@@ -215,27 +283,26 @@ export class TBsGrids extends TSubProperty {
 
 
 export class TBsBorders extends TSubProperty {
-    constructor(C, O) {
-        super();
-        this.C = C;
-        this.FColor = '';
-        this.Color = O.Color || '';
-        this.FVisible = false;
-        this.Visible = O.Visible || false;
-        this.FTop = true;
-        this.Top = O.Top || true;
-        this.FRight = true;
-        this.Right = O.Right || true;
-        this.FBottom = true;
-        this.Bottom = O.Bottom || true;
-        this.FLeft = true;
-        this.Left = O.Left || true;
-        //
-        this.FRoundType = '';
-        this.RoundType = O.RoundType || ''; //''|Top|right|bottom|Left|circle|pill|0
-        this.FRoundSize = '';
-        this.RoundSize = O.RoundSize || ''; //''|sm|lg
+    static callAfterConstructor = false;
+    constructor(C, o) {
+        super(o);
+        this.FControl = C;
+        this._AfterConstruction(o);
     }
+
+    _CreateParams(o) {
+        super._CreateParams(o);
+        this.FColor = '';
+        this.FVisible = false;
+        this.FTop = true;
+        this.FEnd = true;
+        this.FBottom = true;
+        this.FStart = true;
+        //
+        this.FRoundType = '';//''|Top|end|bottom|start|circle|pill|0
+        this.FRoundSize = '';//''|0|1|2|3|4|5
+    }
+
 
     get Color() { return this.FColor; }
     set Color(V) { if (V != this.FColor) { this.FColor = V; this._UpdateBorders(); } }
@@ -243,12 +310,12 @@ export class TBsBorders extends TSubProperty {
     set Visible(V) { if (V != this.FVisible) { this.FVisible = V; this._UpdateBorders(); } }
     get Top() { return this.FTop; }
     set Top(V) { if (V != this.FTop) { this.FTop = V; this._UpdateBorders(); } }
-    get Right() { return this.FRight; }
-    set Right(V) { if (V != this.FRight) { this.FRight = V; this._UpdateBorders(); } }
+    get End() { return this.FEnd; }
+    set End(V) { if (V != this.FEnd) { this.FEnd = V; this._UpdateBorders(); } }
     get Bottom() { return this.FBottom; }
     set Bottom(V) { if (V != this.FBottom) { this.FBottom = V; this._UpdateBorders(); } }
-    get Left() { return this.FLeft; }
-    set Left(V) { if (V != this.FLeft) { this.FLeft = V; this._UpdateBorders(); } }
+    get Start() { return this.FStart; }
+    set Start(V) { if (V != this.FStart) { this.FStart = V; this._UpdateBorders(); } }
     //
     get RoundType() { return this.FRoundType; }
     set RoundType(V) { if (V != this.FRoundType) { this.FRoundType = V; this._UpdateRounding(); } }
@@ -256,47 +323,43 @@ export class TBsBorders extends TSubProperty {
     set RoundSize(V) { if (V != this.FRoundSize) { this.FRoundSize = V; this._UpdateRounding(); } }
 
     _UpdateBorders() {
-        this.C.FEl.removeClassStartingWith("border");
+        this.FControl.FEl.removeClassStartingWith("border");
         if (this.FVisible) {
-            this.C.FEl.addClass("border");
+            this.FControl.FEl.addClass("border");
         }
     }
 
     _UpdateRounding() {
-        this.C.FEl.removeClassStartingWith("rounded");
+        this.FControl.FEl.removeClassStartingWith("rounded");
         if (this.FRound) {
-            this.C.FEl.addClass("rounded");
+            this.FControl.FEl.addClass("rounded");
         }
     }
 }
 
 
 export class TBsTextProps extends TSubProperty {
+    static callAfterConstructor = false;
     constructor(C, o) {
-        super();
-        this.C = C;
+        super(o);
+        this.FControl = C;
+        this._AfterConstruction(o);
+    }
+
+    _CreateParams(o) {
+        super._CreateParams(o);
         this.FColor = '';
-        this.Color = o.Color || '';
-        this.FAlign = '';
-        this.Align = o.Align || ''; // ''|justify|left|center|right
+        this.FAlign = '';// ''|justify|start|center|end
         this.FAlignSM = '';
-        this.AlignSM = o.AlignSM || '';
         this.FAlignMD = '';
-        this.AlignMD = o.AlignMD || '';
         this.FAlignLG = '';
-        this.AlignLG = o.AlignLG || '';
         this.FAlignXL = '';
-        this.AlignXL = o.AlignXL || '';
-        this.FWrap = '';
-        this.Wrap = o.Wrap || ''; //''|wrap|no-wrap|truncate
-        this.FTransform = '';
-        this.Transform = o.Transform || ''; //''|lowercase|uppercase|capitalize
-        this.FWeight = 'normal';
-        this.Weight = o.Weight || 'normal'; //bold|bolder|normal|light|ligher
+        this.FWrap = ''; //''|wrap|no-wrap|truncate
+        this.FTransform = '';//''|lowercase|uppercase|capitalize
+        this.Transform = o.Transform || '';
+        this.FWeight = 'normal';//bold|bolder|normal|light|ligher
         this.FItalic = false;
-        this.Italic = o.Italic || false;
         this.FMonospace = false;
-        this.Monospace = o.Monospace || false;
     }
 
     get Color() { return this.FColor };
@@ -329,36 +392,105 @@ export class TBsTextProps extends TSubProperty {
     set Monospace(V) { if (V != this.FMonospace) { this.FMonospace = V; this._UpdateTextProps; } }
 
     _UpdateTextProps() {
-        this.C.FEl.removeClassStartingWith("text-");
+        this.FControl.FEl.removeClassStartingWith("text-");
+    }
+}
+
+
+export class TBsPosition extends TSubProperty {
+    static callAfterConstructor = false;
+    constructor(C, o) {
+        super(o);
+        this.FControl = C;
+        this._AfterConstruction(o);
+    }
+
+    _CreateParams(o) {
+        super._CreateParams(o);
+        this.FFBottom = ""; //""|0|50|100
+        this.FEnd = "";
+        this.FStart = "";
+        this.FTop = "";
+        this.FPosition = ""; //""|static|relative|absolute|fixed|sticky
+    }
+
+    get FBottom() { return this.FFBottom };
+    set FBottom(V) {
+        if (V != this.FFBottom) {
+            this.FControl.FEl.removeClassRegex("(^|\\b)(bottom-(0|50|100)+)(\\b(?!-)|$)");
+            if (V != "")
+                this.FControl.FEl.addClass("bottom-" + V);
+            this.FFBottom = V;
+        }
+    }
+
+    get End() { return this.FEnd };
+    set End(V) {
+        if (V != this.FEnd) {
+            this.FControl.FEl.removeClassRegex("(^|\\b)(end-(0|50|100)+)(\\b(?!-)|$)");
+            if (V != "")
+                this.FControl.FEl.addClass("end-" + V);
+            this.FEnd = V;
+        }
+    }
+
+    get Start() { return this.FStart };
+    set Start(V) {
+        if (V != this.FStart) {
+            this.FControl.FEl.removeClassRegex("(^|\\b)(start-(0|50|100)+)(\\b(?!-)|$)");
+            if (V != "")
+                this.FControl.FEl.addClass("start-" + V);
+            this.FStart = V;
+        }
+    }
+
+    get Top() { return this.FTop };
+    set Top(V) {
+        if (V != this.FTop) {
+            this.FControl.FEl.removeClassRegex("(^|\\b)(top-(0|50|100)+)(\\b(?!-)|$)");
+            if (V != "")
+                this.FControl.FEl.addClass("top-" + V);
+            this.FTop = V;
+        }
+    }
+
+    get Position() { return this.FPosition };
+    set Position(V) {
+        if (V != this.FPosition) {
+            this.FControl.FEl.removeClassRegex("(^|\\b)(position-(static|relative|absolute|fixed|sticky)+)(\\b(?!-)|$)");
+            if (V != "")
+                this.FControl.FEl.addClass("position-" + V);
+            this.FPosition = V;
+        }
     }
 }
 
 
 
 export class TBsControl extends TControl {
-    _CreateParams(o) {
-        this.FRenderPosition = false;
-        super._CreateParams(o);
+    _DefaultParams(o) {
+        this.FRenderPosition ??= false;
+        this.FBgPrefix ??= "bg-";
+        super._DefaultParams(o);
     }
-
 }
 
 export class TBsCustomControl extends TBsControl {
     _CreateParams(o) {
         super._CreateParams(o);
-        if (!this.FBgPrefix) this.FBgPrefix = 'bg-';
-        if (!this.FBackground) this.FBackground = '';
-        //this.Background = o.Background || this.FBackground;
+        this.FBackground = "";
         this.FBorder = new TBsBorders(this, o.Border || {});
         this.FTextProps = new TBsTextProps(this, o.TextProps || {});
-        if (!this.FShadow) this.FShadow = '';
-        //this.Shadow = o.Shadow || this.FShadow; // ''|small|normal|larger
+        this.FPosition = new TBsPosition(this, o.Position || {})
+        this.FShadow = "";
+        this.FWidth = ""; //''|'auto'|'25'|'50'|'75'|'100'
     }
 
     get Background() { return this.FBackground; }
     get Border() { return this.FBorder; }
     get TextProps() { return this.FTextProps; }
     get Shadow() { return this.FShadow; }
+    get Width_() { return this.FWidth };
 
     set Background(V) {
         if (V != this.FBackground) {
@@ -382,17 +514,28 @@ export class TBsCustomControl extends TBsControl {
 
     _UpdateShadow(el) {
         el.removeClassStartingWith("shadow");
-        this.FShadow === 'sm' ? el.AddClass("shadow-sm") :
+        this.FShadow === 'sm' ? el.addClass("shadow-sm") :
             this.FShadow === 'md' ? el.addClass("shadow") :
                 this.FShadow === 'lg' ? el.addClass("shadow-lg") : '';
+    }
+
+    set Width_(V) {
+        if (V != this.FWidth) {
+            this.FEl.removeClassRegex("(^|\\b)(w-(auto|25|50|75|100)+)(\\b(?!-)|$)")
+            if (V != "")
+                this.FEl.addClass("w-" + V);
+        }
     }
 
 }
 
 export class TNvBsGridControl extends TBsCustomControl {
+    _DefaultParams(o) {
+        o.ClassCss ??= "col";
+        super._DefaultParams(o);
+    }
     _CreateParams(o) {
         super._CreateParams(o);
-        this.AddClass("col");
         this.FGrids = new TBsGrids(this, o.Grids || {});
     }
 
@@ -401,66 +544,10 @@ export class TNvBsGridControl extends TBsCustomControl {
 
 
 
-
-
 export class TBsWinControl extends TWinControl {
-    _CreateParams(o) {
-        this.FRenderPosition = false;
-        super._CreateParams(o);
+    _DefaultParams(o) {
+        this.FRenderPosition ??= false;
+        super._DefaultParams(o);
     }
 }
 
-export class TNvBsBadge extends TBsControl {
-    _CreateParams(O) {
-        super._CreateParams(O);
-        this.AddClass("badge");
-        this.FVariant = 'info';
-    //    this.Variant = O.Variant || 'info';
-        this.FPill = false;
-    //    this.Pill = O.Pill || false;
-
-    }
-
-    _Tag() {
-        return "span";
-    }
-
-    get Variant() { return this.FVariant; }
-    set Variant(V) { //primary|secondary|success|danger|warning|info|light|dark
-        if (V != this.FVariant) {
-            this.FEl.removeClassRegex("(^|\\b)(badge-(primary|secondary|success|danger|warning|info|light|dark)+)(\\b(?!-)|$)")
-                .addClass("badge-" + V);
-            this.FVariant = V;
-
-        }
-    }
-
-    get Pill() { return this.FPill }
-    set Pill(V) {
-        if (V != this.FPill) {
-            this.removeClass("badge-pill");
-            if (V) this.AddClass("badge-pill");
-        }
-
-    }
-}
-
-export class TNvBsBadgeLink extends TNvBsBadge {
-    _CreateParams(O) {
-        super._CreateParams(O);
-        this.AddClass("badge");
-        this.FHref = '#';
-    //    this.Href = O.Href || '#';
-    }
-    _Tag() {
-        return "a";
-    }
-    get Href() { return this.FHref }
-    set Href(V) {
-        if (V != this.FHref) {
-            this.FEl.attr("href", V);
-            this.FHref = V;
-        }
-    }
-
-}

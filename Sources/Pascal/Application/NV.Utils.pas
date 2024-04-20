@@ -3,7 +3,7 @@ unit NV.Utils;
 interface
 
 uses
-  Classes, Controls, NV.VCL.Page, NV.Ajax, NV.Controls;
+  Classes, Controls, DB, NV.VCL.Page, NV.Ajax, NV.Controls, Generics.Collections;
 
 type
   TJumpOfs = Integer;
@@ -56,6 +56,8 @@ procedure UnhookProc(Proc: Pointer; var BackupCode: TXRedirCode);
 
 procedure ReplaceVmtField(AClass: TClass; OldProc, NewProc: Pointer);
 
+function GetDatasetIndex(Dataset: TDataset): TField;
+
 /// / return the NVSessionApp for this session
 // function NVSessionApp: TNVSessionApp;
 //
@@ -63,6 +65,11 @@ procedure ReplaceVmtField(AClass: TClass; OldProc, NewProc: Pointer);
 // function NVSessionThread: TNVSessionThread;
 
 // function NVServer: INVServer;
+
+function RemoveWords(aOrig: string; aRemove: string; aSeparator: Char = ' ';
+  aQuoteChar: Char = #0): string;
+function AddWords(aOrig: string; aNews: string; aSeparator: char = ' ';
+  aQuoteChar: Char = #0): string;
 
 implementation
 
@@ -277,9 +284,11 @@ begin
 
       while Assigned(ComponentTest) and (not(ComponentTest.InheritsFrom(TNVBasePage))) do
         begin
-          if (ComponentTest is TNVModuleContainer) //
-            and (TNVModuleContainer(ComponentTest).Parent <> nil) then
-            ComponentTest := TNVModuleContainer(ComponentTest).Parent
+          if ((ComponentTest is TNVModuleContainer) or
+            (csSubComponent in ComponentTest.ComponentStyle)) //
+            and                                               //
+            (TControl(ComponentTest).Parent <> nil) then
+            ComponentTest := TControl(ComponentTest).Parent
           else if Assigned(ComponentTest.Owner) then
             ComponentTest := ComponentTest.Owner
           else
@@ -300,6 +309,8 @@ begin
   _Page  := FindParentPage(aControl);
   if _Page <> nil then
     Result := _Page.Ajax;
+  if Result = nil then
+    Result := Screen.Ajax;
 end;
 
 function MakeValidFileUrl(const ARootUrl: string; const AFileUrl: string): string;
@@ -528,13 +539,16 @@ begin
             begin
               Result := THackNVModuleContainer(_Component).FDesigner;
               Exit;
-            end;
-          // else if (_Component is TCustomForm) and (TCustomForm(_Component).Designer <> nil) then
-          // begin
-          // Result := TCustomForm(_Component).Designer;
-          // Exit;
-          // end;
-          _Component := _Component.Owner;
+            end
+            // else if (_Component is TCustomForm) and (TCustomForm(_Component).Designer <> nil) then
+            // begin
+            // Result := TCustomForm(_Component).Designer;
+            // Exit;
+            // end;
+            // else if csSubComponent in _Component.ComponentStyle then
+            // _Component := TControl(_Component).Parent
+          else
+            _Component := _Component.Owner;
         end;
     end;
 
@@ -667,6 +681,84 @@ begin
 
         end;
     end;
+end;
+
+function GetDatasetIndex(Dataset: TDataset): TField;
+var
+  I    : Integer;
+  Field: TField;
+begin
+  Result := nil;
+
+  for I := 0 to DataSet.FieldList.Count - 1 do
+    begin
+      Field := DataSet.FieldList[I];
+      if (pfInKey in Field.ProviderFlags) then
+        begin
+          Result := Field;
+          Exit;
+        end;
+    end;
+end;
+
+function RemoveWords(aOrig: string; aRemove: string; aSeparator: Char = ' ';
+  aQuoteChar: Char = #0): string;
+var
+  _Olds, _Remove: TStrings;
+  I             : Integer;
+begin
+  _Olds   := TStringList.Create;
+  _Remove := TStringList.Create;
+  try
+    _Olds.Delimiter         := aSeparator;
+    _Olds.StrictDelimiter   := True;
+    _Olds.QuoteChar         := aQuoteChar;
+    _Remove.Delimiter       := aSeparator;
+    _Remove.StrictDelimiter := True;
+    _Remove.QuoteChar       := aQuoteChar;
+
+    _Olds.DelimitedText   := Trim(aOrig);
+    _Remove.DelimitedText := Trim(aRemove);
+
+    for I := _Remove.Count - 1 downto 0 do
+      if _Olds.Contains(_Remove[I]) then
+        _Olds.Delete(_Olds.IndexOf(_Remove[I]));
+
+    Result := _Olds.DelimitedText;
+  finally
+    _Olds.Free;
+    _Remove.Free;
+  end;
+end;
+
+function AddWords(aOrig: string; aNews: string; aSeparator: char = ' ';
+  aQuoteChar: Char = #0): string;
+var
+  _Olds, _News: TStrings;
+  I           : Integer;
+begin
+  _Olds := TStringList.Create;
+  _News := TStringList.Create;
+  try
+    _Olds.Delimiter       := aSeparator;
+    _Olds.StrictDelimiter := True;
+    _Olds.QuoteChar       := aQuoteChar;
+    _News.Delimiter       := aSeparator;
+    _News.StrictDelimiter := True;
+    _News.QuoteChar       := aQuoteChar;
+
+    _Olds.DelimitedText := Trim(aOrig);
+    _News.DelimitedText := Trim(aNews);
+
+    for I := 0 to _News.Count - 1 do
+      if not _Olds.Contains(_News[I]) then
+        _Olds.Add(_News[I]);
+
+    Result := _Olds.DelimitedText;
+  finally
+    _Olds.Free;
+    _News.Free;
+  end;
 end;
 
 end.

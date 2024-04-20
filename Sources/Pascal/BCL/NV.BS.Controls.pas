@@ -16,22 +16,29 @@ type
   TBsMargins = class(TNvSubProperty)
   private
     FGridOption: TBSGridOptions;
-    FRight     : TBsSpacing;
+    FEnd       : TBsSpacing;
     FBottom    : TBsSpacing;
     FX         : TBsSpacing;
     FY         : TBsSpacing;
     FAll       : TBsSpacing;
     FTop       : TBsSpacing;
-    FLeft      : TBsSpacing;
+    FStart     : TBsSpacing;
     procedure SetAll(const Value: TBsSpacing);
     procedure SetBottom(const Value: TBsSpacing);
-    procedure SetLeft(const Value: TBsSpacing);
-    procedure SetRight(const Value: TBsSpacing);
+    procedure SetStart(const Value: TBsSpacing);
+    procedure SetEnd(const Value: TBsSpacing);
     procedure SetTop(const Value: TBsSpacing);
     procedure SetX(const Value: TBsSpacing);
     procedure SetY(const Value: TBsSpacing);
   protected
     procedure InternalRender(aJson: TJsonObject); override;
+    procedure RenderAll(aJson: TJsonObject);
+    procedure RenderBottom(aJson: TJsonObject);
+    procedure RenderStart(aJson: TJsonObject);
+    procedure RenderEnd(aJson: TJsonObject);
+    procedure RenderTop(aJson: TJsonObject);
+    procedure RenderX(aJson: TJsonObject);
+    procedure RenderY(aJson: TJsonObject);
   public
     constructor Create(aMaster: INVRenderableComponent; aPropName: string; aPrefix: string = '';
       aSuffix: string = ''); override;
@@ -42,8 +49,8 @@ type
     property X     : TBsSpacing read FX write SetX default bssNull;
     property Y     : TBsSpacing read FY write SetY default bssNull;
     property Top   : TBsSpacing read FTop write SetTop default bssNull;
-    property Left  : TBsSpacing read FLeft write SetLeft default bssNull;
-    property Right : TBsSpacing read FRight write SetRight default bssNull;
+    property Start : TBsSpacing read FStart write SetStart default bssNull;
+    property End_  : TBsSpacing read FEnd write SetEnd default bssNull;
     property Bottom: TBsSpacing read FBottom write SetBottom default bssNull;
   end;
 
@@ -65,6 +72,8 @@ type
     FFloat         : TBsFloat;
     FOffset        : TBs12Range;
     FSpan          : TBs12Range;
+    FHeight        : string;
+    FViewportPos   : TBsViewportPos;
     procedure SetAlignContent(const Value: TBsAlignContent);
     procedure SetAlignItems(const Value: TBSAlign);
     procedure SetAlignSelf(const Value: TBSAlign);
@@ -81,37 +90,67 @@ type
     procedure SetShrink(const Value: Boolean);
     procedure SetSpan(const Value: TBs12Range);
     procedure SetWrap(const Value: TBSWrap);
+    procedure SetHeight(const Value: string);
+    procedure SetViewportPos(const Value: TBsViewportPos);
   protected
+    procedure AssignTo(Dest: TPersistent); override;
+    // render
     procedure InternalRender(aJson: TJsonObject); override;
+    procedure RenderHeight(aJson: TJsonObject);
+    procedure RenderViewportPos(aJson: TJsonObject);
   public
     constructor Create(aMaster: INVRenderableComponent; aPropName: string; aPrefix: string = '';
       aSuffix: string = ''); override;
     destructor Destroy; override;
-    procedure Assign(Source: TPersistent); override;
     function GetClassString(ACustomXsOffset, ACustomSmOffset, ACustomMdOffset,
       ACustomLgOffset: integer): string; overload;
     function GetClassString: string; overload;
     procedure Clear;
   published
-    property Span     : TBs12Range read FSpan write SetSpan default -1;
-    property Offset   : TBs12Range read FOffset write SetOffset default -1;
-    property Display  : TBSDisplay read FDisplay write SetDisplay default bsdNull;
+    // https://getbootstrap.com/docs/5.3/layout/columns/
+    property Span: TBs12Range read FSpan write SetSpan default -1;
+    // https://getbootstrap.com/docs/5.3/layout/columns/#offset-classes
+    property Offset: TBs12Range read FOffset write SetOffset default -1;
+    // https://getbootstrap.com/docs/5.3/utilities/display/
+    property Display: TBSDisplay read FDisplay write SetDisplay default bsdNull;
+    {
+      ****** FLEX NOTE *********
+      Flexbox properties only work if display or parent display is Flex
+      see https://getbootstrap.com/docs/5.3/utilities/flex/#enable-flex-behaviors
+    }
+    // https://getbootstrap.com/docs/5.3/utilities/flex/#direction
     property Direction: TBSDirection read FDirection write SetDirection default bsDirNull;
     { TODO -oDelcio -cGridOptions : !!!! Change names to more simple same as bootstrap documentation titles "JustifyContent" to  "HorizontalAlignment" !!!! }
+    // https://getbootstrap.com/docs/5.3/utilities/flex/#justify-content
     property JustifyContent: TBSJustifyContent read FJustifyContent write SetJustifyContent
       default bsJustNull;
-    property AlignItems  : TBSAlign read FAlignItems write SetAlignItems default bsaNull;
-    property AlignSelf   : TBSAlign read FAlignSelf write SetAlignSelf default bsaNull;
-    property Fill        : Boolean read FFill write SetFill default False;
-    property Grow        : Boolean read FGrow write SetGrow default False;
-    property Shrink      : Boolean read FShrink write SetShrink default False;
-    property Wrap        : TBSWrap read FWrap write SetWrap default bswNull;
-    property Order       : TBs12Range read FOrder write SetOrder default -1;
+    // https://getbootstrap.com/docs/5.3/utilities/flex/#align-items
+    property AlignItems: TBSAlign read FAlignItems write SetAlignItems default bsaNull;
+    // https://getbootstrap.com/docs/5.3/utilities/flex/#align-self
+    property AlignSelf: TBSAlign read FAlignSelf write SetAlignSelf default bsaNull;
+    // https://getbootstrap.com/docs/5.3/utilities/flex/#fill
+    property Fill: Boolean read FFill write SetFill default False;
+    // https://getbootstrap.com/docs/5.3/utilities/flex/#grow-and-shrink
+    property Grow  : Boolean read FGrow write SetGrow default False;
+    property Shrink: Boolean read FShrink write SetShrink default False;
+    // https://getbootstrap.com/docs/5.3/utilities/flex/#wrap
+    property Wrap: TBSWrap read FWrap write SetWrap default bswNull;
+    // https://getbootstrap.com/docs/5.3/utilities/flex/#order
+    property Order: TBs12Range read FOrder write SetOrder default -1;
+    // https://getbootstrap.com/docs/5.3/utilities/flex/#align-content
     property AlignContent: TBsAlignContent read FAlignContent write SetAlignContent
       default bsacNull;
-    property Float   : TBsFloat read FFloat write SetFloat default bsfNull;
+    { ****** END FLEX NOTE ********* }
+    // https://getbootstrap.com/docs/5.3/utilities/float/#overview
+    property Float: TBsFloat read FFloat write SetFloat default bsfNull;
+    // https://getbootstrap.com/docs/5.3/utilities/spacing/#margin-and-padding
     property Margins : TBsMargins read FMargins write SetMargins;
     property Paddings: TBsMargins read FPaddings write SetPaddings;
+    // Heigh is not a bootstrap property, see nv.bs.css
+    property Height: string read FHeight write SetHeight;
+    // https://getbootstrap.com/docs/5.3/helpers/position/
+    property ViewportPos: TBsViewportPos read FViewportPos write SetViewportPos default bsvppNull;
+    // Note: ad new propreties to Clear and Assign methods
   end;
 
   TBSPrintOptions = class(TNvSubProperty)
@@ -131,14 +170,12 @@ type
 
   TBSGrids = class(TNvSubProperty)
   private
-    FAutoMargin: TBSAutoMargin;
-    FXS        : TBSGridOptions;
-    FLG        : TBSGridOptions;
-    FPrint     : TBSPrintOptions;
-    FMD        : TBSGridOptions;
-    FXL        : TBSGridOptions;
-    FSM        : TBSGridOptions;
-    procedure SetAutoMargin(const Value: TBSAutoMargin);
+    FXS   : TBSGridOptions;
+    FLG   : TBSGridOptions;
+    FPrint: TBSPrintOptions;
+    FMD   : TBSGridOptions;
+    FXL   : TBSGridOptions;
+    FSM   : TBSGridOptions;
     procedure SetLG(const Value: TBSGridOptions);
     procedure SetMD(const Value: TBSGridOptions);
     procedure SetPrint(const Value: TBSPrintOptions);
@@ -154,13 +191,12 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure Clear;
   published
-    property AutoMargin: TBSAutoMargin read FAutoMargin write SetAutoMargin default bsamNull;
-    property XS        : TBSGridOptions read FXS write SetXS;
-    property SM        : TBSGridOptions read FSM write SetSM;
-    property MD        : TBSGridOptions read FMD write SetMD;
-    property LG        : TBSGridOptions read FLG write SetLG;
-    property XL        : TBSGridOptions read FXL write SetXL;
-    property Print     : TBSPrintOptions read FPrint write SetPrint;
+    property XS   : TBSGridOptions read FXS write SetXS;
+    property SM   : TBSGridOptions read FSM write SetSM;
+    property MD   : TBSGridOptions read FMD write SetMD;
+    property LG   : TBSGridOptions read FLG write SetLG;
+    property XL   : TBSGridOptions read FXL write SetXL;
+    property Print: TBSPrintOptions read FPrint write SetPrint;
   end;
 
   TBsBorders = class(TNvSubProperty)
@@ -240,6 +276,36 @@ type
     property Monospace: Boolean read FMonospace write SetMonospace default False;
   end;
 
+  TNvBsPosition = class(TNvSubProperty)
+  private
+    FBottom  : TBsPosValue;
+    FEnd_    : TBsPosValue;
+    FStart   : TBsPosValue;
+    FTop     : TBsPosValue;
+    FPosition: TBsDispPosition;
+    procedure SetBottom(const Value: TBsPosValue);
+    procedure SetEnd_(const Value: TBsPosValue);
+    procedure SetPosition(const Value: TBsDispPosition);
+    procedure SetStart(const Value: TBsPosValue);
+    procedure SetTop(const Value: TBsPosValue);
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
+    //
+    procedure InternalRender(aJson: TJsonObject); override;
+    procedure RenderPosition(aJson: TJsonObject);
+    procedure RenderBottom(aJson: TJsonObject);
+    procedure RenderEnd(aJson: TJsonObject);
+    procedure RenderStart(aJson: TJsonObject);
+    procedure RenderTop(aJson: TJsonObject);
+  published
+    // https://getbootstrap.com/docs/5.3/utilities/position/
+    property Position: TBsDispPosition read FPosition write SetPosition default bsdpNull;
+    property Bottom  : TBsPosValue read FBottom write SetBottom default bspvNull;
+    property End_    : TBsPosValue read FEnd_ write SetEnd_ default bspvNull;
+    property Start   : TBsPosValue read FStart write SetStart default bspvNull;
+    property Top     : TBsPosValue read FTop write SetTop default bspvNull;
+  end;
+
   TNvBsControl = class(TNvControl)
   public
     constructor Create(AOwner: TComponent); override;
@@ -253,28 +319,43 @@ type
     FShadow    : TBsShadow;
     FBorder    : TBsBorders;
     FTextProps : TBsTextProps;
+    FPosition  : TNvBsPosition;
+    FWidth     : TBsWidth;
     procedure SetBackground(const Value: TBsBackground);
     procedure SetBorder(const Value: TBsBorders);
     procedure SetShadow(const Value: TBsShadow);
     procedure SetTextProps(const Value: TBsTextProps);
+    procedure SetPosition(const Value: TNvBsPosition);
+    procedure SetWidth(const Value: TBsWidth);
   protected
     function IsNotBgDefault: Boolean;
-    procedure InternalRender(Ajax: TNvAjax; Json: TJsonObject); override;
+    // render
+    procedure InternalRender(Json: TJsonObject); override;
+    procedure RenderBackground(aJson: TJsonObject); dynamic;
+    procedure RenderShadow(aJson: TJsonObject); dynamic;
+    procedure RenderWidth(aJson: TJsonObject); dynamic;
+    //
     property Background: TBsBackground read FBackground write SetBackground stored IsNotBgDefault;
     property Border: TBsBorders read FBorder write SetBorder;
+    // https://getbootstrap.com/docs/5.3/utilities/position/
+    property Position: TNvBsPosition read FPosition write SetPosition;
     property Shadow: TBsShadow read FShadow write SetShadow default bssNone;
     property TextProps: TBsTextProps read FTextProps write SetTextProps;
+    // https://getbootstrap.com/docs/5.3/utilities/sizing/#relative-to-the-parent
+    property Width_: TBsWidth read FWidth write SetWidth default bswdNull;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
 
   TNvBsGridControl = class(TNvBsCustomControl)
+  protected
+    class function DefaultClassCss: string; override;
   private
     FGrids: TBSGrids;
     procedure SetGrids(const Value: TBSGrids);
   protected
-    procedure InternalRender(Ajax: TNvAjax; Json: TJsonObject); override;
+    procedure InternalRender(Json: TJsonObject); override;
     property Grids: TBSGrids read FGrids write SetGrids;
   public
     constructor Create(AOwner: TComponent); override;
@@ -283,7 +364,7 @@ type
 
   TNvBsWinControl = class(TNvWinControl)
   protected
-    procedure SortControls; override;
+    // procedure SortControls; override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -358,11 +439,11 @@ begin
   FRenderPosition := False;
 end;
 
-procedure TNvBsWinControl.SortControls;
-begin
-  // inherited;
-  FControlsOrdered.Sort(BootstrapSort);
-end;
+// procedure TNvBsWinControl.SortControls;
+// begin
+// inherited;
+// //FControlsOrdered.Sort(BootstrapSort);
+// end;
 
 { TNvBsControl }
 
@@ -374,28 +455,32 @@ end;
 
 { TBSGridOptions }
 
-procedure TBSGridOptions.Assign(Source: TPersistent);
+procedure TBSGridOptions.AssignTo(Dest: TPersistent);
 begin
-  inherited;
-  if (Source <> nil) and (Source is TBSGridOptions) then
-    begin
-      FMargins.Assign(TBSGridOptions(Source).FMargins);
-      FPaddings.Assign(TBSGridOptions(Source).FPaddings);
-      Span           := TBSGridOptions(Source).FSpan;
-      Offset         := TBSGridOptions(Source).FOffset;
-      Display        := TBSGridOptions(Source).FDisplay;
-      Direction      := TBSGridOptions(Source).FDirection;
-      JustifyContent := TBSGridOptions(Source).FJustifyContent;
-      AlignItems     := TBSGridOptions(Source).FAlignItems;
-      AlignSelf      := TBSGridOptions(Source).FAlignSelf;
-      Fill           := TBSGridOptions(Source).FFill;
-      Grow           := TBSGridOptions(Source).FGrow;
-      Shrink         := TBSGridOptions(Source).FShrink;
-      Wrap           := TBSGridOptions(Source).FWrap;
-      Order          := TBSGridOptions(Source).FOrder;
-      AlignContent   := TBSGridOptions(Source).FAlignContent;
-      Float          := TBSGridOptions(Source).FFloat;
-    end;
+  if (Dest <> nil) and (Dest is TBSGridOptions) then
+    with TBSGridOptions(Dest) do
+      begin
+        FMargins.Assign(Self.FMargins);
+        FPaddings.Assign(Self.FPaddings);
+        Span           := Self.FSpan;
+        Offset         := Self.FOffset;
+        Display        := Self.FDisplay;
+        Direction      := Self.FDirection;
+        JustifyContent := Self.FJustifyContent;
+        AlignItems     := Self.FAlignItems;
+        AlignSelf      := Self.FAlignSelf;
+        Fill           := Self.FFill;
+        Grow           := Self.FGrow;
+        Shrink         := Self.FShrink;
+        Wrap           := Self.FWrap;
+        Order          := Self.FOrder;
+        AlignContent   := Self.FAlignContent;
+        Float          := Self.FFloat;
+        Height         := Self.FHeight;
+        ViewportPos    := Self.FViewportPos;
+      end
+  else
+    inherited;
 end;
 
 procedure TBSGridOptions.Clear;
@@ -416,6 +501,8 @@ begin
   Order          := -1;
   AlignContent   := bsacNull;
   Float          := bsfNull;
+  Height         := '';
+  ViewportPos    := bsvppNull;
 end;
 
 constructor TBSGridOptions.Create;
@@ -489,6 +576,20 @@ begin
     aJson.S['AlignContent'] := TBsAlignContentStr[FAlignContent];
   if FFloat <> bsfNull then
     aJson.S['Float'] := TBsFloatStr[FFloat];
+  if FHeight <> '' then
+    RenderHeight(aJson);
+  if FViewportPos <> bsvppNull then
+    RenderViewportPos(aJson);
+end;
+
+procedure TBSGridOptions.RenderHeight(aJson: TJsonObject);
+begin
+  aJson.S['Height'] := FHeight;
+end;
+
+procedure TBSGridOptions.RenderViewportPos(aJson: TJsonObject);
+begin
+  aJson.S['ViewportPos'] := TBsViewportPosStr[FViewportPos];
 end;
 
 procedure TBSGridOptions.SetAlignContent(const Value: TBsAlignContent);
@@ -579,6 +680,16 @@ begin
     end;
 end;
 
+procedure TBSGridOptions.SetHeight(const Value: string);
+begin
+  if FHeight <> Value then
+    begin
+      EnqueueChange('Height', RenderHeight);
+      FHeight := Value;
+      Invalidate;
+    end;
+end;
+
 procedure TBSGridOptions.SetJustifyContent(const Value: TBSJustifyContent);
 begin
   if FJustifyContent <> Value then
@@ -644,6 +755,16 @@ begin
     end;
 end;
 
+procedure TBSGridOptions.SetViewportPos(const Value: TBsViewportPos);
+begin
+  if FViewportPos <> Value then
+    begin
+      EnqueueChange('ViewportPos', RenderViewportPos);
+      FViewportPos := Value;
+      Invalidate;
+    end;
+end;
+
 procedure TBSGridOptions.SetWrap(const Value: TBSWrap);
 begin
   if FWrap <> Value then
@@ -659,104 +780,187 @@ end;
 
 procedure TBsMargins.Assign(Source: TPersistent);
 begin
-  inherited;
   if (Source <> nil) and (Source is TBsMargins) then
     begin
       FGridOption := TBsMargins(Source).FGridOption;
-      Right       := TBsMargins(Source).Right;
+      End_        := TBsMargins(Source).End_;
       Bottom      := TBsMargins(Source).Bottom;
       X           := TBsMargins(Source).X;
       Y           := TBsMargins(Source).Y;
       All         := TBsMargins(Source).All;
       Top         := TBsMargins(Source).Top;
-      Left        := TBsMargins(Source).Left;
-    end;
+      Start       := TBsMargins(Source).Start;
+    end
+  else
+    inherited;
 end;
 
 procedure TBsMargins.Clear;
 begin
-  Right  := bssNull;
+  End_   := bssNull;
   Bottom := bssNull;
   X      := bssNull;
   Y      := bssNull;
   All    := bssNull;
   Top    := bssNull;
-  Left   := bssNull;
+  Start  := bssNull;
 end;
 
 constructor TBsMargins.Create;
 begin
   inherited;
-  FRight  := bssNull;
+  FEnd    := bssNull;
   FBottom := bssNull;
   FX      := bssNull;
   FY      := bssNull;
   FAll    := bssNull;
   FTop    := bssNull;
-  FLeft   := bssNull;
+  FStart  := bssNull;
 end;
 
 procedure TBsMargins.InternalRender(aJson: TJsonObject);
 begin
   inherited;
+  if FAll <> bssNull then
+    RenderAll(aJson);
+  if FBottom <> bssNull then
+    RenderBottom(aJson);
+  if FStart <> bssNull then
+    RenderStart(aJson);
+  if FEnd <> bssNull then
+    RenderEnd(aJson);
+  if FTop <> bssNull then
+    RenderTop(aJson);
+  if FX <> bssNull then
+    RenderX(aJson);
+  if FY <> bssNull then
+    RenderY(aJson);
+end;
 
+procedure TBsMargins.RenderAll(aJson: TJsonObject);
+begin
+  aJson.S['All'] := TBsSpacingStr[FAll];
+end;
+
+procedure TBsMargins.RenderBottom(aJson: TJsonObject);
+begin
+  aJson.S['Bottom'] := TBsSpacingStr[FBottom];
+end;
+
+procedure TBsMargins.RenderEnd(aJson: TJsonObject);
+begin
+  aJson.S['End'] := TBsSpacingStr[FEnd];
+end;
+
+procedure TBsMargins.RenderStart(aJson: TJsonObject);
+begin
+  aJson.S['Start'] := TBsSpacingStr[FStart];
+end;
+
+procedure TBsMargins.RenderTop(aJson: TJsonObject);
+begin
+  aJson.S['Top'] := TBsSpacingStr[FTop];
+end;
+
+procedure TBsMargins.RenderX(aJson: TJsonObject);
+begin
+  aJson.S['X'] := TBsSpacingStr[FX];
+end;
+
+procedure TBsMargins.RenderY(aJson: TJsonObject);
+begin
+  aJson.S['Y'] := TBsSpacingStr[FY];
 end;
 
 procedure TBsMargins.SetAll(const Value: TBsSpacing);
 begin
-  FAll := Value;
+  if Value <> FAll then
+    begin
+      EnqueueChange('All', RenderAll);
+      FAll := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TBsMargins.SetBottom(const Value: TBsSpacing);
 begin
-  FBottom := Value;
+  if Value <> FBottom then
+    begin
+      EnqueueChange('Bottom', RenderBottom);
+      FBottom := Value;
+      Invalidate;
+    end;
 end;
 
-procedure TBsMargins.SetLeft(const Value: TBsSpacing);
+procedure TBsMargins.SetStart(const Value: TBsSpacing);
 begin
-  FLeft := Value;
+  if Value <> FStart then
+    begin
+      EnqueueChange('Start', RenderStart);
+      FStart := Value;
+      Invalidate;
+    end;
 end;
 
-procedure TBsMargins.SetRight(const Value: TBsSpacing);
+procedure TBsMargins.SetEnd(const Value: TBsSpacing);
 begin
-  FRight := Value;
+  if Value <> FEnd then
+    begin
+      EnqueueChange('End', RenderEnd);
+      FEnd := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TBsMargins.SetTop(const Value: TBsSpacing);
 begin
-  FTop := Value;
+  if Value <> FTop then
+    begin
+      EnqueueChange('Top', RenderTop);
+      FTop := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TBsMargins.SetX(const Value: TBsSpacing);
 begin
-  FX := Value;
+  if Value <> FX then
+    begin
+      EnqueueChange('X', RenderX);
+      FX := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TBsMargins.SetY(const Value: TBsSpacing);
 begin
-  FY := Value;
+  if Value <> FY then
+    begin
+      EnqueueChange('Y', RenderY);
+      FY := Value;
+      Invalidate;
+    end;
 end;
 
 { TBSGrids }
 
 procedure TBSGrids.Assign(Source: TPersistent);
 begin
-  inherited;
   if (Source <> nil) and (Source is TBSGrids) then
     begin
-      AutoMargin := TBSGrids(Source).FAutoMargin;
       FXS.Assign(TBSGrids(Source).FXS);
       FLG.Assign(TBSGrids(Source).FLG);
       FPrint.Assign(TBSGrids(Source).FPrint);
       FMD.Assign(TBSGrids(Source).FMD);
       FXL.Assign(TBSGrids(Source).FXL);
       FSM.Assign(TBSGrids(Source).FSM);
-    end;
+    end
+  else
+    inherited;
 end;
 
 procedure TBSGrids.Clear;
 begin
-  AutoMargin := bsamNull;
   FXS.Clear;
   FLG.Clear;
   FPrint.Clear;
@@ -768,13 +972,12 @@ end;
 constructor TBSGrids.Create;
 begin
   inherited;
-  FAutoMargin := bsamNull;
-  FXS         := TBSGridOptions.Create(Self, 'XS');
-  FLG         := TBSGridOptions.Create(Self, 'LG');
-  FPrint      := TBSPrintOptions.Create(Self, 'Print');
-  FMD         := TBSGridOptions.Create(Self, 'MD');
-  FXL         := TBSGridOptions.Create(Self, 'XL');
-  FSM         := TBSGridOptions.Create(Self, 'SM');
+  FXS    := TBSGridOptions.Create(Self, 'XS');
+  FLG    := TBSGridOptions.Create(Self, 'LG');
+  FPrint := TBSPrintOptions.Create(Self, 'Print');
+  FMD    := TBSGridOptions.Create(Self, 'MD');
+  FXL    := TBSGridOptions.Create(Self, 'XL');
+  FSM    := TBSGridOptions.Create(Self, 'SM');
 end;
 
 destructor TBSGrids.Destroy;
@@ -791,25 +994,12 @@ end;
 procedure TBSGrids.InternalRender(aJson: TJsonObject);
 begin
   inherited;
-  if FAutoMargin <> bsamNull then
-    aJson.S['AutoMargin'] := TBSAutoMarginStr[FAutoMargin];
   FXS.Render;
   FSM.Render;
   FMD.Render;
   FLG.Render;
   FXL.Render;
   FPrint.Render;
-end;
-
-procedure TBSGrids.SetAutoMargin(const Value: TBSAutoMargin);
-begin
-  if FAutoMargin <> Value then
-    begin
-      if Rendered then
-        ControlAjaxJson.S['AutoMargin'] := TBSAutoMarginStr[Value];
-      FAutoMargin                       := Value;
-      Invalidate;
-    end;
 end;
 
 procedure TBSGrids.SetLG(const Value: TBSGridOptions);
@@ -852,12 +1042,13 @@ end;
 
 procedure TBSPrintOptions.Assign(Source: TPersistent);
 begin
-  inherited;
   if (Source <> nil) and (Source is TBSPrintOptions) then
     begin
       // FGrid   := TBSPrintOptions(Source).FGrid;
       Display := TBSPrintOptions(Source).FDisplay;
-    end;
+    end
+  else
+    inherited;
 end;
 
 procedure TBSPrintOptions.Clear;
@@ -892,26 +1083,31 @@ constructor TNvBsCustomControl.Create(AOwner: TComponent);
 begin
   inherited;
   FBackground := BackgroundDefault;
-  FBorder     := TBsBorders.Create(Self as TNvBsCustomControl, 'Border');
-  FTextProps  := TBsTextProps.Create(Self as TNvBsCustomControl, 'TextProps');
+  FBorder     := TBsBorders.Create(Self { as TNvBsCustomControl } , 'Border');
+  FTextProps  := TBsTextProps.Create(Self { as TNvBsCustomControl } , 'TextProps');
+  FPosition   := TNvBsPosition.Create(Self { as TNvBsCustomControl } , 'Position');
 end;
 
 destructor TNvBsCustomControl.Destroy;
 begin
   FBorder.Free;
   FTextProps.Free;
+  FPosition.Free;
   inherited;
 end;
 
-procedure TNvBsCustomControl.InternalRender(Ajax: TNvAjax; Json: TJsonObject);
+procedure TNvBsCustomControl.InternalRender(Json: TJsonObject);
 begin
   inherited;
   if IsNotBgDefault then
-    Json.S['Background'] := TBsBackgroundStr[FBackground];
+    RenderBackground(Json);
   if FShadow <> bssNone then
-    Json.S['Shadow'] := TBsShadowStr[FShadow];
+    RenderShadow(Json);
+  if FWidth <> bswdNull then
+    RenderWidth(Json);
   FBorder.Render;
   FTextProps.Render;
+  FPosition.Render;
 end;
 
 function TNvBsCustomControl.IsNotBgDefault: Boolean;
@@ -919,13 +1115,27 @@ begin
   Result := FBackground <> BackgroundDefault
 end;
 
+procedure TNvBsCustomControl.RenderBackground(aJson: TJsonObject);
+begin
+  aJson.S['Background'] := TBsBackgroundStr[FBackground];
+end;
+
+procedure TNvBsCustomControl.RenderShadow(aJson: TJsonObject);
+begin
+  aJson.S['Shadow'] := TBsShadowStr[FShadow];
+end;
+
+procedure TNvBsCustomControl.RenderWidth(aJson: TJsonObject);
+begin
+  aJson.S['Width_'] := TBsWidthStr[FWidth];
+end;
+
 procedure TNvBsCustomControl.SetBackground(const Value: TBsBackground);
 begin
   if Value <> FBackground then
     begin
-      if NeedSendChange then
-        ControlAjaxJson.S['Background'] := TBsBackgroundStr[Value];
-      FBackground                       := Value;
+      EnqueueChange('Background', RenderBackground);
+      FBackground := Value;
       Invalidate;
     end;
 end;
@@ -935,14 +1145,34 @@ begin
   FBorder := Value;
 end;
 
+procedure TNvBsCustomControl.SetPosition(const Value: TNvBsPosition);
+begin
+  if Value <> nil then
+    FPosition.Assign(Value);
+end;
+
 procedure TNvBsCustomControl.SetShadow(const Value: TBsShadow);
 begin
-  FShadow := Value;
+  if Value <> FShadow then
+    begin
+      EnqueueChange('Shadow', RenderShadow);
+      FShadow := Value;
+    end;
 end;
 
 procedure TNvBsCustomControl.SetTextProps(const Value: TBsTextProps);
 begin
   FTextProps := Value;
+end;
+
+procedure TNvBsCustomControl.SetWidth(const Value: TBsWidth);
+begin
+  if Value <> FWidth then
+    begin
+      EnqueueChange('Width_', RenderWidth);
+      FWidth := Value;
+      Invalidate;
+    end;
 end;
 
 { TNvBsGridControl }
@@ -953,13 +1183,18 @@ begin
   FGrids := TBSGrids.Create(Self, 'Grids');
 end;
 
+class function TNvBsGridControl.DefaultClassCss: string;
+begin
+  Result := 'col';
+end;
+
 destructor TNvBsGridControl.Destroy;
 begin
   FGrids.Free;
   inherited;
 end;
 
-procedure TNvBsGridControl.InternalRender(Ajax: TNvAjax; Json: TJsonObject);
+procedure TNvBsGridControl.InternalRender(Json: TJsonObject);
 begin
   inherited;
   FGrids.Render;
@@ -1140,6 +1375,114 @@ end;
 procedure TBsTextProps.SetWrap(const Value: TBsTextWrap);
 begin
   FWrap := Value;
+end;
+
+{ TNvBsPosition }
+
+procedure TNvBsPosition.AssignTo(Dest: TPersistent);
+begin
+  if (Dest <> nil) and (Dest is TNvBsPosition) then
+    with TNvBsPosition(Dest) do
+      begin
+        Bottom   := Self.Bottom;
+        End_     := Self.End_;
+        Start    := Self.Start;
+        Top      := Self.Top;
+        Position := Self.Position;
+      end
+  else
+    inherited;
+
+end;
+
+procedure TNvBsPosition.InternalRender(aJson: TJsonObject);
+begin
+  inherited;
+  if FPosition <> bsdpNull then
+    RenderPosition(aJson);
+  if FBottom <> bspvNull then
+    RenderBottom(aJson);
+  if FEnd_ <> bspvNull then
+    RenderEnd(aJson);
+  if FStart <> bspvNull then
+    RenderStart(aJson);
+  if FTop <> bspvNull then
+    RenderTop(aJson);
+end;
+
+procedure TNvBsPosition.RenderBottom(aJson: TJsonObject);
+begin
+  aJson.S['Bottom'] := TBsPosValueStr[FBottom];
+end;
+
+procedure TNvBsPosition.RenderEnd(aJson: TJsonObject);
+begin
+  aJson.S['End'] := TBsPosValueStr[FEnd_];
+end;
+
+procedure TNvBsPosition.RenderPosition(aJson: TJsonObject);
+begin
+  aJson.S['Position'] := TBsDispPositionStr[FPosition];
+end;
+
+procedure TNvBsPosition.RenderStart(aJson: TJsonObject);
+begin
+  aJson.S['Start'] := TBsPosValueStr[FStart];
+end;
+
+procedure TNvBsPosition.RenderTop(aJson: TJsonObject);
+begin
+  aJson.S['Top'] := TBsPosValueStr[FTop];
+end;
+
+procedure TNvBsPosition.SetBottom(const Value: TBsPosValue);
+begin
+  if Value <> FBottom then
+    begin
+      EnqueueChange('Bottom', RenderBottom);
+      FBottom := Value;
+      Invalidate;
+    end;
+end;
+
+procedure TNvBsPosition.SetEnd_(const Value: TBsPosValue);
+begin
+  if Value <> FEnd_ then
+    begin
+      EnqueueChange('End', RenderEnd);
+      FEnd_ := Value;
+      Invalidate;
+    end;
+end;
+
+procedure TNvBsPosition.SetPosition(const Value: TBsDispPosition);
+begin
+  if Value <> FPosition then
+    begin
+      EnqueueChange('Position', RenderPosition);
+      FPosition := Value;
+      Invalidate;
+    end;
+end;
+
+procedure TNvBsPosition.SetStart(const Value: TBsPosValue);
+begin
+  if Value <> FStart then
+    begin
+      EnqueueChange('Start', RenderStart);
+      FStart := Value;
+      Invalidate;
+    end;
+end;
+
+procedure TNvBsPosition.SetTop(const Value: TBsPosValue);
+begin
+  if Value <> FTop then
+    begin
+      EnqueueChange('Top', RenderTop);
+      FTop := Value;
+      Invalidate;
+    end;
 end;
 
 end.

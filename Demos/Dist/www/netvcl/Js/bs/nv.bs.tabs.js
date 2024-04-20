@@ -33,7 +33,7 @@ export class TNvBsTabHeaderLink extends TBsNavItemLink {
         if (V != this.FShowClose) {
             if (V) {
                 this.FCloseBtn = $(document.createElement("button"))
-                    .addClass("close closeTab")
+                    .addClass("close close-tab")
                     .html("X")
                     .appendTo(this.FLink)
                     .off("click.nvjs").on("click.nvjs",(e) => this._DoCloseBtnClick(e));

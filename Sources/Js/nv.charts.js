@@ -2,6 +2,10 @@ import { TControl } from './nv.controls.js';
 import { ChangeObjProps } from './nv.classes.js';
 
 export class TNvChart extends TControl {
+    _DefaultParams(o) {
+        o.Tag ??= "canvas";
+        super._DefaultParams(o);
+    }
     _CreateParams(o) {
         super._CreateParams(o);
         this.FConfig = {
@@ -15,10 +19,6 @@ export class TNvChart extends TControl {
         this.FChart = new Chart(this.FCtx, this.FConfig);
         this.FChart.update();
       }
-
-    _Tag() {
-        return "canvas";
-    }
 
     get Responsive() { return this.FConfig.options.responsive || false }
     set Responsive(V) {

@@ -10,73 +10,111 @@ type
   TNvBsCardHeader = class(TNVBsContainer)
   protected
     class function SupportImage: Boolean; override;
+    class function DefaultClassCss: string; override;
+    class function DefaultRenderText: Boolean; override;
   published
     property Background stored IsNotBgDefault;
     property Border;
+    property ClassCss;
     property ImageListLink;
+    property Position;
     property Shadow default bssNone;
     property TextProps;
     property Text;
+    property TextVisible;
+    property Width;
   end;
 
   TNvBsCardBody = class(TNVBsContainer)
+  protected
+    class function DefaultClassCss: string; override;
   published
     property Background stored IsNotBgDefault;
     property Border;
+    property ClassCss;
+    property Position;
     property Shadow default bssNone;
     property TextProps;
+    property Width;
   end;
 
   TNvBsCardFooter = class(TNVBsContainer)
+  protected
+    class function DefaultClassCss: string; override;
   published
     property Background stored IsNotBgDefault;
     property Border;
+    property ClassCss;
+    property Position;
     property Shadow default bssNone;
     property TextProps;
+    property Width;
   end;
 
   TNvBsCard = class(TNVBsContainer)
   protected
+    class function DefaultClassCss: string; override;
+  protected
     procedure AfterDesignDrop; override;
+    procedure RenameSubComponents(NewName: string); override;
   published
     property Background stored IsNotBgDefault;
     property Border;
+    property ClassCss;
+    property Position;
     property Shadow default bssNone;
     property TextProps;
+    property Width;
   end;
 
   TNvBsCardTitle = class(TNvBSText)
   protected
     class function DefaultHtmlTag: string; override;
+    class function DefaultClassCss: string; override;
   end;
 
   TNvBsCardSubtitle = class(TNvBSText)
   protected
     class function DefaultHtmlTag: string; override;
+    class function DefaultClassCss: string; override;
   end;
 
   TNvBsCardLink = class(TNvBsLink)
-
+  protected
+    class function DefaultClassCss: string; override;
   end;
 
   TNvBsCardText = class(TNvBSText)
   protected
     class function DefaultHtmlTag: string; override;
+    class function DefaultClassCss: string; override;
   end;
 
   TNvBsCardStats = class(TNvBsCard)
   protected
+    class function DefaultClassCss: string; override;
+    class function BackgroundDefault: TBsBackground; override;
+  protected
     procedure AfterDesignDrop; override;
+    procedure RenameSubComponents(NewName: string); override;
   end;
 
   TNvBsCardChart = class(TNvBsCard)
   protected
+    class function DefaultClassCss: string; override;
+    class function BackgroundDefault: TBsBackground; override;
+  protected
     procedure AfterDesignDrop; override;
+    procedure RenameSubComponents(NewName: string); override;
   end;
 
   TNvBsCardTable = class(TNvBsCard)
   protected
+    class function DefaultClassCss: string; override;
+    class function BackgroundDefault: TBsBackground; override;
+  protected
     procedure AfterDesignDrop; override;
+    procedure RenameSubComponents(NewName: string); override;
   end;
 
 implementation
@@ -86,12 +124,22 @@ uses
 
 { TNvBsCardSubtitle }
 
+class function TNvBsCardSubtitle.DefaultClassCss: string;
+begin
+  Result := 'card-subtitle';
+end;
+
 class function TNvBsCardSubtitle.DefaultHtmlTag: string;
 begin
   Result := 'h6';
 end;
 
 { TNvBsCardTitle }
+
+class function TNvBsCardTitle.DefaultClassCss: string;
+begin
+  Result := 'card-title';
+end;
 
 class function TNvBsCardTitle.DefaultHtmlTag: string;
 begin
@@ -100,12 +148,27 @@ end;
 
 { TNvBsCardText }
 
+class function TNvBsCardText.DefaultClassCss: string;
+begin
+  Result := 'card-text';
+end;
+
 class function TNvBsCardText.DefaultHtmlTag: string;
 begin
   Result := 'p';
 end;
 
 { TNvBsCardHeader }
+
+class function TNvBsCardHeader.DefaultClassCss: string;
+begin
+  Result := 'card-header';
+end;
+
+class function TNvBsCardHeader.DefaultRenderText: Boolean;
+begin
+  Result := True;
+end;
 
 class function TNvBsCardHeader.SupportImage: Boolean;
 begin
@@ -138,6 +201,63 @@ begin
       TagHtml := 'span';
       Text    := 'What should be done';
     end;
+end;
+
+class function TNvBsCardStats.BackgroundDefault: TBsBackground;
+begin
+  Result := bsbgPrimary;
+end;
+
+class function TNvBsCardStats.DefaultClassCss: string;
+begin
+  Result := 'card card-stats';
+end;
+
+procedure TNvBsCardStats.RenameSubComponents(NewName: string);
+var
+  I, J: Integer;
+begin
+  inherited;
+
+  for I := 0 to ControlCount - 1 do
+    if Controls[I] is TNvBsCardHeader then
+      begin
+        with Controls[I] as TNvBsCardHeader do
+          begin
+            Name := NewName + 'Header';
+
+            for J := 0 to ControlCount - 1 do
+              begin
+                if Controls[J] is TNvBSText then
+                  begin
+                    Controls[J].Name := NewName + 'HeaderText';
+                    Break;
+                  end;
+              end;
+          end;
+
+        Break;
+      end;
+
+  for I := 0 to ControlCount - 1 do
+    if Controls[I] is TNvBsCardFooter then
+      begin
+        with Controls[I] as TNvBsCardFooter do
+          begin
+            Name := NewName + 'Footer';
+
+            for J := 0 to ControlCount - 1 do
+              begin
+                if Controls[J] is TNvBSText then
+                  begin
+                    Controls[J].Name := NewName + 'FooterText';
+                    Break;
+                  end;
+              end;
+          end;
+
+        Break;
+      end;
 end;
 
 { TNvBsCardChart }
@@ -192,6 +312,40 @@ begin
 
 end;
 
+class function TNvBsCardChart.BackgroundDefault: TBsBackground;
+begin
+  Result := bsbgPrimary;
+end;
+
+class function TNvBsCardChart.DefaultClassCss: string;
+begin
+  Result := 'card card-chart';
+end;
+
+procedure TNvBsCardChart.RenameSubComponents(NewName: string);
+var
+  I, J: Integer;
+begin
+  inherited;
+  for I := 0 to ControlCount - 1 do
+    if Controls[I] is TNvBsCardHeader then
+      begin
+        with Controls[I] as TNvBsCardHeader do
+          begin
+            for J := 0 to ControlCount - 1 do
+              begin
+                if Controls[J] is TNvChart then
+                  begin
+                    Controls[J].Name := NewName + 'Chart';
+                    Break;
+                  end;
+              end;
+          end;
+
+        Break;
+      end;
+end;
+
 { TNvBsCard }
 
 procedure TNvBsCard.AfterDesignDrop;
@@ -227,6 +381,73 @@ begin
     end;
 end;
 
+class function TNvBsCard.DefaultClassCss: string;
+begin
+  Result := 'card';
+end;
+
+procedure TNvBsCard.RenameSubComponents(NewName: string);
+var
+  I, J: Integer;
+begin
+  inherited;
+  for I := 0 to ControlCount - 1 do
+    if Controls[I] is TNvBsCardHeader then
+      begin
+        Controls[I].Name := NewName + 'Header';
+        Break;
+      end;
+
+  for I := 0 to ControlCount - 1 do
+    if Controls[I] is TNvBsCardBody then
+      begin
+        with Controls[I] as TNvBsCardBody do
+          begin
+            Name := NewName + 'Body';
+
+            for J := 0 to ControlCount - 1 do
+              begin
+                if Controls[J] is TNvBsCardTitle then
+                  begin
+                    Controls[J].Name := NewName + 'Title';
+                    Break;
+                  end;
+              end;
+
+            for J := 0 to ControlCount - 1 do
+              begin
+                if Controls[J] is TNvBsCardSubtitle then
+                  begin
+                    Controls[J].Name := NewName + 'SubTitle';
+                    Break;
+                  end;
+              end;
+          end;
+
+        Break;
+      end;
+
+  for I := 0 to ControlCount - 1 do
+    if Controls[I] is TNvBsCardFooter then
+      begin
+        with Controls[I] as TNvBsCardFooter do
+          begin
+            Name := NewName + 'Footer';
+
+            for J := 0 to ControlCount - 1 do
+              begin
+                if Controls[J] is TNvBSText then
+                  begin
+                    Controls[J].Name := NewName + 'Text';
+                    Break;
+                  end;
+              end;
+          end;
+
+        Break;
+      end;
+end;
+
 { TNvBsCardTable }
 
 procedure TNvBsCardTable.AfterDesignDrop;
@@ -250,9 +471,9 @@ begin
   _Body        := TNvBsCardBody.Create(Owner);
   _Body.Parent := Self;
 
-  _Table := TNvBsTable.Create(Owner);
-  _Table.Parent:= _Body;
-  _Table.Styles:= _Table.Styles - [sttBordered];
+  _Table        := TNvBsTable.Create(Owner);
+  _Table.Parent := _Body;
+  _Table.Styles := _Table.Styles - [sttBordered];
 
   _Col           := TNvBsTableColumn.Create(_Table.Columns);
   _Col.FieldName := 'id';
@@ -278,7 +499,79 @@ begin
         S['salary']  := '$' + Round(5).ToString + '.' + Round(2).ToString;
         S['country'] := 'Country of Person ' + C.ToString;
       end;
+end;
 
+class function TNvBsCardTable.BackgroundDefault: TBsBackground;
+begin
+  Result := bsbgPrimary;
+end;
+
+class function TNvBsCardTable.DefaultClassCss: string;
+begin
+  Result := 'card card-table';
+end;
+
+procedure TNvBsCardTable.RenameSubComponents(NewName: string);
+var
+  I, J: Integer;
+begin
+  inherited;
+  for I := 0 to ControlCount - 1 do
+    if Controls[I] is TNvBsCardHeader then
+      begin
+        with Controls[I] as TNvBsCardHeader do
+          begin
+            for J := 0 to ControlCount - 1 do
+              begin
+                if Controls[J] is TNvBSText then
+                  begin
+                    Controls[J].Name := NewName + 'HeaderText';
+                    Break;
+                  end;
+              end;
+          end;
+
+        Break;
+      end;
+
+  for I := 0 to ControlCount - 1 do
+    if Controls[I] is TNvBsCardHeader then
+      begin
+        with Controls[I] as TNvBsCardHeader do
+          begin
+            for J := 0 to ControlCount - 1 do
+              begin
+                if Controls[J] is TNvBsTable then
+                  begin
+                    Controls[J].Name := NewName + 'Table';
+                    Break;
+                  end;
+              end;
+          end;
+
+        Break;
+      end;
+end;
+
+{ TNvBsCardBody }
+
+class function TNvBsCardBody.DefaultClassCss: string;
+begin
+  Result := 'card-body';
+end;
+
+{ TNvBsCardFooter }
+
+class function TNvBsCardFooter.DefaultClassCss: string;
+begin
+  Result := 'card-footer';
+end;
+
+{ TNvBsCardLink }
+
+class function TNvBsCardLink.DefaultClassCss: string;
+begin
+  Result := 'card-link';
 end;
 
 end.

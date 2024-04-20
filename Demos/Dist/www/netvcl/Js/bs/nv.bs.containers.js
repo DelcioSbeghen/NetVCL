@@ -10,17 +10,32 @@ export class TNvBsContainer extends TBsWinControl {
         this.FTextProps = new TBsTextProps(this, o.TextProps || {});
         if (!this.FShadow) this.FShadow = '';
         //this.Shadow = o.Shadow || this.FShadow; // ''|small|normal|larger
-        if (this.FFade == undefined) {
+        if (this.FFade == undefined)
             this.FFade = false;
-            //  this.AddClass("fade show");
-        }
+        if (this.FCollapse == undefined)
+            this.FCollapse = false;
+        if (!this.FPosition) this.FPosition = '';
+
+        this._CollapseEl()
+            .off("shown.bs.collapse.nvjs").on("shown.bs.collapse.nvjs", (e) => {
+                this.ProcessEvent(e);
+                this.FCollapse = false;
+            })
+            .off("hidden.bs.collapse.nvjs").on("hidden.bs.collapse.nvjs", (e) => {
+                this.ProcessEvent(e);
+                this.FCollapse = true;
+            });  
+
+
     }
 
     get Background() { return this.FBackground }
     get Border() { return this.FBorder }
     get TextProps() { return this.FTextProps }
     get Shadow() { return this.FShadow }
+    get Position() { return this.FPosition }
     get Fade() { return this.FFade }
+    get Collapse() { return this.FCollapse }
 
     set Background(V) {
         if (V != this.FBackground) {
@@ -41,6 +56,15 @@ export class TNvBsContainer extends TBsWinControl {
         }
     }
 
+    set Position(V) {
+        if (V != this.FPosition) {
+            this.FEl.removeClassRegex("(^|\\b)((fixed-top|fixed-bottom|sticky-top|position-static|position-relative|position-absolute|position-fixed|position-sticky)+)(\\b(?!-)|$)")
+            if (V != "")
+                this.FEl.addClass(V);
+            this.FPosition = V;
+        }
+    }    
+
     set Fade(F) {
         if (F !== this.FFade) {
             if (F === true)
@@ -48,6 +72,20 @@ export class TNvBsContainer extends TBsWinControl {
             else
                 this.FEl.removeClass("fade show");
             this.FAnimated = F;
+        }
+    }
+
+    _CollapseEl() {
+        return this.FEl;
+    }
+
+    set Collapse(V) {
+        if (V !== this.FCollapse) {
+            if (V === true)
+                this._CollapseEl().collapse("hide")
+            else
+                this._CollapseEl().collapse("show");
+            this.FCollapse = F;
         }
     }
 

@@ -23,7 +23,7 @@ type
   TNvChartFillPosition       = (dwgfZero, dwgfTop, dwgfBottom, dwgfTrue, dwgfFalse);
   TNvChartBorderSkipped      = (dwgbsBottom, dwgbsLeft, dwgbsTop, dwgbsRight);
   TNvChartCubicInterpolation = (dwgciDefault, dwgciMonotone);
-  TNcChartSteppedLine        = (dwgslfalse, dwgslTrue, dwgslBefore, dwgslAfter);
+  TNvChartSteppedLine        = (dwgslfalse, dwgslTrue, dwgslBefore, dwgslAfter);
 
 const
   TNvChartAnimTypeStr: array [0 .. 30] of string = ('linear', 'easeInQuad', 'easeOutQuad',
@@ -45,6 +45,15 @@ const
 
   TNvChartTooltipModeStr: array [low(TNvChartTooltipMode) .. High(TNvChartTooltipMode)
     ] of string = ('point', 'nearest', 'index', 'dataset', 'x', 'y');
+
+  TNvChartCubicInterpolationStr: array [low(TNvChartCubicInterpolation)
+    .. High(TNvChartCubicInterpolation)] of string = ('default', 'monotone');
+
+  TNvChartFillPositionStr: array [low(TNvChartFillPosition) .. High(TNvChartFillPosition)
+    ] of string = ('zero', 'top', 'bottom', 'true', 'false');
+
+  TNvChartSteppedLineStr: array [low(TNvChartSteppedLine) .. High(TNvChartSteppedLine)
+    ] of string = ('false', 'true', 'before', 'after');
 
 type
 
@@ -86,12 +95,17 @@ type
     procedure SetBorderWidth(const Value: Integer);
     procedure SetData(const Value: TStringList);
     procedure SetBackgroundColors(const Value: TStringList);
-    procedure RenderbackgroundColors(Result: TJsonObject);
-    procedure RenderData(aJson: TJsonObject);
   protected
     // procedure Notification(AComponent: TComponent; AOperation: TOperation); override;
     function ControlAjaxJson: TJsonObject; override;
+    // Render Props
     procedure InternalRender(aJson: TJsonObject); override;
+    procedure RenderBackGroundColor(aJson: TJsonObject); dynamic;
+    procedure RenderTitle(aJson: TJsonObject); dynamic;
+    procedure RenderBorderColor(aJson: TJsonObject); dynamic;
+    procedure RenderBorderWidth(aJson: TJsonObject); dynamic;
+    procedure RenderData(aJson: TJsonObject);
+    //
   public
     constructor Create(aMaster: INVRenderableComponent; aSerieItem: TNvChartSerieItem); virtual;
     destructor Destroy; override;
@@ -117,7 +131,7 @@ type
     FPointHitRadius           : Integer;
     FPointRadius              : Integer;
     FLineTension              : Currency;
-    FSteppedLine              : TNcChartSteppedLine;
+    FSteppedLine              : TNvChartSteppedLine;
     FPointHoverRadius         : Integer;
     FShowLine                 : Boolean;
     FCubicInterpolationMode   : TNvChartCubicInterpolation;
@@ -150,12 +164,32 @@ type
     procedure SetPointStyle(const Value: TNvChartPointStyle);
     procedure SetShowLine(const Value: Boolean);
     procedure SetSpanGaps(const Value: Boolean);
-    procedure SetSteppedLine(const Value: TNcChartSteppedLine);
+    procedure SetSteppedLine(const Value: TNvChartSteppedLine);
     // procedure SetXField(const Value: string);
     // procedure SetYField(const Value: string);
     function IsLineTensionStored: Boolean;
   protected
     procedure InternalRender(aJson: TJsonObject); override;
+    procedure RenderBorderCapStyle(aJson: TJsonObject);
+    procedure RenderBorderDash(aJson: TJsonObject);
+    procedure RenderBorderDashOffset(aJson: TJsonObject);
+    procedure RenderBorderJoinStyle(aJson: TJsonObject);
+    procedure RenderCubicInterpolationMode(aJson: TJsonObject);
+    procedure RenderFill(aJson: TJsonObject);
+    procedure RenderLineTension(aJson: TJsonObject);
+    procedure RenderPointbackGroundColor(aJson: TJsonObject);
+    procedure RenderPointBorderColor(aJson: TJsonObject);
+    procedure RenderPointBorderWidth(aJson: TJsonObject);
+    procedure RenderPointHitRadius(aJson: TJsonObject);
+    procedure RenderPointHoverBackgroundColor(aJson: TJsonObject);
+    procedure RenderPointHoverBorderColor(aJson: TJsonObject);
+    procedure RenderPointHoverBorderWidth(aJson: TJsonObject);
+    procedure RenderPointHoverRadius(aJson: TJsonObject);
+    procedure RenderPointRadius(aJson: TJsonObject);
+    procedure RenderPointStyle(aJson: TJsonObject);
+    procedure RenderShowLine(aJson: TJsonObject);
+    procedure RenderSpanGaps(aJson: TJsonObject);
+    procedure RenderSteppedLine(aJson: TJsonObject);
   public
     constructor Create(aMaster: INVRenderableComponent; aSerieItem: TNvChartSerieItem); override;
   published
@@ -188,7 +222,7 @@ type
     property PointHoverRadius: Integer read FPointHoverRadius write SetPointHoverRadius default 4;
     property ShowLine        : Boolean read FShowLine write SetShowLine default True;
     property SpanGaps        : Boolean read FSpanGaps write SetSpanGaps default True;
-    property SteppedLine     : TNcChartSteppedLine read FSteppedLine write SetSteppedLine
+    property SteppedLine     : TNvChartSteppedLine read FSteppedLine write SetSteppedLine
       default dwgslfalse;
     // property XField: string read FXField write SetXField;
     // property YField: string read FYField write SetYField;
@@ -222,6 +256,10 @@ type
     procedure SetHoverBorderWidth(const Value: Integer);
   protected
     procedure InternalRender(aJson: TJsonObject); override;
+    procedure RenderHoverBorderWidth(aJson: TJsonObject);
+    procedure RenderHoverBorderColor(aJson: TJsonObject);
+    procedure RenderBorderSkipped(aJson: TJsonObject);
+    procedure RenderHoverBackgroundColor(aJson: TJsonObject);
   public
     constructor Create(aMaster: INVRenderableComponent; aSerieItem: TNvChartSerieItem); override;
   published
@@ -309,11 +347,14 @@ type
     function GetID: string; // (Not used)
     property ID: string read GetID;
     // INVRenderableComponent
-    function Ajax: TNvAjax;
     function ControlAjaxJson: TJsonObject;
+    function NeedSendChange: Boolean; inline;
+    procedure EnqueueChange(const aName: string; const aProc: TPropChangeProc); inline;
+    procedure DequeueChange(const aName: string); inline;
     function Rendered: Boolean;
     procedure ReRender(Now: Boolean = True);
     procedure Invalidate; virtual;
+
   public
     constructor Create(AOwner: TPersistent; ItemClass: TCollectionItemClass);
     procedure Render;
@@ -673,6 +714,14 @@ type
     procedure SetPointStyle(const Value: TNvChartPointStyle);
   protected
     procedure InternalRender(aJson: TJsonObject); override;
+    procedure RenderRadius(aJson: TJsonObject);
+    procedure RenderPointStyle(aJson: TJsonObject);
+    procedure RenderBackgroundColor(aJson: TJsonObject);
+    procedure RenderBorderWidth(aJson: TJsonObject);
+    procedure RenderBorderColor(aJson: TJsonObject);
+    procedure RenderHitRadius(aJson: TJsonObject);
+    procedure RenderHoverRadius(aJson: TJsonObject);
+    procedure RenderHoverBorderWidth(aJson: TJsonObject);
   public
     constructor Create(aMaster: INVRenderableComponent; aPropName: string; aPrefix: string = '';
       aSuffix: string = ''); override;
@@ -714,10 +763,19 @@ type
     procedure SetStepped(const Value: Boolean);
     procedure SetTension(const Value: Currency);
     function IsTensionStored: Boolean;
-    procedure RenderBorderDash(aJson: TJsonObject);
-    procedure RenderFill(aJson: TJsonObject);
   protected
     procedure InternalRender(aJson: TJsonObject); override;
+    procedure RenderTension(aJson: TJsonObject);
+    procedure RenderBackgroundColor(aJson: TJsonObject);
+    procedure RenderBorderWidth(aJson: TJsonObject);
+    procedure RenderBorderColor(aJson: TJsonObject);
+    procedure RenderBorderCapStyle(aJson: TJsonObject);
+    procedure RenderBorderDash(aJson: TJsonObject);
+    procedure RenderBorderDashOffset(aJson: TJsonObject);
+    procedure RenderBorderJoinStyle(aJson: TJsonObject);
+    procedure RenderCapBezierPoints(aJson: TJsonObject);
+    procedure RenderFill(aJson: TJsonObject);
+    procedure RenderStepped(aJson: TJsonObject);
   public
     constructor Create(aMaster: INVRenderableComponent; aPropName: string; aPrefix: string = '';
       aSuffix: string = ''); override;
@@ -750,6 +808,10 @@ type
     procedure SetBorderWidth(const Value: Integer);
   protected
     procedure InternalRender(aJson: TJsonObject); override;
+    procedure RenderBackgroundColor(aJson: TJsonObject);
+    procedure RenderBorderWidth(aJson: TJsonObject);
+    procedure RenderBorderColor(aJson: TJsonObject);
+    procedure RenderBorderSkipped(aJson: TJsonObject);
   public
     constructor Create(aMaster: INVRenderableComponent; aPropName: string; aPrefix: string = '';
       aSuffix: string = ''); override;
@@ -772,6 +834,9 @@ type
     procedure SetBorderWidth(const Value: Integer);
   protected
     procedure InternalRender(aJson: TJsonObject); override;
+    procedure RenderBackgroundColor(aJson: TJsonObject);
+    procedure RenderBorderWidth(aJson: TJsonObject);
+    procedure RenderBorderColor(aJson: TJsonObject);
   public
     constructor Create(aMaster: INVRenderableComponent; aPropName: string; aPrefix: string = '';
       aSuffix: string = ''); override;
@@ -825,14 +890,15 @@ type
     procedure SetElements(const Value: TNvChartElements);
     procedure SetTooltip(const Value: TNvChartTooltip);
     procedure SetLabels(const Value: TStringList);
-    procedure RenderLabels(Labels: TJsonArray);
-    procedure RenderLayout(OptionsJ: TJsonObject);
     procedure SetResponsive(const Value: Boolean);
   protected
     FData   : string;
     FOldData: string;
-    procedure AddIncludes(Ajax: TNvAjax); override;
-    procedure InternalRender(Ajax: TNvAjax; JSON: TJsonObject); override;
+    procedure AddIncludes; override;
+    procedure InternalRender(JSON: TJsonObject); override;
+    procedure RenderLabels(aJson: TJsonObject);
+    procedure RenderLayout(aJson: TJsonObject);
+    procedure RenderResponsive(aJson: TJsonObject);
     procedure CreateSeriesCollection; virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
@@ -842,6 +908,7 @@ type
   published
     property Series: TNvChartSeries read FSeries write SetSeries;
     property Caption;
+    property CaptionVisible;
     property Legend    : TNvChartLegend read FLegend write SetLegend;
     property Animation : TNvChartAnimation read FAnimation write SetAnimation;
     property Title     : TNvChartTitle read FTitle write SetTitle;
@@ -883,12 +950,9 @@ implementation
 uses
   NV.VCL.Forms;
 
-type
-  THackScreen = class(TNvScreen);
+{ TDWGraph }
 
-  { TDWGraph }
-
-procedure TNvCustomChart.AddIncludes(Ajax: TNvAjax);
+procedure TNvCustomChart.AddIncludes;
 begin
   inherited;
   // if Ajax <> nil then
@@ -921,7 +985,7 @@ begin
   inherited;
 end;
 
-procedure TNvCustomChart.InternalRender(Ajax: TNvAjax; JSON: TJsonObject);
+procedure TNvCustomChart.InternalRender(JSON: TJsonObject);
 var
   FirstSeriesType: string;
   AnimationStr   : string;
@@ -942,15 +1006,14 @@ begin
 
   JSON.S['Type'] := FirstSeriesType;
 
-
   FSeries.Render;
 
-  RenderLabels(JSON.A['Labels']);
+  RenderLabels(JSON);
 
   // padding
   if (FPadding.Left <> 0) or (FPadding.Right <> 0) //
     or (FPadding.Top <> 0) or (FPadding.Bottom <> 0) then
-    RenderLayout(JSON.O['Layout']);
+    RenderLayout(JSON);
 
   FLegend.Render;
   FAnimation.Render;
@@ -958,8 +1021,8 @@ begin
   FElements.Render;
   FTooltip.Render;
 
-    if FResponsive then
-    ControlAjaxJson.B['Responsive'] := FResponsive;
+  if FResponsive then
+    RenderResponsive(JSON);
 
 end;
 
@@ -968,21 +1031,32 @@ begin
   inherited;
 end;
 
-procedure TNvCustomChart.RenderLayout(OptionsJ: TJsonObject);
+procedure TNvCustomChart.RenderLayout(aJson: TJsonObject);
+var
+  _JLayout: TJsonObject;
 begin
-  OptionsJ.I['left']   := FPadding.Left;
-  OptionsJ.I['right']  := FPadding.Right;
-  OptionsJ.I['top']    := FPadding.Top;
-  OptionsJ.I['bottom'] := FPadding.Bottom;
+  _JLayout := aJson.O['Layout'];
+
+  _JLayout.I['left']   := FPadding.Left;
+  _JLayout.I['right']  := FPadding.Right;
+  _JLayout.I['top']    := FPadding.Top;
+  _JLayout.I['bottom'] := FPadding.Bottom;
 end;
 
-procedure TNvCustomChart.RenderLabels(Labels: TJsonArray);
-var
-  I: Integer;
+procedure TNvCustomChart.RenderResponsive(aJson: TJsonObject);
 begin
+  aJson.B['Responsive'] := FResponsive
+end;
+
+procedure TNvCustomChart.RenderLabels(aJson: TJsonObject);
+var
+  I       : Integer;
+  _JLabels: TJsonArray;
+begin
+  _JLabels := aJson.A['Labels'];
   // data
   for I := 0 to FLabels.Count - 1 do
-    Labels.Add(FLabels[I]);
+    _JLabels.Add(FLabels[I]);
 end;
 
 procedure TNvCustomChart.SetAnimation(const Value: TNvChartAnimation);
@@ -1002,8 +1076,8 @@ begin
   if FLabels <> Value then
     begin
       FLabels.Assign(Value);
-      if NeedSendChange then
-        RenderLabels(ControlAjaxJson.O['Data'].A['Labels']);
+      EnqueueChange('Labels', RenderLabels);
+      Invalidate;
     end;
 end;
 
@@ -1018,8 +1092,7 @@ begin
   if not CompareMem(@FPadding, @Value, SizeOf(FPadding)) then
     begin
       FPadding := Value;
-      if NeedSendChange then
-        RenderLayout(ControlAjaxJson.O['Config'].O['options'].O['layout']);
+      EnqueueChange('Layout', RenderLayout);
     end;
 end;
 
@@ -1027,9 +1100,8 @@ procedure TNvCustomChart.SetResponsive(const Value: Boolean);
 begin
   if FResponsive <> Value then
     begin
-      if Rendered then
-        ControlAjaxJson.B['Responsive'] := Value;
-      FResponsive                       := Value;
+      EnqueueChange('Responsive', RenderResponsive);
+      FResponsive := Value;
       Invalidate;
     end;
 end;
@@ -1110,6 +1182,29 @@ begin
   inherited;
 end;
 
+procedure TNvChartSerieBase.RenderBackGroundColor(aJson: TJsonObject);
+var
+  I: Integer;
+begin
+  if FBackgroundColors.Count > 0 then
+    begin
+      for I := 0 to FBackgroundColors.Count - 1 do
+        aJson.A['backgroundColors'].Add(FBackgroundColors[I]);
+    end
+  else
+    aJson.S['backgroundColor'] := AlphaColorToRGBA(FbackGroundColor);
+end;
+
+procedure TNvChartSerieBase.RenderBorderColor(aJson: TJsonObject);
+begin
+  aJson.S['borderColor'] := AlphaColorToRGBA(FBorderColor)
+end;
+
+procedure TNvChartSerieBase.RenderBorderWidth(aJson: TJsonObject);
+begin
+  aJson.I['borderWidth'] := FBorderWidth;
+end;
+
 procedure TNvChartSerieBase.RenderData(aJson: TJsonObject);
 var
   I: Integer;
@@ -1118,28 +1213,23 @@ begin
     aJson.A['data'].Add(FData[I]);
 end;
 
+procedure TNvChartSerieBase.RenderTitle(aJson: TJsonObject);
+begin
+  aJson.S['label'] := FTitle;
+end;
+
 procedure TNvChartSerieBase.InternalRender(aJson: TJsonObject);
 begin
   inherited;
   if FTitle <> '' then
-    aJson.S['label'] := FTitle;
-  if FBackgroundColors.Count > 0 then
-    RenderbackgroundColors(aJson)
-  else if FbackGroundColor <> $25000000 then
-    aJson.S['backgroundColor'] := AlphaColorToRGBA(FbackGroundColor);
+    RenderTitle(aJson);
+  if (FBackgroundColors.Count > 0) or (FbackGroundColor <> $25000000) then
+    RenderbackgroundColor(aJson);
   if FBorderColor <> $25000000 then
-    aJson.S['borderColor'] := AlphaColorToRGBA(FBorderColor);
+    RenderBorderColor(aJson);
   if FBorderWidth <> 3 then
-    aJson.I['borderWidth'] := FBorderWidth;
+    RenderBorderWidth(aJson);
   RenderData(aJson);
-end;
-
-procedure TNvChartSerieBase.RenderbackgroundColors(Result: TJsonObject);
-var
-  I: Integer;
-begin
-  for I := 0 to FBackgroundColors.Count - 1 do
-    Result.A['backgroundColors'].Add(FBackgroundColors[I]);
 end;
 
 procedure TNvChartSerieBase.SetBackGroundColor(const Value: TAlphaColor);
@@ -1147,13 +1237,7 @@ begin
   if FbackGroundColor <> Value then
     begin
       FbackGroundColor := Value;
-      if Rendered then
-        begin
-          if FBackgroundColors.Count > 0 then
-            RenderbackgroundColors(ControlAjaxJson)
-          else
-            ControlAjaxJson.S['backgroundColor'] := AlphaColorToRGBA(FbackGroundColor);
-        end;
+      EnqueueChange('BackGroundColor', RenderBackGroundColor);
       Invalidate;
     end;
 end;
@@ -1163,13 +1247,7 @@ begin
   if FBackgroundColors <> Value then
     begin
       FBackgroundColors.Assign(Value);
-      if Rendered then
-        begin
-          if FBackgroundColors.Count > 0 then
-            RenderbackgroundColors(ControlAjaxJson)
-          else
-            ControlAjaxJson.S['backgroundColor'] := AlphaColorToRGBA(FbackGroundColor);
-        end;
+      EnqueueChange('BackGroundColor', RenderBackGroundColor);
       Invalidate;
     end;
 end;
@@ -1178,9 +1256,8 @@ procedure TNvChartSerieBase.SetBorderColor(const Value: TAlphaColor);
 begin
   if FBorderColor <> Value then
     begin
-      if Rendered then
-        ControlAjaxJson.S['borderColor'] := AlphaColorToRGBA(Value);
-      FBorderColor                       := Value;
+      EnqueueChange('BorderColor', RenderBorderColor);
+      FBorderColor := Value;
       Invalidate;
     end;
 end;
@@ -1189,9 +1266,8 @@ procedure TNvChartSerieBase.SetBorderWidth(const Value: Integer);
 begin
   if FBorderWidth <> Value then
     begin
-      if Rendered then
-        ControlAjaxJson.I['borderWidth'] := Value;
-      FBorderWidth                       := Value;
+      EnqueueChange('BorderWidth', RenderBorderWidth);
+      FBorderWidth := Value;
       Invalidate;
     end;
 end;
@@ -1201,8 +1277,7 @@ begin
   if FData <> Value then
     begin
       FData.Assign(Value);
-      if Rendered then
-        RenderData(ControlAjaxJson);
+      EnqueueChange('Data', RenderData);
       Invalidate;
     end;
 end;
@@ -1241,11 +1316,10 @@ end;
 
 procedure TNvChartSerieBase.SetTitle(const Value: string);
 begin
-  if FTitle <> Value then
+  if Value <> FTitle then
     begin
-      if Rendered then
-        ControlAjaxJson.S['label'] := Value;
-      FTitle                       := Value;
+      EnqueueChange('Title', RenderTitle);
+      FTitle := Value;
       Invalidate;
     end;
 end;
@@ -1301,8 +1375,8 @@ begin
           FSerie.Title            := LOldSerie.Title;
           // notify IDE designer
           LOldSerie.FReleased := True;
-          if THackScreen(Screen).FPage.Designer <> nil then
-            THackScreen(Screen).FPage.Designer.Modified;
+          if Screen.Page.Designer <> nil then
+            Screen.Page.Designer.Modified;
 
           LOldSerie.Free;
         end;
@@ -2369,109 +2443,148 @@ end;
 procedure TNvChartElementPoint.InternalRender(aJson: TJsonObject);
 begin
   inherited;
-  if FRadius <> 3 then
-    aJson.I['radius'] := FRadius;
-  if FPointStyle <> dwgpsCircle then
-    aJson.S['pointStyle'] := TNvChartPointStyleStr[FPointStyle];
-  if FbackGroundColor <> $25000000 then
-    aJson.S['backgroundColor'] := AlphaColorToRGBA(FbackGroundColor);
-  if FBorderWidth <> 1 then
-    aJson.I['borderWidth'] := FBorderWidth;
-  if FBorderColor <> $25000000 then
-    aJson.I['borderColor'] := AlphaColorToColor(FBorderColor);
-  if FHitRadius <> 1 then
-    aJson.I['hitRadius'] := FHitRadius;
-  if FHoverRadius <> 4 then
-    aJson.I['hoverRadius'] := FHoverRadius;
-  if FHoverBorderWidth <> 1 then
-    aJson.I['hoverBorderWidth'] := FHoverBorderWidth;
 
+  if FRadius <> 3 then
+    RenderRadius(aJson);
+  if FPointStyle <> dwgpsCircle then
+    RenderPointStyle(aJson);
+  if FbackGroundColor <> $25000000 then
+    RenderBackgroundColor(aJson);
+  if FBorderWidth <> 1 then
+    RenderBorderWidth(aJson);
+  if FBorderColor <> $25000000 then
+    RenderBorderColor(aJson);
+  if FHitRadius <> 1 then
+    RenderHitRadius(aJson);
+  if FHoverRadius <> 4 then
+    RenderHoverRadius(aJson);
+  if FHoverBorderWidth <> 1 then
+    RenderHoverBorderWidth(aJson);
+end;
+
+procedure TNvChartElementPoint.RenderBackgroundColor(aJson: TJsonObject);
+begin
+  aJson.S['backgroundColor'] := AlphaColorToRGBA(FbackGroundColor);
+end;
+
+procedure TNvChartElementPoint.RenderBorderColor(aJson: TJsonObject);
+begin
+  aJson.I['borderColor'] := AlphaColorToColor(FBorderColor);
+end;
+
+procedure TNvChartElementPoint.RenderBorderWidth(aJson: TJsonObject);
+begin
+  aJson.I['borderWidth'] := FBorderWidth;
+end;
+
+procedure TNvChartElementPoint.RenderHitRadius(aJson: TJsonObject);
+begin
+  aJson.I['hitRadius'] := FHitRadius;
+end;
+
+procedure TNvChartElementPoint.RenderHoverBorderWidth(aJson: TJsonObject);
+begin
+  aJson.I['hoverBorderWidth'] := FHoverBorderWidth;
+end;
+
+procedure TNvChartElementPoint.RenderHoverRadius(aJson: TJsonObject);
+begin
+  aJson.I['hoverRadius'] := FHoverRadius;
+end;
+
+procedure TNvChartElementPoint.RenderPointStyle(aJson: TJsonObject);
+begin
+  aJson.S['pointStyle'] := TNvChartPointStyleStr[FPointStyle];
+end;
+
+procedure TNvChartElementPoint.RenderRadius(aJson: TJsonObject);
+begin
+  aJson.I['radius'] := FRadius;
 end;
 
 procedure TNvChartElementPoint.SetBackGroundColor(const Value: TAlphaColor);
 begin
-  if FbackGroundColor <> Value then
+  if Value <> FBackgroundColor then
     begin
-      if Rendered then
-        ControlAjaxJson.S['backgroundColor'] := AlphaColorToRGBA(Value);
-      FbackGroundColor                       := Value;
+      EnqueueChange('BackgroundColor', RenderBackgroundColor);
+      FBackgroundColor := Value;
       Invalidate;
     end;
+
 end;
 
 procedure TNvChartElementPoint.SetBorderColor(const Value: TAlphaColor);
 begin
-  if FBorderColor <> Value then
+  if Value <> FBorderColor then
     begin
-      if Rendered then
-        ControlAjaxJson.S['borderColor'] := AlphaColorToRGBA(Value);
-      FBorderColor                       := Value;
+      EnqueueChange('BorderColor', RenderBorderColor);
+      FBorderColor := Value;
       Invalidate;
     end;
+
 end;
 
 procedure TNvChartElementPoint.SetBorderWidth(const Value: Integer);
 begin
-  if FBorderWidth <> Value then
+  if Value <> FBorderWidth then
     begin
-      if Rendered then
-        ControlAjaxJson.I['borderWidth'] := Value;
-      FBorderWidth                       := Value;
+      EnqueueChange('BorderWidth', RenderBorderWidth);
+      FBorderWidth := Value;
       Invalidate;
     end;
+
 end;
 
 procedure TNvChartElementPoint.SetHitRadius(const Value: Integer);
 begin
-  if FHitRadius <> Value then
+  if Value <> FHitRadius then
     begin
-      if Rendered then
-        ControlAjaxJson.I['hitRadius'] := Value;
-      FHitRadius                       := Value;
+      EnqueueChange('HitRadius', RenderHitRadius);
+      FHitRadius := Value;
       Invalidate;
     end;
+
 end;
 
 procedure TNvChartElementPoint.SetHoverBorderWidth(const Value: Integer);
 begin
-  if FHoverBorderWidth <> Value then
+  if Value <> FHoverBorderWidth then
     begin
-      if Rendered then
-        ControlAjaxJson.I['hoverBorderWidth'] := Value;
-      FHoverBorderWidth                       := Value;
+      EnqueueChange('HoverBorderWidth', RenderHoverBorderWidth);
+      FHoverBorderWidth := Value;
       Invalidate;
     end;
+
 end;
 
 procedure TNvChartElementPoint.SetHoverRadius(const Value: Integer);
 begin
-  if FHoverRadius <> Value then
+  if Value <> FHoverRadius then
     begin
-      if Rendered then
-        ControlAjaxJson.I['hoverRadius'] := Value;
-      FHoverRadius                       := Value;
+      EnqueueChange('HoverRadius', RenderHoverRadius);
+      FHoverRadius := Value;
       Invalidate;
     end;
+
 end;
 
 procedure TNvChartElementPoint.SetPointStyle(const Value: TNvChartPointStyle);
 begin
-  if FPointStyle <> Value then
+  if Value <> FPointStyle then
     begin
-      if Rendered then
-        ControlAjaxJson.S['pointStyle'] := TNvChartPointStyleStr[Value];
-      FPointStyle                       := Value;
+      EnqueueChange('PointStyle', RenderPointStyle);
+      FPointStyle := Value;
       Invalidate;
     end;
+
 end;
 
 procedure TNvChartElementPoint.SetRadius(const Value: Integer);
 begin
-  if FRadius <> Value then
+  if Value <> FRadius then
     begin
-      if Rendered then
-        ControlAjaxJson.I['radius'] := Value;
-      FRadius                       := Value;
+      EnqueueChange('Radius', RenderRadius);
+      FRadius := Value;
       Invalidate;
     end;
 end;
@@ -2565,28 +2678,27 @@ procedure TNvChartElementLine.InternalRender(aJson: TJsonObject);
 begin
   inherited;
   if FTension <> 0.4 then
-    aJson.F['tension'] := FTension;
+    RenderTension(aJson);
   if FbackGroundColor <> $25000000 then
-    aJson.S['backgroudColor'] := AlphaColorToRGBA(FbackGroundColor);
+    RenderBackgroundColor(aJson);
   if FBorderWidth <> 3 then
-    aJson.I['borderWidth'] := FBorderWidth;
+    RenderBorderWidth(aJson);
   if FBorderColor <> $25000000 then
-    aJson.S['borderColor'] := AlphaColorToRGBA(FBorderColor);
+    RenderBorderColor(aJson);
   if FBorderCapStyle <> dwclcButt then
-    aJson.S['borderCapStyle'] := TDWCanvasLineCapStr[FBorderCapStyle];
+    RenderBorderCapStyle(aJson);
   if High(FBorderDash) >= 0 then
-    RenderBorderDash(aJson);
+    RenderBorderDash(aJSon);
   if FBorderDashOffset <> 0 then
-    aJson.I['borderDashOffset'] := FBorderDashOffset;
+    RenderBorderDashOffset(aJson);
   if FBorderJoinStyle <> dwcljMiter then
-    aJson.S['borderjoinStyle'] := TDWCanvasLineJoinStr[FBorderJoinStyle];
+    RenderBorderJoinStyle(aJson);
   if FCapBezierPoints <> True then
-    aJson.B['capBezierPoints'] := FCapBezierPoints;
+    RenderCapBezierPoints(aJson);
   if FFill <> dwgfTrue then
     RenderFill(aJson);
   if FStepped <> False then
-    aJson.B['stepped'] := FStepped;
-
+    RenderStepped(aJson);
 end;
 
 function TNvChartElementLine.IsTensionStored: Boolean;
@@ -2596,13 +2708,40 @@ end;
 
 procedure TNvChartElementLine.RenderFill(aJson: TJsonObject);
 begin
-  case FFill of
-    dwgfZero: aJson.S['fill']   := 'zero';
-    dwgfTop: aJson.S['fill']    := 'top';
-    dwgfBottom: aJson.S['fill'] := 'bottom';
-    dwgfTrue: aJson.B['fill']   := True;
-    dwgfFalse: aJson.B['fill']  := False;
-  end;
+  aJson.S['fill'] := TNvChartFillPositionStr[FFill];
+  // testar pois algusn são booleanos, veja abaixo
+  // case FFill of
+  // dwgfZero: aJson.S['fill']   := 'zero';
+  // dwgfTop: aJson.S['fill']    := 'top';
+  // dwgfBottom: aJson.S['fill'] := 'bottom';
+  // dwgfTrue: aJson.B['fill']   := True;
+  // dwgfFalse: aJson.B['fill']  := False;
+  // end;
+end;
+
+procedure TNvChartElementLine.RenderBackgroundColor(aJson: TJsonObject);
+begin
+  aJson.S['backgroudColor'] := AlphaColorToRGBA(FbackGroundColor);
+end;
+
+procedure TNvChartElementLine.RenderBorderCapStyle(aJson: TJsonObject);
+begin
+  aJson.S['borderCapStyle'] := TDWCanvasLineCapStr[FBorderCapStyle];
+end;
+
+procedure TNvChartElementLine.RenderBorderColor(aJson: TJsonObject);
+begin
+  aJson.S['borderColor'] := AlphaColorToRGBA(FBorderColor);
+end;
+
+procedure TNvChartElementLine.RenderStepped(aJson: TJsonObject);
+begin
+  aJson.B['stepped'] := FStepped;
+end;
+
+procedure TNvChartElementLine.RenderTension(aJson: TJsonObject);
+begin
+  aJson.F['tension'] := FTension;
 end;
 
 procedure TNvChartElementLine.RenderBorderDash(aJson: TJsonObject);
@@ -2613,35 +2752,52 @@ begin
     aJson.A['borderDash'].Add(FBorderDash[I]);
 end;
 
+procedure TNvChartElementLine.RenderBorderDashOffset(aJson: TJsonObject);
+begin
+  aJson.I['borderDashOffset'] := FBorderDashOffset;
+end;
+
+procedure TNvChartElementLine.RenderBorderJoinStyle(aJson: TJsonObject);
+begin
+  aJson.S['borderjoinStyle'] := TDWCanvasLineJoinStr[FBorderJoinStyle];
+end;
+
+procedure TNvChartElementLine.RenderBorderWidth(aJson: TJsonObject);
+begin
+  aJson.I['borderWidth'] := FBorderWidth;
+end;
+
+procedure TNvChartElementLine.RenderCapBezierPoints(aJson: TJsonObject);
+begin
+  aJson.B['capBezierPoints'] := FCapBezierPoints;
+end;
+
 procedure TNvChartElementLine.SetBackGroundColor(const Value: TAlphaColor);
 begin
-  if FbackGroundColor <> Value then
+  if Value <> FBackgroundColor then
     begin
-      if Rendered then
-        ControlAjaxJson.S['backgroudColor'] := AlphaColorToRGBA(Value);
-      FbackGroundColor                      := Value;
+      EnqueueChange('BackgroundColor', RenderBackgroundColor);
+      FBackgroundColor := Value;
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementLine.SetBorderCapStyle(const Value: TDWCanvasLineCap);
 begin
-  if FBorderCapStyle <> Value then
+  if Value <> FBorderCapStyle then
     begin
-      if Rendered then
-        ControlAjaxJson.S['borderCapStyle'] := TDWCanvasLineCapStr[Value];
-      FBorderCapStyle                       := Value;
+      EnqueueChange('BorderCapStyle', RenderBorderCapStyle);
+      FBorderCapStyle := Value;
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementLine.SetBorderColor(const Value: TAlphaColor);
 begin
-  if FBorderColor <> Value then
+  if Value <> FBorderColor then
     begin
-      if Rendered then
-        ControlAjaxJson.S['borderColor'] := AlphaColorToRGBA(Value);
-      FBorderColor                       := Value;
+      EnqueueChange('BorderColor', RenderBorderColor);
+      FBorderColor := Value;
       Invalidate;
     end;
 end;
@@ -2651,85 +2807,77 @@ begin
   if FBorderDash <> Value then
     begin
       FBorderDash := Value;
-      if Rendered then
-        RenderBorderDash(ControlAjaxJson);
+      EnqueueChange('BorderDash', RenderBorderDash);
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementLine.SetBorderDashOffset(const Value: Integer);
 begin
-  if FBorderDashOffset <> Value then
+  if Value <> FBorderDashOffset then
     begin
-      if Rendered then
-        ControlAjaxJson.I['borderDashOffset'] := Value;
-      FBorderDashOffset                       := Value;
+      EnqueueChange('BorderDashOffset', RenderBorderDashOffset);
+      FBorderDashOffset := Value;
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementLine.SetBorderJoinStyle(const Value: TDWCanvasLineJoin);
 begin
-  if FBorderJoinStyle <> Value then
+  if Value <> FBorderJoinStyle then
     begin
-      if Rendered then
-        ControlAjaxJson.S['borderjoinStyle'] := TDWCanvasLineJoinStr[Value];
-      FBorderJoinStyle                       := Value;
+      EnqueueChange('BorderJoinStyle', RenderBorderJoinStyle);
+      FBorderJoinStyle := Value;
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementLine.SetBorderWidth(const Value: Integer);
 begin
-  if FBorderWidth <> Value then
+  if Value <> FBorderWidth then
     begin
-      if Rendered then
-        ControlAjaxJson.I['borderWidth'] := Value;
-      FBorderWidth                       := Value;
+      EnqueueChange('BorderWidth', RenderBorderWidth);
+      FBorderWidth := Value;
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementLine.SetCapBezierPoints(const Value: Boolean);
 begin
-  if FCapBezierPoints <> Value then
+  if Value <> FCapBezierPoints then
     begin
-      if Rendered then
-        ControlAjaxJson.B['capBezierPoints'] := Value;
-      FCapBezierPoints                       := Value;
+      EnqueueChange('CapBezierPoints', RenderCapBezierPoints);
+      FCapBezierPoints := Value;
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementLine.SetFill(const Value: TNvChartFillPosition);
 begin
-  if FFill <> Value then
+  if Value <> FFill then
     begin
+      EnqueueChange('Fill', RenderFill);
       FFill := Value;
-      if Rendered then
-        RenderFill(ControlAjaxJson);
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementLine.SetStepped(const Value: Boolean);
 begin
-  if FStepped <> Value then
+  if Value <> FStepped then
     begin
-      if Rendered then
-        ControlAjaxJson.B['stepped'] := Value;
-      FStepped                       := Value;
+      EnqueueChange('Stepped', RenderStepped);
+      FStepped := Value;
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementLine.SetTension(const Value: Currency);
 begin
-  if FTension <> Value then
+  if Value <> FTension then
     begin
-      if Rendered then
-        ControlAjaxJson.D['tension'] := Value;
-      FTension                       := Value;
+      EnqueueChange('Tension', RenderTension);
+      FTension := Value;
       Invalidate;
     end;
 end;
@@ -2749,57 +2897,73 @@ end;
 procedure TNvChartElementRect.InternalRender(aJson: TJsonObject);
 begin
   inherited;
-  aJson := TJsonObject.Create;
+  // aJson := TJsonObject.Create; Precisa mesmo disso????
   if FbackGroundColor <> $25000000 then
-    aJson.S['backgroundColor'] := AlphaColorToRGBA(FbackGroundColor);
+    RenderBackgroundColor(aJson);
   if FBorderWidth <> 0 then
-    aJson.I['borderWidth'] := FBorderWidth;
+    RenderBorderWidth(aJson);
   if FBorderColor <> $25000000 then
-    aJson.S['borderColor'] := AlphaColorToRGBA(FBorderColor);
+    RenderBorderColor(aJson);
   if FBorderSkipped <> dwgbsBottom then
-    aJson.S['borderSkipped'] := TNvChartBorderSkippedStr[FBorderSkipped];
+    RenderBorderSkipped(aJson);
+end;
+
+procedure TNvChartElementRect.RenderBackgroundColor(aJson: TJsonObject);
+begin
+  aJson.S['backgroundColor'] := AlphaColorToRGBA(FbackGroundColor);
+end;
+
+procedure TNvChartElementRect.RenderBorderColor(aJson: TJsonObject);
+begin
+  aJson.S['borderColor'] := AlphaColorToRGBA(FBorderColor);
+end;
+
+procedure TNvChartElementRect.RenderBorderSkipped(aJson: TJsonObject);
+begin
+  aJson.S['borderSkipped'] := TNvChartBorderSkippedStr[FBorderSkipped];
+end;
+
+procedure TNvChartElementRect.RenderBorderWidth(aJson: TJsonObject);
+begin
+  aJson.I['borderWidth'] := FBorderWidth;
 end;
 
 procedure TNvChartElementRect.SetBackGroundColor(const Value: TAlphaColor);
 begin
-  if FbackGroundColor <> Value then
+  if Value <> FBackgroundColor then
     begin
-      if Rendered then
-        ControlAjaxJson.S['backgroundColor'] := AlphaColorToRGBA(Value);
-      FbackGroundColor                       := Value;
+      EnqueueChange('BackgroundColor', RenderBackgroundColor);
+      FBackgroundColor := Value;
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementRect.SetBorderColor(const Value: TAlphaColor);
 begin
-  if FBorderColor <> Value then
+  if Value <> FBorderColor then
     begin
-      if Rendered then
-        ControlAjaxJson.S['borderColor'] := AlphaColorToRGBA(Value);
-      FBorderColor                       := Value;
+      EnqueueChange('BorderColor', RenderBorderColor);
+      FBorderColor := Value;
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementRect.SetBorderSkipped(const Value: TNvChartBorderSkipped);
 begin
-  if FBorderSkipped <> Value then
+  if Value <> FBorderSkipped then
     begin
-      if Rendered then
-        ControlAjaxJson.S['borderSkipped'] := TNvChartBorderSkippedStr[Value];
-      FBorderSkipped                       := Value;
+      EnqueueChange('BorderSkipped', RenderBorderSkipped);
+      FBorderSkipped := Value;
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementRect.SetBorderWidth(const Value: Integer);
 begin
-  if FBorderWidth <> Value then
+  if Value <> FBorderWidth then
     begin
-      if Rendered then
-        ControlAjaxJson.I['borderWidth'] := Value;
-      FBorderWidth                       := Value;
+      EnqueueChange('BorderWidth', RenderBorderWidth);
+      FBorderWidth := Value;
       Invalidate;
     end;
 end;
@@ -2819,42 +2983,54 @@ procedure TNvChartElementArc.InternalRender(aJson: TJsonObject);
 begin
   inherited;
   if FbackGroundColor <> $25000000 then
-    aJson.S['backgroundColor'] := AlphaColorToRGBA(FbackGroundColor);
+    RenderBackgroundColor(aJson);
   if FBorderWidth <> 2 then
-    aJson.I['borderWidth'] := FBorderWidth;
+    RenderBorderWidth(aJson);
   if FBorderColor <> $FFFFFFFF then
-    aJson.S['borderColor'] := AlphaColorToRGBA(FBorderColor);
+    RenderBorderColor(aJson);
+end;
+
+procedure TNvChartElementArc.RenderBackgroundColor(aJson: TJsonObject);
+begin
+  aJson.S['backgroundColor'] := AlphaColorToRGBA(FbackGroundColor);
+end;
+
+procedure TNvChartElementArc.RenderBorderColor(aJson: TJsonObject);
+begin
+  aJson.S['borderColor'] := AlphaColorToRGBA(FBorderColor);
+end;
+
+procedure TNvChartElementArc.RenderBorderWidth(aJson: TJsonObject);
+begin
+  aJson.I['borderWidth'] := FBorderWidth;
 end;
 
 procedure TNvChartElementArc.SetBackGroundColor(const Value: TAlphaColor);
 begin
-  if FbackGroundColor <> Value then
+  if Value <> FBackgroundColor then
     begin
-      if Rendered then
-        ControlAjaxJson.S['backgroundColor'] := AlphaColorToRGBA(Value);
-      FbackGroundColor                       := Value;
+      EnqueueChange('BackgroundColor', RenderBackgroundColor);
+      FBackgroundColor := Value;
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementArc.SetBorderColor(const Value: TAlphaColor);
 begin
-  if FBorderColor <> Value then
+  if Value <> FBorderColor then
     begin
-      if Rendered then
-        ControlAjaxJson.S['borderColor'] := AlphaColorToRGBA(Value);
-      FBorderColor                       := Value;
+      EnqueueChange('BorderColor', RenderBorderColor);
+      FBorderColor := Value;
       Invalidate;
     end;
 end;
 
 procedure TNvChartElementArc.SetBorderWidth(const Value: Integer);
 begin
-  if FBorderWidth <> Value then
+  if Value <> FBorderWidth then
     begin
-      if Rendered then
-        ControlAjaxJson.I['borderWidth'] := Value;
-      FBorderWidth                       := Value;
+      EnqueueChange('BorderWidth', RenderBorderWidth);
+      FBorderWidth := Value;
       Invalidate;
     end;
 end;
@@ -2893,92 +3069,57 @@ var
 begin
   inherited;
   if High(FBorderDash) >= 0 then
-    begin
-      for I := Low(FBorderDash) to High(FBorderDash) do
-        aJson.A['borderDash'].Add(FBorderDash[I]);
-    end;
+    RenderBorderDash(aJSon);
   if FBorderDashOffset <> 0 then
-    aJson.I['borderDashOffset'] := FBorderDashOffset;
+    RenderBorderDashOffset(aJson);
   if FBorderCapStyle <> dwclcButt then
-    begin
-      case FBorderCapStyle of
-        dwclcButt: aJson.S['borderCapStyle']   := 'butt';
-        dwclcRound: aJson.S['borderCapStyle']  := 'round';
-        dwclcSquare: aJson.S['borderCapStyle'] := 'square';
-      end;
-    end;
+    RenderBorderCapStyle(aJson);
   if FBorderJoinStyle <> dwcljMiter then
-    begin
-      case FBorderJoinStyle of
-        dwcljBevel: aJson.S['borderjoinStyle'] := 'bevel';
-        dwcljRound: aJson.S['borderjoinStyle'] := 'round';
-        dwcljMiter: aJson.S['borderjoinStyle'] := 'miter';
-      end;
-    end;
+    RenderBorderJoinStyle(aJson);
   if FCubicInterpolationMode <> dwgciDefault then
-    begin
-      case FCubicInterpolationMode of
-        dwgciDefault: aJson.S['cubicInterpolationMode']  := 'default';
-        dwgciMonotone: aJson.S['cubicInterpolationMode'] := 'monotone';
-      end;
-    end;
+    RenderCubicInterpolationMode(aJson);
   if FFill <> dwgfTrue then
-    begin
-      case FFill of
-        dwgfZero: aJson.S['fill']   := 'zero';
-        dwgfTop: aJson.S['fill']    := 'top';
-        dwgfBottom: aJson.S['fill'] := 'bottom';
-        dwgfTrue: aJson.B['fill']   := True;
-        dwgfFalse: aJson.B['fill']  := False;
-      end;
-    end;
+    RenderFill(aJson);
   if FLineTension <> 0.4 then
-    aJson.F['tension'] := FLineTension;
+    RenderLineTension(aJson);
   if FPointbackGroundColor <> $25000000 then
-    aJson.S['pointBackgroundColor'] := AlphaColorToRGBA(FPointbackGroundColor);
+    RenderPointbackGroundColor(aJson);
   if FPointBorderColor <> $25000000 then
-    aJson.S['pointBorderColor'] := AlphaColorToRGBA(FPointBorderColor);
+    RenderPointBorderColor(aJson);
   if FPointBorderWidth <> 1 then
-    aJson.I['pointBorderWidth'] := FPointBorderWidth;
+    RenderPointBorderWidth(aJson);
   if FPointRadius <> 1 then
-    aJson.I['pointRadius'] := FPointRadius;
+    RenderPointRadius(aJson);
   if FPointStyle <> dwgpsCircle then
-    begin
-      case FPointStyle of
-        dwgpsCircle: aJson.S['pointStyle']      := 'circle';
-        dwgpsCross: aJson.S['pointStyle']       := 'cross';
-        dwgpsCrossRot: aJson.S['pointStyle']    := 'crossRot';
-        dwgpsDash: aJson.S['pointStyle']        := 'dash';
-        dwgpsLine: aJson.S['pointStyle']        := 'line';
-        dwgpsRect: aJson.S['pointStyle']        := 'rect';
-        dwgpsRectRounded: aJson.S['pointStyle'] := 'rectRounded';
-        dwgpsRectRot: aJson.S['pointStyle']     := 'rectRot';
-        dwgpsStar: aJson.S['pointStyle']        := 'star';
-        dwgpsTriangle: aJson.S['pointStyle']    := 'triangle';
-      end;
-    end;
+    RenderPointStyle(aJson);
   if FPointHitRadius <> 1 then
-    aJson.I['pointHitRadius'] := FPointHitRadius;
+    RenderPointHitRadius(aJson);
   if FPointHoverBackgroundColor <> $25000000 then
-    aJson.S['pointHoverBackgroundColor'] := AlphaColorToRGBA(FPointHoverBackgroundColor);
+    RenderPointHoverBackgroundColor(aJson);
   if FPointHoverBorderColor <> $25000000 then
-    aJson.S['pointHoverBorderColor'] := AlphaColorToRGBA(FPointHoverBorderColor);
+    RenderPointHoverBorderColor(aJson);
   if FPointHoverBorderWidth <> 1 then
-    aJson.I['pointHoverBorderWidth'] := FPointHoverBorderWidth;
+    RenderPointHoverBorderWidth(aJson);
   if FPointHoverRadius <> 4 then
-    aJson.I['pointHoverRadius'] := FPointHoverRadius;
+    RenderPointHoverRadius(aJson);
   if FShowLine <> True then
-    aJson.B['showLine'] := FShowLine;
+    RenderShowLine(aJson);
   if FSpanGaps <> True then
-    aJson.B['spanGaps'] := FSpanGaps;
+    RenderSpanGaps(aJson);
+  if FSteppedLine <> dwgslfalse then
+    RenderSteppedLine(aJson);
+
+  if FPointHitRadius <> 1 then;
+  if FPointHoverBackgroundColor <> $25000000 then;
+  if FPointHoverBorderColor <> $25000000 then;
+  if FPointHoverBorderWidth <> 1 then
+
+    if FPointHoverRadius <> 4 then;
+  if FShowLine <> True then;
+  if FSpanGaps <> True then;
   if FSteppedLine <> dwgslfalse then
     begin
-      case FSteppedLine of
-        dwgslfalse: aJson.B['steppedLine']  := False;
-        dwgslTrue: aJson.B['steppedLine']   := True;
-        dwgslBefore: aJson.S['steppedLine'] := 'before';
-        dwgslAfter: aJson.S['steppedLine']  := 'after';
-      end;
+
     end;
   // FXField: string;
   // FYField: string;
@@ -2990,104 +3131,316 @@ begin
   Result := FLineTension <> 0.4;
 end;
 
+procedure TNvChartSerieLine.RenderBorderDash(aJson: TJsonObject);
+var
+  IDx: Integer;
+begin
+  with aJson.A['borderDash'] do
+    begin
+      for IDx := Low(FBorderDash) to High(FBorderDash) do
+        Add(FBorderDash[IDx]);
+    end;
+end;
+
+procedure TNvChartSerieLine.RenderBorderDashOffset(aJson: TJsonObject);
+begin
+  aJson.I['borderDashOffset'] := FBorderDashOffset
+end;
+
+procedure TNvChartSerieLine.RenderBorderJoinStyle(aJson: TJsonObject);
+begin
+  aJson.S['borderjoinStyle'] := TDWCanvasLineJoinStr[FBorderJoinStyle];
+end;
+
+procedure TNvChartSerieLine.RenderBorderCapStyle(aJson: TJsonObject);
+begin
+  aJson.S['borderCapStyle'] := TDWCanvasLineCapStr[FBorderCapStyle];
+end;
+
+procedure TNvChartSerieLine.RenderCubicInterpolationMode(aJson: TJsonObject);
+begin
+  aJson.S['cubicInterpolationMode'] := TNvChartCubicInterpolationStr[FCubicInterpolationMode];
+end;
+
+procedure TNvChartSerieLine.RenderFill(aJson: TJsonObject);
+begin
+  aJson.S['fill'] := TNvChartFillPositionStr[FFill];
+end;
+
+procedure TNvChartSerieLine.RenderLineTension(aJson: TJsonObject);
+begin
+  aJson.F['tension'] := FLineTension;
+end;
+
+procedure TNvChartSerieLine.RenderPointbackGroundColor(aJson: TJsonObject);
+begin
+  aJson.S['pointBackgroundColor'] := AlphaColorToRGBA(FPointbackGroundColor);
+end;
+
+procedure TNvChartSerieLine.RenderPointBorderColor(aJson: TJsonObject);
+begin
+  aJson.S['pointBorderColor'] := AlphaColorToRGBA(FPointBorderColor);
+end;
+
+procedure TNvChartSerieLine.RenderPointBorderWidth(aJson: TJsonObject);
+begin
+  aJson.I['pointBorderWidth'] := FPointBorderWidth
+end;
+
+procedure TNvChartSerieLine.RenderPointHitRadius(aJson: TJsonObject);
+begin
+  aJson.I['pointHitRadius'] := FPointHitRadius;
+end;
+
+procedure TNvChartSerieLine.RenderPointHoverBackgroundColor(aJson: TJsonObject);
+begin
+  aJson.S['pointHoverBackgroundColor'] := AlphaColorToRGBA(FPointHoverBackgroundColor)
+end;
+
+procedure TNvChartSerieLine.RenderPointHoverBorderColor(aJson: TJsonObject);
+begin
+  aJson.S['pointHoverBorderColor'] := AlphaColorToRGBA(FPointHoverBorderColor)
+end;
+
+procedure TNvChartSerieLine.RenderPointHoverBorderWidth(aJson: TJsonObject);
+begin
+  aJson.I['pointHoverBorderWidth'] := FPointHoverBorderWidth;
+end;
+
+procedure TNvChartSerieLine.RenderPointHoverRadius(aJson: TJsonObject);
+begin
+  aJson.I['pointHoverRadius'] := FPointHoverRadius
+end;
+
+procedure TNvChartSerieLine.RenderPointRadius(aJson: TJsonObject);
+begin
+  aJson.I['pointRadius'] := FPointRadius
+end;
+
+procedure TNvChartSerieLine.RenderPointStyle(aJson: TJsonObject);
+begin
+  aJson.S['pointStyle'] := TNvChartPointStyleStr[FPointStyle];
+end;
+
+procedure TNvChartSerieLine.RenderShowLine(aJson: TJsonObject);
+begin
+  aJson.B['showLine'] := FShowLine;
+end;
+
+procedure TNvChartSerieLine.RenderSpanGaps(aJson: TJsonObject);
+begin
+  aJson.B['spanGaps'] := FSpanGaps;
+end;
+
+procedure TNvChartSerieLine.RenderSteppedLine(aJson: TJsonObject);
+begin
+  aJson.S['steppedLine'] := TNvChartSteppedLineStr[FSteppedLine];
+  // case FSteppedLine of
+  // dwgslfalse: aJson.B['steppedLine']  := False;
+  // dwgslTrue: aJson.B['steppedLine']   := True;
+  // dwgslBefore: aJson.S['steppedLine'] := 'before';
+  // dwgslAfter: aJson.S['steppedLine']  := 'after';
+  // end;
+end;
+
 procedure TNvChartSerieLine.SetBorderCapStyle(const Value: TDWCanvasLineCap);
 begin
-  FBorderCapStyle := Value;
+  if Value <> FBorderCapStyle then
+    begin
+      EnqueueChange('BorderCapStyle', RenderBorderCapStyle);
+      FBorderCapStyle := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetBorderDash(const Value: TDWCanvasLineDashPattern);
 begin
-  FBorderDash := Value;
+  if Value <> FBorderDash then
+    begin
+      EnqueueChange('BorderDash', RenderBorderDash);
+      FBorderDash := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetBorderDashOffset(const Value: Integer);
 begin
-  FBorderDashOffset := Value;
+  if Value <> FBorderDashOffset then
+    begin
+      EnqueueChange('BorderDashOffset', RenderBorderDashOffset);
+      FBorderDashOffset := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetBorderJoinStyle(const Value: TDWCanvasLineJoin);
 begin
-  FBorderJoinStyle := Value;
+  if Value <> FBorderJoinStyle then
+    begin
+      EnqueueChange('BorderJoinStyle', RenderBorderJoinStyle);
+      FBorderJoinStyle := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetCubicInterpolationMode(const Value: TNvChartCubicInterpolation);
 begin
-  FCubicInterpolationMode := Value;
+  if Value <> FCubicInterpolationMode then
+    begin
+      EnqueueChange('CubicInterpolationMode', RenderCubicInterpolationMode);
+      FCubicInterpolationMode := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetFill(const Value: TNvChartFillPosition);
 begin
-  FFill := Value;
+  if Value <> FFill then
+    begin
+      EnqueueChange('Fill', RenderFill);
+      FFill := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetLineTension(const Value: Currency);
 begin
-  FLineTension := Value;
+  if Value <> FLineTension then
+    begin
+      EnqueueChange('LineTension', RenderLineTension);
+      FLineTension := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetPointbackGroundColor(const Value: TAlphaColor);
 begin
-  FPointbackGroundColor := Value;
+  if Value <> FPointbackGroundColor then
+    begin
+      EnqueueChange('PointbackGroundColor', RenderPointbackGroundColor);
+      FPointbackGroundColor := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetPointBorderColor(const Value: TAlphaColor);
 begin
-  FPointBorderColor := Value;
+  if Value <> FPointBorderColor then
+    begin
+      EnqueueChange('PointBorderColor', RenderPointBorderColor);
+      FPointBorderColor := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetPointBorderWidth(const Value: Integer);
 begin
-  FPointBorderWidth := Value;
+  if Value <> FPointBorderWidth then
+    begin
+      EnqueueChange('PointBorderWidth', RenderPointBorderWidth);
+      FPointBorderWidth := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetPointHitRadius(const Value: Integer);
 begin
-  FPointHitRadius := Value;
+  if Value <> FPointHitRadius then
+    begin
+      EnqueueChange('PointHitRadius', RenderPointHitRadius);
+      FPointHitRadius := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetPointHoverBackgroundColor(const Value: TAlphaColor);
 begin
-  FPointHoverBackgroundColor := Value;
+  if Value <> FPointHoverBackgroundColor then
+    begin
+      EnqueueChange('PointHoverBackgroundColor', RenderPointHoverBackgroundColor);
+      FPointHoverBackgroundColor := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetPointHoverBorderColor(const Value: TAlphaColor);
 begin
-  FPointHoverBorderColor := Value;
+  if Value <> FPointHoverBorderColor then
+    begin
+      EnqueueChange('PointHoverBorderColor', RenderPointHoverBorderColor);
+      FPointHoverBorderColor := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetPointHoverBorderWidth(const Value: Integer);
 begin
-  FPointHoverBorderWidth := Value;
+  if Value <> FPointHoverBorderWidth then
+    begin
+      EnqueueChange('PointHoverBorderWidth', RenderPointHoverBorderWidth);
+      FPointHoverBorderWidth := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetPointHoverRadius(const Value: Integer);
 begin
-  FPointHoverRadius := Value;
+  if Value <> FPointHoverRadius then
+    begin
+      EnqueueChange('PointHoverRadius', RenderPointHoverRadius);
+      FPointHoverRadius := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetPointRadius(const Value: Integer);
 begin
-  FPointRadius := Value;
+  if Value <> FPointRadius then
+    begin
+      EnqueueChange('PointRadius', RenderPointRadius);
+      FPointRadius := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetPointStyle(const Value: TNvChartPointStyle);
 begin
-  FPointStyle := Value;
+  if Value <> FPointStyle then
+    begin
+      EnqueueChange('PointStyle', RenderPointStyle);
+      FPointStyle := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetShowLine(const Value: Boolean);
 begin
-  FShowLine := Value;
+  if Value <> FShowLine then
+    begin
+      EnqueueChange('ShowLine', RenderShowLine);
+      FShowLine := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieLine.SetSpanGaps(const Value: Boolean);
 begin
-  FSpanGaps := Value;
+  if Value <> FSpanGaps then
+    begin
+      EnqueueChange('SpanGaps', RenderSpanGaps);
+      FSpanGaps := Value;
+      Invalidate;
+    end;
 end;
 
-procedure TNvChartSerieLine.SetSteppedLine(const Value: TNcChartSteppedLine);
+procedure TNvChartSerieLine.SetSteppedLine(const Value: TNvChartSteppedLine);
 begin
-  FSteppedLine := Value;
+  if Value <> FSteppedLine then
+    begin
+      EnqueueChange('SteppedLine', RenderSteppedLine);
+      FSteppedLine := Value;
+      Invalidate;
+    end;
 end;
 
 { TDWGraphSerieBar }
@@ -3098,51 +3451,89 @@ begin
   FHoverBorderWidth     := 1;
   FHoverBorderColor     := $25000000;
   FBorderSkipped        := dwgbsBottom;
-  FHoverbackgroundColor := $25000000;
+  FHoverBackgroundColor  := $25000000;
 end;
 
 procedure TNvChartSerieBar.InternalRender(aJson: TJsonObject);
 begin
   inherited;
+
   if FHoverBorderWidth <> 1 then
-    aJson.I['hoverBorderWidth'] := FHoverBorderWidth;
+    RenderHoverBorderWidth(aJson);
+
   if FHoverBorderColor <> $25000000 then
-    aJson.S['hoverBorderColor'] := AlphaColorToRGBA(FHoverBorderColor);
+    RenderHoverBorderColor(aJson);
+
   if FBorderSkipped <> dwgbsBottom then
-    begin
-      case FBorderSkipped of
-        dwgbsBottom: aJson.S['borderSkipped'] := 'bottom';
-        dwgbsLeft: aJson.S['borderSkipped']   := 'left';
-        dwgbsTop: aJson.S['borderSkipped']    := 'top';
-        dwgbsRight: aJson.S['borderSkipped']  := 'roght';
-      end;
-    end;
-  if FHoverbackgroundColor <> $25000000 then
-    aJson.S['hoverBackgroundColor'] := AlphaColorToRGBA(FHoverbackgroundColor);
+    RenderBorderSkipped(aJson);
+
+  if FHoverBackgroundColor <> $25000000 then
+    RenderHoverBackgroundColor(aJson);
+
   if FHorizontal then
     aJson.S['type'] := 'horizontalBar'
   else
     aJson.S['type'] := 'bar';
 end;
 
+procedure TNvChartSerieBar.RenderBorderSkipped(aJson: TJsonObject);
+begin
+  aJson.S['borderSkipped'] := TNvChartBorderSkippedStr[FBorderSkipped];
+end;
+
+procedure TNvChartSerieBar.RenderHoverBackgroundColor(aJson: TJsonObject);
+begin
+  aJson.S['hoverBackgroundColor'] := AlphaColorToRGBA(FHoverbackgroundColor);
+end;
+
+procedure TNvChartSerieBar.RenderHoverBorderColor(aJson: TJsonObject);
+begin
+  aJson.S['hoverBorderColor'] := AlphaColorToRGBA(FHoverBorderColor);
+end;
+
+procedure TNvChartSerieBar.RenderHoverBorderWidth(aJson: TJsonObject);
+begin
+  aJson.I['hoverBorderWidth'] := FHoverBorderWidth;
+end;
+
 procedure TNvChartSerieBar.SetBorderSkipped(const Value: TNvChartBorderSkipped);
 begin
-  FBorderSkipped := Value;
+  if Value <> FBorderSkipped then
+    begin
+      EnqueueChange('BorderSkipped', RenderBorderSkipped);
+      FBorderSkipped := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieBar.SetHoverbackgroundColor(const Value: TAlphaColor);
 begin
-  FHoverbackgroundColor := Value;
+  if Value <> FHoverBackgroundColor then
+    begin
+      EnqueueChange('HoverBackgroundColor', RenderHoverBackgroundColor);
+      FHoverBackgroundColor := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieBar.SetHoverBorderColor(const Value: TAlphaColor);
 begin
-  FHoverBorderColor := Value;
+  if Value <> FHoverBorderColor then
+    begin
+      EnqueueChange('HoverBorderColor', RenderHoverBorderColor);
+      FHoverBorderColor := Value;
+      Invalidate;
+    end;
 end;
 
 procedure TNvChartSerieBar.SetHoverBorderWidth(const Value: Integer);
 begin
-  FHoverBorderWidth := Value;
+  if Value <> FHoverBorderWidth then
+    begin
+      EnqueueChange('HoverBorderWidth', RenderHoverBorderWidth);
+      FHoverBorderWidth := Value;
+      Invalidate;
+    end;
 end;
 //
 // { TDWDBGraph }
@@ -3459,11 +3850,6 @@ end;
 
 { TNvChartSeries }
 
-function TNvChartSeries.Ajax: TNvAjax;
-begin
-  Result := FChart.Ajax;
-end;
-
 function TNvChartSeries.ControlAjaxJson: TJsonObject;
 begin
   Result := FChart.ControlAjaxJson.O['Data'];
@@ -3473,6 +3859,16 @@ constructor TNvChartSeries.Create(AOwner: TPersistent; ItemClass: TCollectionIte
 begin
   inherited Create(AOwner, ItemClass);
   FChart := AOwner as TNvCustomChart;
+end;
+
+procedure TNvChartSeries.DequeueChange(const aName: string);
+begin
+  // Not Implemented yet
+end;
+
+procedure TNvChartSeries.EnqueueChange(const aName: string; const aProc: TPropChangeProc);
+begin
+  // Not Implemented yet
 end;
 
 function TNvChartSeries.GetComponent: TComponent;
@@ -3488,6 +3884,11 @@ end;
 procedure TNvChartSeries.Invalidate;
 begin
   FChart.Invalidate;
+end;
+
+function TNvChartSeries.NeedSendChange: Boolean;
+begin
+  Result := FChart.NeedSendChange;
 end;
 
 function TNvChartSeries.QueryInterface(const IID: TGUID; out Obj): HResult;

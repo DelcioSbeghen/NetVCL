@@ -3,8 +3,10 @@ unit NV.Design.Register;
 interface
 
 uses
-  Windows, Classes, SysUtils, StrUtils, Dialogs, DesignIntf, DesignEditors, DMForm, Db, VCLEditors,
-  Controls, Forms, WCtlForm, NV.VCL.Page, NV.Controls, NV.Interfaces, NV.VCL.Forms,
+  Windows, Classes, SysUtils, StrUtils, Dialogs, DesignIntf, DesignEditors,
+  DMForm, Db, VCLEditors,
+  Controls, Forms, WCtlForm, NV.VCL.Page, NV.Controls, NV.Interfaces,
+  NV.VCL.Forms,
 
   NV.Design.IDE;
 
@@ -16,7 +18,8 @@ type
     FDesigner: IDesigner;
     FPage    : INVPage;
   public
-    constructor Create(aDesigner: IDesigner; aPage: TNVBasepage); virtual;
+    constructor Create(aDesigner: IDesigner); virtual;
+    destructor Destroy; override;
     function GetRoot: TComponent;
     procedure SelectComponent(Instance: TPersistent); overload;
     function GetComponent(const Name: string): TComponent;
@@ -24,21 +27,33 @@ type
       Left, Top, Width, Height: Integer): TComponent;
     procedure Edit(const Component: TComponent);
     procedure Modified;
+    procedure ResetDesignPage;
     function UniqueName(const BaseName: string): string;
-    property Root: TComponent read GetRoot;
     function Page: INVPage;
+    property Root: TComponent read GetRoot;
   end;
+
+  TNvDesignNotifier = class(TInterfacedObject, IDesignNotification)
+  protected
+    FlastRoot: TNVModuleContainer;
+    // IDesignNotification
+    procedure ItemDeleted(const aDesigner: IDesigner; AItem: TPersistent);
+    procedure ItemInserted(const aDesigner: IDesigner; AItem: TPersistent);
+    procedure ItemsModified(const aDesigner: IDesigner);
+    procedure SelectionChanged(const aDesigner: IDesigner; const ASelection: IDesignerSelections);
+    procedure DesignerOpened(const aDesigner: IDesigner; AResurrecting: Boolean);
+    procedure DesignerClosed(const aDesigner: IDesigner; AGoingDormant: Boolean);
+  End;
 
   TNVFormModule = class(TCustomModule { TWinControlCustomModule } , ICustomDesignForm,
     ICustomDesignForm80)
   private
     FComponentContainer: TWinControl;
     FModule            : TNVModuleContainer; // Module in desing
-    FPage              : TNVBasepage;        // page is diff from module if module is Frame
   protected
-    // procedure HandleNvApplicationMessages(Sender: TObject; var Done: Boolean);
 
   public
+    constructor Create(ARoot: TComponent; const aDesigner: IDesigner); override;
     destructor Destroy; override;
     procedure ExecuteVerb(Index: Integer); override;
     function GetVerb(Index: Integer): string; override;
@@ -55,56 +70,43 @@ type
     procedure DoResize(Sender: TObject);
   end;
 
-  // TNVFrameModule = class(TNVFormModule, ICustomDesignForm, ICustomDesignForm80)
-  // private
-  // FComponentContainer: TWinControl;
-  // FPageDesign:TNVpage;
-  // public
-  /// /    procedure ExecuteVerb(Index: Integer); override;
-  /// /    function GetVerb(Index: Integer): string; override;
-  /// /    function GetVerbCount: Integer; override;
-  // //procedure ValidateComponent(Component: TComponent); override;
-  // //function ValidateComponentClass(ComponentClass: TComponentClass): Boolean; override;
-  // // ICustomDesignForm
-  // procedure CreateDesignerForm(const Designer: IDesigner; Root: TComponent;
-  // out DesignForm: TCustomForm; out ComponentContainer: TWinControl); overload;
-  // /// /ICustomDesignForm80
-  // procedure CreateDesignerForm(const Designer: IDesigner; Root: TComponent;
-  // out DesignForm: IHostForm; out ComponentContainer: TWinControl); overload;
-  // end;
-
-  TNVDatamoduleModule = class(TDataModuleCustomModule) // TDataModuleDesignerCustomModule)
+  TNVDatamoduleModule = class(TDataModuleCustomModule)
+    // TDataModuleDesignerCustomModule)
     procedure ExecuteVerb(Index: Integer); override;
     function GetVerb(Index: Integer): string; override;
     function GetVerbCount: Integer; override;
     procedure ValidateComponent(Component: TComponent); override;
   end;
 
-var
-  RootPath: string = '';
+//var
+ // RootPath: string = '';
 
 procedure Register;
 
 implementation
 
 uses
-  ToolsAPI, NV.Design.AppWizard, NV.Design.UserSessionWizard,
+  Actions, ActionEditors, ToolsAPI, NV.Design.AppWizard, NV.Design.UserSessionWizard,
   NV.Design.PageWizard, NV.Design.AppModuleWizard, NV.UserSession,
   NV.Design.ModuleDesigner,
-  NV.Design.FrameWizard, NV.VCL.Frame, NV.Design.FrameDesigner, NV.VCL.Images,
+  NV.Design.FrameWizard, NV.VCL.Frame, NV.VCL.Images, NV.VCL.Dashboards,
   ExtCtrls, System.Threading, NV.Design.ImagelistEditor,
-  NV.Design.IOTAUtils, NV.VCL.Charts, NV.JSON, NV.Design.JsonArrayEditor, NV.Browser,
-  NV.Design.ImageIndexEditor;
+  NV.Design.IOTAUtils, NV.VCL.Charts, NV.JSON, NV.Design.JsonArrayEditor,
+  NV.Browser,
+  NV.Design.ImageIndexEditor, NV.VCL.ActnList, NV.Design.ActionEditor;
 
 const
   PALLETE_PAGE = 'NetVCL';
+
+var
+  NVDesignNotifier: IDesignNotification = nil;
 
 procedure Register;
 begin
   // RegisterComponents('NetVCL', [TNVHostApp]);
 
   // DelphiWeb Wizards
-  RegisterCustomModule(TNVPage, TNVFormModule);
+  // RegisterCustomModule(TNVPage, TNVFormModule);
   RegisterCustomModule(TNVFrame, TNVFormModule);
   RegisterCustomModule(TNVForm, TNVFormModule);
   // RegisterCustomModule(TNVFrame, TNVFormModule);
@@ -125,18 +127,23 @@ begin
   // RegisterPackageWizard(TDWDataModuleWizard.Create);
 
   // Components
-  RegisterComponents(PALLETE_PAGE, [TNvSvgImageList, TNvChart]);
+  RegisterComponents(PALLETE_PAGE, [TNvSvgImageList, TNvChart, TNvActionList, TNvDashboard, TNvDashbdItem]);
+  RegisterClasses([TNvAction, TNVDashBreakPoints, TNvBreakPoint]);
 
+  RegisterComponentEditor(TNvActionList, TNvActionListEditor);
   RegisterComponentEditor(TNvSvgImageList, TNvSvgImageListEditor);
   RegisterPropertyEditor(TypeInfo(Integer), TNVImageListLink, 'ImageIndex', TNvImageIndexEditor);
   RegisterPropertyEditor(TypeInfo(TJsonArray), nil, '', TNvJsonArrayEditor);
+   RegisterPropertyEditor(TypeInfo(TBasicAction), TNvControl, 'Action', TNvActionProperty);
+   RegisterPropertyEditor(TypeInfo(TBasicAction), TNvWinControl, 'Action', TNvActionProperty);
+  RegisterActions('', [TNvAction{, FMX.Controls.TControlAction, FMX.StdActns.TValueRangeAction}], nil);
+
+
 end;
 
 type
-  // THackComponent = class(TComponent)
-  // end;
 
-  THackScreen      = class(TNvScreen);
+  //THackScreen      = class(TNvScreen);
   THackApplication = class(TNvApplication);
 
   THackPage      = class(TNVPage);
@@ -156,144 +163,29 @@ begin
   // FComponentContainer := ComponentContainer;
 end;
 
+constructor TNVFormModule.Create(ARoot: TComponent; const aDesigner: IDesigner);
+begin
+  inherited;
+
+end;
+
 procedure TNVFormModule.CreateDesignerForm(const Designer: IDesigner; Root: TComponent;
   out DesignForm: IHostForm; out ComponentContainer: TWinControl);
-// var
-// _ComponentContainer: TPanel;
 begin
   if Assigned(CreateDesignerFormProc) then
     begin
       CreateDesignerFormProc(Self, Designer, Root, DesignForm, ComponentContainer);
 
-      // _ComponentContainer := TPanel.Create(nil);
-      // with _ComponentContainer do
-      // begin
-      // Align       := alClient;
-      // ShowCaption := False;
-      // Parent      := ComponentContainer.Parent;
-      // SetDesignVisible(True);
-      // end;
-      // ComponentContainer := _ComponentContainer;
-
-      // THackComponent(ComponentContainer).SetDesigning(True);
-      // ComponentContainer.InsertControl(Root as TControl);
+      FComponentContainer := ComponentContainer;
 
       FModule  := Root as TNVModuleContainer;
-      RootPath := GetNVSourcesPath(GetProjectOutputDir(GetActiveProject));
 
-      if Root is TNVBasepage then
-        FPage := Root as TNVBasepage
-      else if Root is TNVBaseFrame then
-        begin
-          // FPage := TNVPage.Create(nil);
-          FPage := THackScreen(Screen).FPage;
-          // FPage.Align  := alClient;
-          // FPage.Parent := ComponentContainer.Parent;
-          THackPage(FPage).SetDesigning(True);
+      Application.RootPath:=    GetProjectOutputDir(GetActiveProject) + '\www\';
 
-          // add Module to FOrderredControls list (same as set parent)
-          THackPage(FPage).FControlsOrdered.Add(FModule);
-          // FPage.InsertControl(FModule);
-          // FPage.InsertControl(FModule);
-          // FModule.Parent:=  FPage;
-        end;
-
-      // ComponentContainer := FPage;
-      // FModule.Parent     := FPage;
-
-      FModule.Designer := TNVDesignerHook.Create(Designer, FPage);
-
-
-
-      // FDesignServer := TNVDesignServer.Create(FPage);
-
-      // FDesignBrowser.ShowDesignBrowser(ComponentContainer);
-      // FDesignBrowser.LoadUrl('http://127.0.0.1:' + FDesignServer.Port);
-
-      // Forms.Application.OnIdle:= HandleNvApplicationMessages;
-
-      THackApplication(Application).FRunning        := True;
-      THackApplication(Application).FDesignInstance := True;
-      Screen.ShowDesign(ComponentContainer.Parent);
-      // Screen.SetParent(ComponentContainer);
-      FModule.Show;
-
-      // To remove module from FPage.FControlsOrdered
-      FModule.FreeNotification(FPage);
-
-
-
-
-
-      // DesignForm := TNvModuleDesigner.CreateEx(nil, Designer, ComponentContainer);
-      // (Root as TNVModuleContainer).Designer := TNVDesignerHook.Create(Designer);
-      // (ComponentContainer as TNvDesignPanel).Page.Parent := ComponentContainer;
-      // // (Root as TNVModuleContainer).Parent := ComponentContainer;
-      // FComponentContainer := ComponentContainer;
-
-      {
-
-
-
-
-
-
-        //
-        //      with TNVDesignBrowser.Create(DesignForm.GetForm) do
-        //        begin
-        //          ShowDesignBrowser(ComponentContainer);
-        //          LoadUrl('www.google.com.br');
-        //        end;
-        //
-        //        THackComponent(ComponentContainer).SetDesigning(True);
-
-
-        //
-        _ComponentContainer := TNvDesignPanel.Create(ComponentContainer.Owner, Root as TNVModuleContainer);
-
-        _ComponentContainer.InitDesignBrowser(ComponentContainer.Parent);
-        // _ComponentContainer:= ComponentContainer;
-
-        // THackComponent(_ComponentContainer).SetDesigning(True);
-
-        // _ComponentContainer.Show;
-
-
-
-
-
-
-
-        ComponentContainer := _ComponentContainer;
-        (Root as TNVModuleContainer).Parent := ComponentContainer;
-
-        THackComponent(ComponentContainer).SetDesigning(True);
-        THackComponent(ComponentContainer).SetDesignInstance(True);
-
-        // _ComponentContainer.BringToFront;
-        //
-        // _ComponentContainer.OnResize:= DoResize;
-
-        // THackComponent(ComponentContainer).SetDesigning(True);
-        // ComponentContainer.Show;
-        //
-        // if (ComponentContainer as TNvDesignPanel).Module is TNVBaseFrame then
-        // begin
-        // (ComponentContainer as TNvDesignPanel).Module.Parent :=
-        // (ComponentContainer as TNvDesignPanel).Page;
-        // ComponentContainer.InsertControl((ComponentContainer as TNvDesignPanel).Module);
-        // end
-        // else
-        // (ComponentContainer as TNvDesignPanel).Page.Parent := ComponentContainer;
-        // (Root as TNVModuleContainer).Parent := ComponentContainer;
-        // (Root as TNVModuleContainer).Designer := TCustomForm(Root.Owner).Designer;
-        FComponentContainer := _ComponentContainer; }
-
+      if Application.RootPath.IsEmpty or Not FileExists(Application.RootPath + 'netvcl\js\nv.classes.js') then
+        Application.RootPath := GetNVSourcesPath + '..\Demos\Dist\www\';
     end
   else
-
-    // DesignForm := TNvModuleDesigner.CreateEx(nil, Designer, ComponentContainer);
-
     begin
       DesignForm         := nil;
       ComponentContainer := nil;
@@ -328,11 +220,6 @@ begin
   Result := 1;
 end;
 
-// procedure TNVFormModule.HandleNvApplicationMessages(Sender: TObject;
-// var Done: Boolean);
-// begin
-// THackApplication(Application).HandleMessage;
-// end;
 
 procedure TNVFormModule.ValidateComponent(Component: TComponent);
 begin
@@ -377,97 +264,29 @@ begin
   inherited;
 end;
 
-{ TNVFrameModule }
-//
-// procedure TNVFrameModule.CreateDesignerForm(const Designer: IDesigner;
-// Root: TComponent; out DesignForm: IHostForm;
-// out ComponentContainer: TWinControl);
-// begin
-// if Assigned(CreateDesignerFormProc) then
-// begin
-// CreateDesignerFormProc(Self, Designer, Root, DesignForm, ComponentContainer);
-// ComponentContainer := TNvDesignPanel.Create(nil, (Root as TNVBaseFrame).   as TNVBasepage);
-// with ComponentContainer as TNvDesignPanel do
-// begin
-// Left        := 0;
-// Top         := 0;
-// Width       := 605;
-// Height      := 418;
-// Align       := alClient;
-// BevelInner  := bvLowered;
-// BevelOuter  := bvNone;
-// BorderStyle := bsNone;
-// TabOrder    := 0;
-// Parent      := DesignForm.GetForm as TWinControl;
-// end;
-// THackComponent(ComponentContainer).SetDesigning(True);
-// ComponentContainer.Show;
-// (Root as TNVModuleContainer).Parent := ComponentContainer;
-// //  (Root as TNVModuleContainer).Designer := TCustomForm(Root.Owner).Designer;
-// FComponentContainer                 := ComponentContainer;
-//
-// end
-// else
-//
-// // DesignForm := TNvModuleDesigner.CreateEx(nil, Designer, ComponentContainer);
-//
-// begin
-// DesignForm         := nil;
-// ComponentContainer := nil;
-// end;
-// end;
-//
-// procedure TNVFrameModule.CreateDesignerForm(const Designer: IDesigner;
-// Root: TComponent; out DesignForm: TCustomForm;
-// out ComponentContainer: TWinControl);
-// begin
-// DesignForm := TNvFrameDesigner.CreateEx(nil, Designer, ComponentContainer);
-// (Root as TNVBaseFrame).Parent := ComponentContainer;
-// FComponentContainer := ComponentContainer;
-// end;
-
-// procedure TNVFrameModule.ExecuteVerb(Index: Integer);
-// begin
-// if Index = 0 then
-// (FComponentContainer as TNvDesignPanel).ShowDevTools;
-// end;
-
-// function TNVFrameModule.GetVerb(Index: Integer): string;
-// begin
-// if Index = 0 then
-// Result := 'Show Dev Tools';
-// end;
-
-// function TNVFrameModule.GetVerbCount: Integer;
-// begin
-//
-// end;
-
-// procedure TNVFrameModule.ValidateComponent(Component: TComponent);
-// begin
-// inherited;
-//
-// end;
-//
-// function TNVFrameModule.ValidateComponentClass(
-// ComponentClass: TComponentClass): Boolean;
-// begin
-//
-// end;
 
 { TNVDesignerHook }
 
-constructor TNVDesignerHook.Create(aDesigner: IDesigner; aPage: TNVBasepage);
+constructor TNVDesignerHook.Create(aDesigner: IDesigner);
 begin
   inherited Create;
   FDesigner := aDesigner;
-  FPage     := aPage;
-end;
+  THackApplication(Application).FDesignInstance := True;
+  THackApplication(Application).FRunning        := True;
+  FPage := Screen.Page;
+ end;
 
 function TNVDesignerHook.CreateComponent(ComponentClass: TComponentClass; Parent: TComponent;
   Left, Top, Width, Height: Integer): TComponent;
 begin
   Result := FDesigner.CreateComponent(ComponentClass, Parent, Left, Top, Width, Height);
+end;
+
+destructor TNVDesignerHook.Destroy;
+begin
+    FDesigner := nil;
+    FPage     := nil;
+  inherited;
 end;
 
 procedure TNVDesignerHook.Edit(const Component: TComponent);
@@ -495,6 +314,12 @@ begin
   Result := FPage;
 end;
 
+procedure TNVDesignerHook.ResetDesignPage;
+begin
+  THackPage(FPage as TNvPage).FControlsOrdered.Clear;
+  THackPage(FPage as TNvPage).FControlsOrdered.Add(FDesigner.Root);
+end;
+
 procedure TNVDesignerHook.SelectComponent(Instance: TPersistent);
 begin
   FDesigner.SelectComponent(Instance);
@@ -504,5 +329,90 @@ function TNVDesignerHook.UniqueName(const BaseName: string): string;
 begin
   Result := FDesigner.UniqueName(BaseName);
 end;
+
+{ TNvDesignNotifier }
+
+procedure TNvDesignNotifier.DesignerClosed(const aDesigner: IDesigner; AGoingDormant: Boolean);
+begin
+  if Not(aDesigner.Root is TNVBaseFrame) then
+    Exit;
+
+  if not AGoingDormant then
+    begin
+      Screen.Close;
+      // Free DesignerHook by nil interface reference
+      TNVBaseFrame(aDesigner.Root).Designer := nil;
+    end;
+end;
+
+procedure TNvDesignNotifier.DesignerOpened(const aDesigner: IDesigner; AResurrecting: Boolean);
+var
+  _DesignerHook: TNVDesignerHook;
+
+begin
+  if Not(aDesigner.Root is TNVBaseFrame) then
+    Exit;
+
+  // If AResurrecting is True, then this designer
+  // has previously gone dormant and its design root is now being recreated.
+  if not AResurrecting //
+  //package reload
+  or (TNVBaseFrame(aDesigner.Root).Designer = nil) then
+    begin
+      _DesignerHook                         := TNVDesignerHook.Create(aDesigner);
+      TNVBaseFrame(aDesigner.Root).Designer := _DesignerHook;
+      Screen.ShowDesign(TNVBaseFrame(aDesigner.Root).Parent);
+    end
+  else
+    begin
+      _DesignerHook := TNVBaseFrame(aDesigner.Root).Designer as TNVDesignerHook;
+    end;
+
+  _DesignerHook.ResetDesignPage;
+
+  TNVBaseFrame(aDesigner.Root).Show;
+
+end;
+
+procedure TNvDesignNotifier.ItemDeleted(const aDesigner: IDesigner; AItem: TPersistent);
+begin
+
+end;
+
+procedure TNvDesignNotifier.ItemInserted(const aDesigner: IDesigner; AItem: TPersistent);
+begin
+
+end;
+
+procedure TNvDesignNotifier.ItemsModified(const aDesigner: IDesigner);
+begin
+
+end;
+
+procedure TNvDesignNotifier.SelectionChanged(const aDesigner: IDesigner;
+  const ASelection: IDesignerSelections);
+begin
+  { TODO -oDelcio -cDesigner : Change this behavior to IOTAEditorNotifier.ViewActivated }
+  // https://www.gexperts.org/open-tools-api-faq/
+  // http://www.davidghoyle.co.uk/WordPress/?p=1272
+  // https://github.com/Embarcadero/OTAPI-Docs/blob/main/wiki/IOTAEditorNotifier.md
+  if (aDesigner <> nil) and (aDesigner.Root is TNVModuleContainer) and (aDesigner.Root <> FlastRoot) then
+    begin
+      FlastRoot := TNVModuleContainer(aDesigner.Root);
+      DesignerClosed(aDesigner, False);
+      DesignerOpened(aDesigner, False);
+    end;
+end;
+
+initialization
+
+NVDesignNotifier := TNVDesignNotifier.Create;
+RegisterDesignNotification(NVDesignNotifier);
+
+finalization
+
+if NVDesignNotifier <> nil then
+  UnRegisterDesignNotification(NVDesignNotifier);
+NVDesignNotifier := nil;
 
 end.

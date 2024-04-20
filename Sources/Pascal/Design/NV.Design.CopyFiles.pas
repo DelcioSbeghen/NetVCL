@@ -11,10 +11,10 @@ unit NV.Design.CopyFiles;
   ToFolder:    The path to the folder to receiver the files
   Mask: A file mask to cntol which files are selected ('*.* = All files)
   DupFileOpts:  Four options are available when the file already exists:
-  1  ==> skip the file
-  2   ==> always copy the file
-  3   ==> copy the file if it is newer than the exitising copy
-  4   ==> ask the user what actoion to take
+  1   ==> replace
+  2   ==> replace if newer
+  3   ==> ask the user what actoion to take
+  4   ==> ask if the file is newer than the exitising copy else ignore
   CopyFirstFolderRecord: The original FromFolder record will be the
   first record in the  output path.
   CopySubFolders: Files in subfolders of the specified input folder will also be
@@ -116,7 +116,7 @@ begin
     fromfolderIn,            //
     tofolderIn,              //
     mask,                    //
-    3,                       // only New
+    4,                       // ask only if New
     False,                   // report only
     true,                    // Subfolders
     False,                   // CopyRoot
@@ -361,20 +361,26 @@ begin
                                         inc(DupsOverWritten);
                                       end;
                                   end;
-                                3: { ask }
+                                3,{ ask }
+                                4: { ask for new}
                                   begin
                                     if (not Notoall) and (Not yesToAll) then
                                       begin
                                         todate   := FileTimeToDateTime(ToLastWriteTime);
                                         fromdate := FileTimeToDateTime(FromlastWriteTime);
-                                        mr       := messagedlg('Replace ' + toname + ' created ' +
-                                          DateTimeToStr(todate)
-                                          // +formatdatetime(FormatSettings. +' '+shorttimeformat,todate)
-                                          + #13 + 'with ' + fromname + ' created ' +
-                                          DateTimeToStr(fromdate),
-                                          // +FORMATDATETIME(SHORTDATEFORMAT +' '+SHORTTIMEFORMAT,FROMDATE),
-                                          mtconfirmation, [mbyes, mbyestoall, mbno, mbnotoall,
-                                          mbcancel], 0);
+                                        if (dupfileopts = 3)  //
+                                        or ((dupfileopts = 4) and (fromdate > todate)) then
+                                          mr       := messagedlg('Replace ' + toname + ' created ' +
+                                            DateTimeToStr(todate)
+                                            // +formatdatetime(FormatSettings. +' '+shorttimeformat,todate)
+                                            + #13 + 'with ' + fromname + ' created ' +
+                                            DateTimeToStr(fromdate),
+                                            // +FORMATDATETIME(SHORTDATEFORMAT +' '+SHORTTIMEFORMAT,FROMDATE),
+                                            mtconfirmation, [mbyes, mbyestoall, mbno, mbnotoall,
+                                            mbcancel], 0)
+                                        else
+                                          mr := mrNo;
+
                                         if mr = mryestoall then
                                           yesToAll := true
                                         else if mr = mrNotoall then
@@ -395,6 +401,7 @@ begin
                                           result := False
                                       end;
                                   end;
+
                               end; { case }
                             end
                         end { fileexists }

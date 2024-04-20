@@ -1,22 +1,13 @@
 import { TSubProperty } from "./nv.classes.js";
 
 export class TFont extends TSubProperty{
-    constructor(o) {
-        super();
-        this._CreateParams(o);
-    }
 
     _CreateParams(o) {
+        super._CreateParams(o);
         this.FColor = '';
         this.FName = '';
         this.FSize = '';
         this.FStyle = [];
-        if (o) {
-            this.Color = o.Color || '';
-            this.Name = o.Name || '';
-            this.Size = o.Size || '';
-            this.Style = o.Style || [];
-        }
     }
 
     _DoChange(prop, v) {

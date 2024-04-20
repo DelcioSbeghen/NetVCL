@@ -12,6 +12,7 @@ export class TNvBsCustomImput extends TNvBsGridControl {
         this.FLabel = $(document.createElement("label"))
             .attr("for", this.FId + "_i")
             .appendTo(this.FEl);
+        this.AddClass("form-group");    
         this.FMaxLength = 0;
         this.FReadOnly = false;
         this.FValue = "";
@@ -76,6 +77,7 @@ export class TNvBsCustomImput extends TNvBsGridControl {
     }
 }
 
+
 export class TNvBsInput extends TNvBsCustomImput {
 
     _CreateParams(o) {
@@ -84,7 +86,6 @@ export class TNvBsInput extends TNvBsCustomImput {
         this.FPlaceholder = '';
         //this.Placeholder = o.Placeholder || '';
         this.FInput.appendTo(this.FEl);
-        this.AddClass("form-group");
     }
 
     get Placeholder() { return this.FPlaceholder }
@@ -106,7 +107,6 @@ export class TNvBsSelect extends TNvBsCustomImput {
         //this.FPlaceholder = '';
         //this.Placeholder = o.Placeholder || '';
         this.FInput.appendTo(this.FEl);
-        this.AddClass("form-group");
         this.FInput.html("<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>");
     }
 }
@@ -121,7 +121,6 @@ export class TNvBsMemo extends TNvBsCustomImput {
         //this.FPlaceholder = '';
         //this.Placeholder = o.Placeholder || '';
         this.FInput.appendTo(this.FEl);
-        this.AddClass("form-group");
         //this.FInput.html("<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>");
     }
 }
@@ -134,7 +133,6 @@ export class TNvBsRange extends TNvBsCustomImput {
         //this.FPlaceholder = '';
         //this.Placeholder = o.Placeholder || '';
         this.FInput.appendTo(this.FEl);
-        this.AddClass("form-group");
         //this.FInput.html("<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>");
     }
 }
@@ -146,7 +144,6 @@ export class TNvBsCheckbox extends TNvBsCustomImput {
         //this.FPlaceholder = '';
         //this.Placeholder = o.Placeholder || '';
         this.FInput.appendTo(this.FEl);
-        this.AddClass("form-group");
         //this.FInput.html("<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>");
     }
 }
@@ -217,7 +214,6 @@ export class TNvBsRadioItem extends TSubProperty {
 export class TNvBsRadioGroup extends TNvBsGridControl {
     _CreateParams(o) {
         super._CreateParams(o);
-        this.AddClass("form-group");
         this.FLabel = $(document.createElement("label"))
             .attr("for", this.FId)
             .appendTo(this.FEl);

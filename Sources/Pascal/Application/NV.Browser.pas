@@ -8,13 +8,13 @@ uses
 type
 
   TProcObjecCallback  = procedure of object;
-  TNvSendDataCallback = procedure(const Value: string) of object;
+  TNvSendDataCallback = procedure(const Value: PChar) of object;
 
   // Dont change this struct
   TNvResourceRequest = record
-    Url: string;
+    Url: PChar;
     ResourceType: Word;
-    PostData: string;
+    PostData: PChar;
   end;
 
   // Dont change this struct
@@ -31,17 +31,14 @@ type
 
   TNVBrowser = class(TComponent)
   private
-    FBrowser      : Integer;
     FParent       : TControl;
     FHookedWndProc: TWndMethod;
   protected
-    FPage: TNvPage;
+    FBrowser: Integer;
     procedure NvWndProc(var Message: TMessage);
     procedure UpdateParent;
-    function DoResssourceRequest(Request: TNvResourceRequest;
-      var Response: TNvResourceResponse): Boolean;
-    procedure LoadInitialPage(var Response: TNvResourceResponse);
-    procedure LoadNetVclFiles(Url: string; var Response: TNvResourceResponse);
+    function DoResssourceRequest(Request: TNvResourceRequest; var Response: TNvResourceResponse)
+      : Boolean; virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -63,9 +60,7 @@ procedure UnLoadDll;
 implementation
 
 uses
-  Forms, SysUtils, Dialogs, VCL.ComCtrls, System.Win.Registry, NV.Request.Exe, StrUtils,
-  NV.Dispatcher,
-  NV.Utils, NV.VCL.Forms;
+  Forms, SysUtils, VCL.ComCtrls, NV.Utils, NV.VCL.Forms {keep NV.VCL.Forms last};
 
 type
 
@@ -85,9 +80,10 @@ type
   TExecute_Javascript        = procedure(Browser: Integer; const Script: PChar); stdcall;
   TLoad_Html                 = procedure(Browser: Integer; Html: PChar); stdcall;
   TClose_BrowserProc         = procedure(Browser: Integer); stdcall;
-  TInitialize_CEF4DelphiProc = procedure(DisableSecurity: Boolean = False); stdcall;
-  TFinalize_CEF4Delphi       = procedure; stdcall;
-  TShow_DevTools             = procedure(Browser: Integer; MousePoint: TPoint); stdcall;
+  TInitialize_CEF4DelphiProc = procedure(DisableSecurity: Boolean = False;
+    RemoteDebuggerPort: Integer = 0); stdcall;
+  TFinalize_CEF4Delphi = procedure; stdcall;
+  TShow_DevTools       = procedure(Browser: Integer; MousePoint: TPoint); stdcall;
 
 var
   hDll                 : THandle = 0;
@@ -154,8 +150,10 @@ begin
       FParent.WindowProc := FHookedWndProc;
       FHookedWndProc     := nil;
       FParent            := nil;
+      // {Browser}SetParent(nil);
     end;
-  if FBrowser > 0 then
+
+  if (FBrowser > 0) and (hDll <> 0) then
     Close_Browser(FBrowser);
   FBrowser := 0;
 end;
@@ -168,16 +166,22 @@ end;
 constructor TNVBrowser.Create(AOwner: TComponent);
 begin
   inherited;
-  FPage := TNvPage.Create(Self);
 end;
 
 procedure TNVBrowser.CreateNormalBrowser(Callback: TNvSendDataCallback);
+var
+  _DebugPort: Integer;
 begin
+  if DebugHook <> 0 then
+    _DebugPort := 9555
+  else
+    _DebugPort := 0;
 
   if hDll < 32 then
     begin
       LoadDll;
-      Initialize_CEF4Delphi;
+      { TODO -oDelcio -cSECURITY : Enable Security in CEF(cors) }
+      Initialize_CEF4Delphi(True, _DebugPort);
     end;
 
   FBrowser := Create_Normal_Browser(Callback, DoResssourceRequest);
@@ -194,12 +198,19 @@ begin
 end;
 
 procedure TNVBrowser.CreateScreenBrowser(Callback: TNvSendDataCallback);
+var
+  _DebugPort: Integer;
 begin
+  if DebugHook <> 0 then
+    _DebugPort := 9555
+  else
+    _DebugPort := 0;
 
   if hDll < 32 then
     begin
       LoadDll;
-      Initialize_CEF4Delphi;
+      { TODO -oDelcio -cSECURITY : Enable Security in CEF(cors) }
+      Initialize_CEF4Delphi(True, _DebugPort);
     end;
 
   FBrowser := Create_Screen_Browser(Callback, DoResssourceRequest);
@@ -220,79 +231,26 @@ begin
   inherited;
 end;
 
-function TNVBrowser.DoResssourceRequest(Request: TNvResourceRequest;
-  var Response: TNvResourceResponse): Boolean;
-begin
-  Response.Status := 404;
-
-  if Request.Url = Application.UrlBase then
-    LoadInitialPage(Response)
-  else if StartsText(Application.UrlBase, Request.Url) then
-    LoadNetVclFiles(Request.Url, Response);
-
-  Result := Response.Status <> 404;
-end;
-
 procedure TNVBrowser.ExecuteJs(const Script: string);
 var
   _Script: string;
 begin
+  if (DebugHook <> 0) and (Not Screen.Active) then
+    asm int 3
+    end;
+
   _Script := Copy(Script, 1, Script.Length);
   Execute_Javascript(FBrowser, PChar(_Script));
 end;
 
 procedure TNVBrowser.LoadHtml(Html: string);
 begin
-  Load_Html(FBrowser, PWideChar(Html));
-end;
-
-procedure TNVBrowser.LoadInitialPage(var Response: TNvResourceResponse);
-var
-  _Task: TNVExeRequestTask;
-begin
-  _Task := TNVExeRequestTask.Create;
-  try
-    FPage.Dispatcher.Execute(_Task);
-
-    Response.DataOut  := Integer(Pointer(_Task.Resp.Text));
-    Response.DataSize := Length(_Task.Resp.Text);
-    Response.MimeType := 'text/html';
-    Response.Status   := 200;
-
-  finally
-    _Task.Free;
-  end;
-
-end;
-
-procedure TNVBrowser.LoadNetVclFiles(Url: string; var Response: TNvResourceResponse);
-var
-  _Task: TNVExeRequestTask;
-  _Disp: TDispatchDirFiles;
-begin
-  _Task := TNVExeRequestTask.Create;
-  _Disp := TDispatchDirFiles.Create;
-  try
-
-    (_Task.Req as TNvExeRequest).Initialize(Url);
-
-    _Disp.AllowedFlag := afBeginBy;
-    _Disp.Execute(_Task);
-
-    Response.DataOut  := Integer(Pointer(_Task.Resp.Text));
-    Response.DataSize := Length(_Task.Resp.Text);
-    Response.MimeType := _Task.Resp.CustomHeaderValue['Content-Type'];
-    Response.Status   := _Task.Resp.ResponseNo;
-
-  finally
-    _Task.Free;
-    _Disp.Free;
-  end;
+  Load_Html(FBrowser, PChar(Html));
 end;
 
 procedure TNVBrowser.LoadUrl(Url: string);
 begin
-  Load_Url(FBrowser, PWideChar(Url));
+  Load_Url(FBrowser, PChar(Url));
 end;
 
 procedure TNVBrowser.NvWndProc(var Message: TMessage);
@@ -347,18 +305,22 @@ end;
 
 procedure TNVBrowser.ShowDesignBrowser(aParent: TControl; Callback: TNvSendDataCallback);
 begin
-  FParent := aParent;
 
   if hDll < 32 then
     begin
       LoadDll;
-      Initialize_CEF4Delphi;
+      { TODO -oDelcio -cSECURITY : Enable Security in CEF(cors) }
+      Initialize_CEF4Delphi(True);
     end;
+
+  if FBrowser <> 0 then
+    CloseBrowser;
 
   FBrowser := Create_Design_Browser(aParent.Invalidate, DoResssourceRequest);
 
   if FBrowser <> 0 then
     begin
+      FParent            := aParent;
       FHookedWndProc     := FParent.WindowProc;
       FParent.WindowProc := NvWndProc;
     end;
@@ -386,7 +348,7 @@ initialization
 
 finalization
 
-if hDll > 32 then
+if (hDll > 32) and not(ExtractFilename(paramstr(0)).ToUpper = 'BDS.EXE') then
   UnLoadDll;
 
 end.
