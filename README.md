@@ -1,9 +1,10 @@
 # NetVCL
 Framework Visual Para Desenvolvimento Web No Delphi e Lazarus.
 
-O Framework já está completamente funcional com todos os componentes do Bootstrap, componentes de Gráficos e muitos outros. 
-Porém estou aplicando um refatoramento e adicionando novas funcionalidades, como a possibilidade de carregar WebApps dinamicamente por BPLs.
 
-Estou refatorando e subindo aos poucos, conforme me sobra tempo :(, então a versão deste repositório não está funcional ainda.
+## Este repositório está desatualizado e a versão que está aqui não está completa e funcional. ##
+19/04/2024: Estou aplicando um refatoramento e adicionando novas funcionalidades.
+Em alguns dias enviarei o código atualizado.
+
 Em breve novidades.
 
