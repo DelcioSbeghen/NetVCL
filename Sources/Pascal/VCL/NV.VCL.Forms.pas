@@ -3,8 +3,7 @@ unit NV.VCL.Forms;
 interface
 
 uses
-  Classes, Windows, Messages, SysUtils, Controls, NV.VCL.Frame, NV.Browser,
-  System.Generics.Collections,
+  Classes, Windows, Messages, SysUtils, Controls, NV.VCL.Frame, System.Generics.Collections,
   NV.Ajax, NV.VCL.Page;
 
 const
@@ -25,7 +24,7 @@ type
     Data: string;
   end;
 
-  TNvScreen = class(TNVBrowser)
+  TNvScreen = class(TComponent)
   private
     FPage        : TNvPage;
     FDataId      : Integer;
@@ -35,11 +34,8 @@ type
     FDataModules : TList;
     FFrames      : Tlist;
   protected
+    FUrlBase: string;
     // Browser requests
-    function DoResssourceRequest(Request: TNvResourceRequest; var Response: TNvResourceResponse)
-      : Boolean; override;
-    procedure LoadInitialPage(var Response: TNvResourceResponse);
-    procedure LoadNetVclFiles(Url: string; var Response: TNvResourceResponse);
     procedure DataReceived(const Data: PChar);
     procedure MsgDataReceived(var Msg: TMessage);
   public
@@ -57,12 +53,11 @@ type
     function Forms(Index: Integer): TNVForm;
     function Frames(Index: Integer): TNVBaseFrame;
     function DataModules(Index: Integer): TDataModule;
-    procedure Show;
-    procedure ShowDesign(aParent: TObject);
-    procedure Close;
-    procedure UpdateScreen(Updates: string);
+    procedure Show; virtual; abstract;
+    procedure Close; virtual;
+    procedure UpdateScreen(Updates: string); virtual; abstract;
     function Ajax: TNvAjax; inline;
-    function Active: Boolean;
+    function Active: Boolean; virtual;
     property Page: TNVPage read FPage;
   end;
 
@@ -90,7 +85,7 @@ type
   private
     FTerminate     : Boolean;
     FRootPath      : string;
-    FUrlBase       : string;
+   // FUrlBase       : string;
     FHandleCreated : Boolean;
     FObjectInstance: Pointer;
     FTitle         : string;
@@ -126,9 +121,10 @@ type
     function ExeName: string;
     procedure Run; virtual;
     procedure Terminate;
+    function UrlBase:string; inline;
     property CssFile: string read FCssFile write SetCssFile;
     property Terminated: Boolean read FTerminate;
-    property UrlBase: string read FUrlBase;
+   // property UrlBase: string read FUrlBase;
     property RootPath: string read GetRootPath write FRootPath;
     property Running: Boolean read FRunning;
     property MainForm: TNVForm read FMainForm;
@@ -137,13 +133,14 @@ type
   end;
 
 var
-  Application: TNvApplication = nil;
-  Screen     : TNvScreen      = nil;
+  Application   : TNvApplication = nil;
+  Screen        : TNvScreen      = nil;
+  InitScreenProc: procedure      = nil;
 
 implementation
 
 uses StrUtils, RTLConsts, Consts, NV.JSON, Rtti, NV.VCL.Dialogs,
-  NV.Request.Exe, NV.Dispatcher;
+  NV.Request.Exe;
 
 var
   WindowClass: TWndClass = (style: 0; lpfnWndProc: @DefWindowProc; cbClsExtra: 0; cbWndExtra: 0;
@@ -169,7 +166,7 @@ begin
   FTitle := ModuleName;
   if not IsLibrary then
     CreateHandle;
-  FUrlBase := 'nvlocal://screen/';
+//  FUrlBase := Screen.FUrlBase;
 end;
 
 procedure TNvApplication.CreateForm(InstanceClass: TComponentClass;
@@ -523,10 +520,10 @@ begin
   { TODO -oDelcio -cDesign : Show Design exceptions }
   if not FDesignInstance then
     TThread.Synchronize(nil,
-    procedure
-    begin
-    NV.VCL.Dialogs.ShowMessage(Msg, FTitle, TMsgDlgType.mtError);
-    end);
+      procedure
+      begin
+        NV.VCL.Dialogs.ShowMessage(Msg, FTitle, TMsgDlgType.mtError);
+      end);
 end;
 
 procedure TNvApplication.ShowMessage(aMsg: string);
@@ -538,6 +535,11 @@ procedure TNvApplication.Terminate;
 begin
   if CallTerminateProcs then
     PostQuitMessage(0);
+end;
+
+function TNvApplication.UrlBase: string;
+begin
+  Result:= Screen.FUrlBase;
 end;
 
 procedure TNvApplication.WndProc(var Message: TMessage);
@@ -768,7 +770,7 @@ end;
 
 function TNvScreen.Active: Boolean;
 begin
-  Result := (FBrowser <> 0) and FActive;
+  Result := FActive;
 end;
 
 procedure TNvScreen.AddDataModule(DataModule: TDataModule);
@@ -795,7 +797,6 @@ procedure TNvScreen.Close;
 begin
   FActive := False;
   Ajax.Json.Clear;
-  CloseBrowser;
 end;
 
 constructor TNvScreen.Create(AOwner: TComponent);
@@ -851,28 +852,6 @@ begin
   inherited;
 end;
 
-function TNvScreen.DoResssourceRequest(Request: TNvResourceRequest;
-  var Response: TNvResourceResponse): Boolean;
-var
-  _Response: ^TNvResourceResponse;
-begin
-  Response.Status := 404;
-
-  // To anonymous Method capture variable
-  _Response := @Response;
-
-  TThread.Synchronize(nil,
-    procedure
-    begin
-      if Request.Url = Application.UrlBase then
-        LoadInitialPage(_Response^)
-      else if StartsText(Application.UrlBase, Request.Url) then
-        LoadNetVclFiles(Request.Url, _Response^);
-    end);
-
-  Result := Response.Status <> 404;
-end;
-
 function TNvScreen.FormCount: Integer;
 begin
   Result := FForms.Count;
@@ -891,50 +870,6 @@ end;
 function TNvScreen.Frames(Index: Integer): TNVBaseFrame;
 begin
   Result := TNVBaseFrame(FFrames[Index]);
-end;
-
-procedure TNvScreen.LoadInitialPage(var Response: TNvResourceResponse);
-var
-  _Task: TNVExeRequestTask;
-begin
-  _Task := TNVExeRequestTask.Create;
-  try
-    FPage.Dispatcher.Execute(_Task);
-
-    Response.DataOut  := Integer(Pointer(_Task.Resp.Text));
-    Response.DataSize := Length(_Task.Resp.Text);
-    Response.MimeType := 'text/html';
-    Response.Status   := 200;
-
-  finally
-    _Task.Free;
-  end;
-end;
-
-procedure TNvScreen.LoadNetVclFiles(Url: string; var Response: TNvResourceResponse);
-var
-  _Task: TNVExeRequestTask;
-  _Disp: TDispatchDirFiles;
-begin
-  _Task := TNVExeRequestTask.Create;
-  _Disp := TDispatchDirFiles.Create;
-  try
-
-    (_Task.Req as TNvExeRequest).Initialize(Url);
-
-    _Disp.AllowedFlag := afBeginBy;
-    _Disp.Execute(_Task);
-
-    Response.DataOut  := Integer(Pointer(_Task.Resp.Text));
-    Response.DataSize := Length(_Task.Resp.Text);
-    Response.MimeType := PChar(_Task.Resp.CustomHeaderValue['Content-Type']);
-    Response.Status   := _Task.Resp.ResponseNo;
-
-  finally
-    _Task.Free;
-    _Disp.Free;
-  end;
-
 end;
 
 procedure TNvScreen.MsgDataReceived(var Msg: TMessage);
@@ -974,30 +909,6 @@ end;
 procedure TNvScreen.RemoveFrame(AFrame: TNVBaseFrame);
 begin
   FFrames.Remove(AFrame);
-end;
-
-procedure TNvScreen.Show;
-begin
-  CreateScreenBrowser(DataReceived);
-  LoadUrl(Application.UrlBase);
-  // FActive := True;
-end;
-
-procedure TNvScreen.ShowDesign(aParent: TObject);
-begin
-  ShowDesignBrowser(aParent as TWinControl, DataReceived);
-  LoadUrl(Application.UrlBase);
-  // FActive := True;
-end;
-
-procedure TNvScreen.UpdateScreen(Updates: string);
-begin
-
-  ExecuteJs(           //
-    'App.ParseJson(' + //
-    Updates            //
-    + ');'             //
-    );
 end;
 
 { TNVForm }

@@ -36,7 +36,7 @@ type
 implementation
 
 uses
-  NV.Design.IOTAUtils, SysUtils, NV.Design.CopyFiles, NV.VCL.Forms, NV.Browser, VCL.Dialogs;
+  NV.Design.IOTAUtils, SysUtils, NV.Design.CopyFiles, VCL.Dialogs, NV.VCL.Forms, NV.Desktop;
 
 var
   FIDENotifier: Integer;
@@ -79,8 +79,8 @@ Begin
   if ExtractFileName(Project.ProjectOptions.TargetName) = 'NetVCLDesign.bpl' then
     begin
       ShowMessage(Project.ProjectOptions.TargetName);
-      Screen.CloseBrowser;
-      UnloadDll;
+      (Screen as TNVScreenBrowser).CloseBrowser;
+      NV.Desktop.UnloadDll;
     end;
 End;
 

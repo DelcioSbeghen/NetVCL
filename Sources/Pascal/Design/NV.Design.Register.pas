@@ -78,8 +78,8 @@ type
     procedure ValidateComponent(Component: TComponent); override;
   end;
 
-//var
- // RootPath: string = '';
+  // var
+  // RootPath: string = '';
 
 procedure Register;
 
@@ -92,7 +92,7 @@ uses
   NV.Design.FrameWizard, NV.VCL.Frame, NV.VCL.Images, NV.VCL.Dashboards,
   ExtCtrls, System.Threading, NV.Design.ImagelistEditor,
   NV.Design.IOTAUtils, NV.VCL.Charts, NV.JSON, NV.Design.JsonArrayEditor,
-  NV.Browser,
+  NV.Desktop,
   NV.Design.ImageIndexEditor, NV.VCL.ActnList, NV.Design.ActionEditor;
 
 const
@@ -127,23 +127,24 @@ begin
   // RegisterPackageWizard(TDWDataModuleWizard.Create);
 
   // Components
-  RegisterComponents(PALLETE_PAGE, [TNvSvgImageList, TNvChart, TNvActionList, TNvDashboard, TNvDashbdItem]);
+  RegisterComponents(PALLETE_PAGE, [TNvSvgImageList, TNvChart, TNvActionList, TNvDashboard,
+    TNvDashbdItem]);
   RegisterClasses([TNvAction, TNVDashBreakPoints, TNvBreakPoint]);
 
   RegisterComponentEditor(TNvActionList, TNvActionListEditor);
   RegisterComponentEditor(TNvSvgImageList, TNvSvgImageListEditor);
   RegisterPropertyEditor(TypeInfo(Integer), TNVImageListLink, 'ImageIndex', TNvImageIndexEditor);
   RegisterPropertyEditor(TypeInfo(TJsonArray), nil, '', TNvJsonArrayEditor);
-   RegisterPropertyEditor(TypeInfo(TBasicAction), TNvControl, 'Action', TNvActionProperty);
-   RegisterPropertyEditor(TypeInfo(TBasicAction), TNvWinControl, 'Action', TNvActionProperty);
-  RegisterActions('', [TNvAction{, FMX.Controls.TControlAction, FMX.StdActns.TValueRangeAction}], nil);
-
+  RegisterPropertyEditor(TypeInfo(TBasicAction), TNvControl, 'Action', TNvActionProperty);
+  RegisterPropertyEditor(TypeInfo(TBasicAction), TNvWinControl, 'Action', TNvActionProperty);
+  RegisterActions('',
+    [TNvAction { , FMX.Controls.TControlAction, FMX.StdActns.TValueRangeAction } ], nil);
 
 end;
 
 type
 
-  //THackScreen      = class(TNvScreen);
+  // THackScreen      = class(TNvScreen);
   THackApplication = class(TNvApplication);
 
   THackPage      = class(TNVPage);
@@ -178,11 +179,12 @@ begin
 
       FComponentContainer := ComponentContainer;
 
-      FModule  := Root as TNVModuleContainer;
+      FModule := Root as TNVModuleContainer;
 
-      Application.RootPath:=    GetProjectOutputDir(GetActiveProject) + '\www\';
+      Application.RootPath := GetProjectOutputDir(GetActiveProject) + '\www\';
 
-      if Application.RootPath.IsEmpty or Not FileExists(Application.RootPath + 'netvcl\js\nv.classes.js') then
+      if Application.RootPath.IsEmpty or
+        Not FileExists(Application.RootPath + 'netvcl\js\nv.classes.js') then
         Application.RootPath := GetNVSourcesPath + '..\Demos\Dist\www\';
     end
   else
@@ -206,7 +208,7 @@ end;
 procedure TNVFormModule.ExecuteVerb(Index: Integer);
 begin
   if Index = 0 then
-    NV.VCL.Forms.Screen.ShowDevTools(Mouse.CursorPos);
+    (Screen as TNvScreenBrowser).ShowDevTools(Mouse.CursorPos);
 end;
 
 function TNVFormModule.GetVerb(Index: Integer): string;
@@ -219,7 +221,6 @@ function TNVFormModule.GetVerbCount: Integer;
 begin
   Result := 1;
 end;
-
 
 procedure TNVFormModule.ValidateComponent(Component: TComponent);
 begin
@@ -264,17 +265,16 @@ begin
   inherited;
 end;
 
-
 { TNVDesignerHook }
 
 constructor TNVDesignerHook.Create(aDesigner: IDesigner);
 begin
   inherited Create;
-  FDesigner := aDesigner;
+  FDesigner                                     := aDesigner;
   THackApplication(Application).FDesignInstance := True;
   THackApplication(Application).FRunning        := True;
-  FPage := Screen.Page;
- end;
+  FPage                                         := Screen.Page;
+end;
 
 function TNVDesignerHook.CreateComponent(ComponentClass: TComponentClass; Parent: TComponent;
   Left, Top, Width, Height: Integer): TComponent;
@@ -284,8 +284,8 @@ end;
 
 destructor TNVDesignerHook.Destroy;
 begin
-    FDesigner := nil;
-    FPage     := nil;
+  FDesigner := nil;
+  FPage     := nil;
   inherited;
 end;
 
@@ -356,12 +356,12 @@ begin
   // If AResurrecting is True, then this designer
   // has previously gone dormant and its design root is now being recreated.
   if not AResurrecting //
-  //package reload
-  or (TNVBaseFrame(aDesigner.Root).Designer = nil) then
+  // package reload
+    or (TNVBaseFrame(aDesigner.Root).Designer = nil) then
     begin
       _DesignerHook                         := TNVDesignerHook.Create(aDesigner);
       TNVBaseFrame(aDesigner.Root).Designer := _DesignerHook;
-      Screen.ShowDesign(TNVBaseFrame(aDesigner.Root).Parent);
+      (Screen as TNvScreenBrowser).ShowDesign(TNVBaseFrame(aDesigner.Root).Parent);
     end
   else
     begin
@@ -396,7 +396,8 @@ begin
   // https://www.gexperts.org/open-tools-api-faq/
   // http://www.davidghoyle.co.uk/WordPress/?p=1272
   // https://github.com/Embarcadero/OTAPI-Docs/blob/main/wiki/IOTAEditorNotifier.md
-  if (aDesigner <> nil) and (aDesigner.Root is TNVModuleContainer) and (aDesigner.Root <> FlastRoot) then
+  if (aDesigner <> nil) and (aDesigner.Root is TNVModuleContainer) and (aDesigner.Root <> FlastRoot)
+  then
     begin
       FlastRoot := TNVModuleContainer(aDesigner.Root);
       DesignerClosed(aDesigner, False);

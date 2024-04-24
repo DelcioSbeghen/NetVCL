@@ -1,9 +1,10 @@
-unit NV.Browser;
+unit NV.Desktop;
 
 interface
 
 uses
-  Classes, Windows, Messages, Controls, NV.VCL.Page;
+  Classes, Windows, Messages, SysUtils, StrUtils, Forms {Keep forms before} , Controls, NV.VCL.Page,
+  NV.VCL.Forms {keep NV.VCL.Forms last};
 
 type
 
@@ -29,7 +30,7 @@ type
   TNvResourceCallback = function(Request: TNvResourceRequest; var Response: TNvResourceResponse)
     : Boolean of object;
 
-  TNVBrowser = class(TComponent)
+  TNVScreenBrowser = class(TNvScreen)
   private
     FParent       : TControl;
     FHookedWndProc: TWndMethod;
@@ -37,8 +38,11 @@ type
     FBrowser: Integer;
     procedure NvWndProc(var Message: TMessage);
     procedure UpdateParent;
+    // moved from screen
     function DoResssourceRequest(Request: TNvResourceRequest; var Response: TNvResourceResponse)
-      : Boolean; virtual; abstract;
+      : Boolean; virtual;
+    procedure LoadInitialPage(var Response: TNvResourceResponse);
+    procedure LoadNetVclFiles(Url: string; var Response: TNvResourceResponse);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -53,6 +57,12 @@ type
     procedure LoadUrl(Url: string);
     procedure LoadHtml(Html: string);
     procedure ExecuteJs(const Script: string);
+
+    function Active: Boolean; override;
+    procedure ShowDesign(aParent: TObject);
+    procedure Show; override;
+    procedure Close; override;
+    procedure UpdateScreen(Updates: string); override;
   end;
 
 procedure UnLoadDll;
@@ -60,7 +70,7 @@ procedure UnLoadDll;
 implementation
 
 uses
-  Forms, SysUtils, VCL.ComCtrls, NV.Utils, NV.VCL.Forms {keep NV.VCL.Forms last};
+  VCL.ComCtrls, NV.Utils, NV.Request.Exe, NV.Dispatcher;
 
 type
 
@@ -143,7 +153,18 @@ end;
 
 { TNVDesignBrowser }
 
-procedure TNVBrowser.CloseBrowser;
+function TNVScreenBrowser.Active: Boolean;
+begin
+  Result := (FBrowser <> 0) and inherited Active;
+end;
+
+procedure TNVScreenBrowser.Close;
+begin
+  inherited;
+  CloseBrowser;
+end;
+
+procedure TNVScreenBrowser.CloseBrowser;
 begin
   if Assigned(FParent) and Assigned(FHookedWndProc) then
     begin
@@ -158,17 +179,18 @@ begin
   FBrowser := 0;
 end;
 
-procedure TNVBrowser.CopyScreen(DC: HDC);
+procedure TNVScreenBrowser.CopyScreen(DC: HDC);
 begin
   Copy_Screen(FBrowser, DC);
 end;
 
-constructor TNVBrowser.Create(AOwner: TComponent);
+constructor TNVScreenBrowser.Create(AOwner: TComponent);
 begin
   inherited;
+  FUrlBase := 'nvlocal://screen/';
 end;
 
-procedure TNVBrowser.CreateNormalBrowser(Callback: TNvSendDataCallback);
+procedure TNVScreenBrowser.CreateNormalBrowser(Callback: TNvSendDataCallback);
 var
   _DebugPort: Integer;
 begin
@@ -197,7 +219,7 @@ begin
 
 end;
 
-procedure TNVBrowser.CreateScreenBrowser(Callback: TNvSendDataCallback);
+procedure TNVScreenBrowser.CreateScreenBrowser(Callback: TNvSendDataCallback);
 var
   _DebugPort: Integer;
 begin
@@ -224,14 +246,36 @@ begin
     // ResizeBrowser(aParent.Height, aParent.Width);
 end;
 
-destructor TNVBrowser.Destroy;
+destructor TNVScreenBrowser.Destroy;
 begin
   if FBrowser <> 0 then
     CloseBrowser;
   inherited;
 end;
 
-procedure TNVBrowser.ExecuteJs(const Script: string);
+function TNVScreenBrowser.DoResssourceRequest(Request: TNvResourceRequest;
+  var Response: TNvResourceResponse): Boolean;
+var
+  _Response: ^TNvResourceResponse;
+begin
+  Response.Status := 404;
+
+  // To anonymous Method capture variable
+  _Response := @Response;
+
+  TThread.Synchronize(nil,
+    procedure
+    begin
+      if Request.Url = Application.UrlBase then
+        LoadInitialPage(_Response^)
+      else if StartsText(Application.UrlBase, Request.Url) then
+        LoadNetVclFiles(Request.Url, _Response^);
+    end);
+
+  Result := Response.Status <> 404;
+end;
+
+procedure TNVScreenBrowser.ExecuteJs(const Script: string);
 var
   _Script: string;
 begin
@@ -243,17 +287,60 @@ begin
   Execute_Javascript(FBrowser, PChar(_Script));
 end;
 
-procedure TNVBrowser.LoadHtml(Html: string);
+procedure TNVScreenBrowser.LoadHtml(Html: string);
 begin
   Load_Html(FBrowser, PChar(Html));
 end;
 
-procedure TNVBrowser.LoadUrl(Url: string);
+procedure TNVScreenBrowser.LoadInitialPage(var Response: TNvResourceResponse);
+var
+  _Task: TNVExeRequestTask;
+begin
+  _Task := TNVExeRequestTask.Create;
+  try
+    Page.Dispatcher.Execute(_Task);
+
+    Response.DataOut  := Integer(Pointer(_Task.Resp.Text));
+    Response.DataSize := Length(_Task.Resp.Text);
+    Response.MimeType := 'text/html';
+    Response.Status   := 200;
+
+  finally
+    _Task.Free;
+  end;
+end;
+
+procedure TNVScreenBrowser.LoadNetVclFiles(Url: string; var Response: TNvResourceResponse);
+var
+  _Task: TNVExeRequestTask;
+  _Disp: TDispatchDirFiles;
+begin
+  _Task := TNVExeRequestTask.Create;
+  _Disp := TDispatchDirFiles.Create;
+  try
+
+    (_Task.Req as TNvExeRequest).Initialize(Url);
+
+    _Disp.AllowedFlag := afBeginBy;
+    _Disp.Execute(_Task);
+
+    Response.DataOut  := Integer(Pointer(_Task.Resp.Text));
+    Response.DataSize := Length(_Task.Resp.Text);
+    Response.MimeType := PChar(_Task.Resp.CustomHeaderValue['Content-Type']);
+    Response.Status   := _Task.Resp.ResponseNo;
+
+  finally
+    _Task.Free;
+    _Disp.Free;
+  end;
+end;
+
+procedure TNVScreenBrowser.LoadUrl(Url: string);
 begin
   Load_Url(FBrowser, PChar(Url));
 end;
 
-procedure TNVBrowser.NvWndProc(var Message: TMessage);
+procedure TNVScreenBrowser.NvWndProc(var Message: TMessage);
 var
   _ThisWndProc: TWndMethod;
 begin
@@ -293,17 +380,31 @@ begin
     FHookedWndProc(Message);
 end;
 
-procedure TNVBrowser.ResizeBrowser(Height, Width: Integer);
+procedure TNVScreenBrowser.ResizeBrowser(Height, Width: Integer);
 begin
   Resize_Browser(FBrowser, Height, Width);
 end;
 
-procedure TNVBrowser.SetParent(aParent: TWinControl);
+procedure TNVScreenBrowser.SetParent(aParent: TWinControl);
 begin
   Set_Parent(FBrowser, aParent.Handle);
 end;
 
-procedure TNVBrowser.ShowDesignBrowser(aParent: TControl; Callback: TNvSendDataCallback);
+procedure TNVScreenBrowser.Show;
+begin
+  CreateScreenBrowser(DataReceived);
+  LoadUrl(Application.UrlBase);
+  inherited;
+end;
+
+procedure TNVScreenBrowser.ShowDesign(aParent: TObject);
+begin
+  ShowDesignBrowser(aParent as TWinControl, DataReceived);
+  LoadUrl(Application.UrlBase);
+  // FActive := True;
+end;
+
+procedure TNVScreenBrowser.ShowDesignBrowser(aParent: TControl; Callback: TNvSendDataCallback);
 begin
 
   if hDll < 32 then
@@ -330,12 +431,12 @@ begin
   Set_SendData_Callback(FBrowser, Callback);
 end;
 
-procedure TNVBrowser.ShowDevTools(MousePoint: TPoint);
+procedure TNVScreenBrowser.ShowDevTools(MousePoint: TPoint);
 begin
   Show_DevTools(FBrowser, MousePoint);
 end;
 
-procedure TNVBrowser.UpdateParent;
+procedure TNVScreenBrowser.UpdateParent;
 begin
   if FParent is TWinControl then
     FParent.Perform(WM_PAINT, 0, 0)
@@ -344,7 +445,20 @@ begin
     FParent.Invalidate;
 end;
 
+procedure TNVScreenBrowser.UpdateScreen(Updates: string);
+begin
+  inherited;
+  ExecuteJs(           //
+    'App.ParseJson(' + //
+    Updates            //
+    + ');'             //
+    );
+end;
+
 initialization
+
+if not Assigned(Screen) then
+  Screen := TNVScreenBrowser.Create(nil);
 
 finalization
 

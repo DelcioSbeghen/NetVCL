@@ -2212,7 +2212,7 @@ procedure InitControls;
 begin
   ControlsList             := TObjectDictionary<string, INvControl>.Create;
   NV.VCL.Forms.Application := TNvApplication.Create(nil);
-  NV.VCL.Forms.Screen      := TNvScreen.Create(nil);
+  // NV.VCL.Forms.Screen      := TNvScreen.Create(nil); moved to Screen platform unit
 end;
 
 procedure DoneControls;

@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Graphics,
   Controls, Forms, Dialogs, DesignEditors, ExtCtrls, Vcl.Buttons, Vcl.ComCtrls, NV.Vcl.Images,
-  ImageList, ImgList, NV.Browser, DesignIntf;
+  ImageList, ImgList, NV.Desktop, DesignIntf;
 
 type
   TFrmImgListEditor = class(TForm)
@@ -34,7 +34,7 @@ type
   private
     ImgList      : TNvSvgImageList;
     SourceList   : TNvSvgImageList;
-    Browser      : TNvBrowser;
+    Browser      : TNvScreenBrowser;
     BrowserActive: Boolean;
     Selected     : TNvImageItem;
     procedure ExecuteCallback(const Value: PChar);
@@ -170,7 +170,7 @@ end;
 procedure TFrmImgListEditor.FormCreate(Sender: TObject);
 begin
   ImgList := TNvSvgImageList.Create(Self);
-  Browser := TNvBrowser.Create(Self);
+  Browser := TNvScreenBrowser.Create(Self);
 end;
 
 procedure TFrmImgListEditor.FormDestroy(Sender: TObject);

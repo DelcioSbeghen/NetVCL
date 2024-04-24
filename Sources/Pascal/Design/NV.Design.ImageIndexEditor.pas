@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, DesignEditors, DesignIntf, NV.Browser, NV.Vcl.Images;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, DesignEditors, DesignIntf, NV.Desktop, NV.Vcl.Images;
 
 type
   TFrmImgIdxEditor = class(TForm)
@@ -16,121 +16,119 @@ type
 
   TNvImageIndexEditor = class(TIntegerProperty)
   private
-    Browser: TNvBrowser;
+    Browser: TNvScreenBrowser;
     procedure ExecuteCallback(const Value: PChar);
     function GetHtml(ImgList: TNvCustomImageList): string;
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
   end;
-//unit MijnPropertyEditorReg;
-//
-//interface
-//
-//uses
-//  Classes, Types, SysUtils, Graphics, Math, ImgList, DesignIntf, DesignEditors,
-//  VCLEditors, TypInfo, MijnTTextBulletUnit;
-//
-//type
-//  { TTextBulletImageIndexProperty shows a dropdown list with images for the
-//    ImageIndex property of TTextBullet. It works similar to
-//    TPersistentImageIndexPropertyEditor, which is declared in the implementation
-//    section of StdReg.pas (package dclstd). }
-//
-//  TTextBulletImageIndexProperty = class(TIntegerProperty,
-//    ICustomPropertyListDrawing)
-//  private
-//    procedure ListMeasureWidth(const Value: string; ACanvas: TCanvas;
-//      var AWidth: Integer);
-//    procedure ListMeasureHeight(const Value: string; ACanvas: TCanvas;
-//      var AHeight: Integer);
-//    procedure ListDrawValue(const Value: string; ACanvas: TCanvas;
-//      const ARect: TRect; ASelected: Boolean);
-//  public
-//    function GetAttributes: TPropertyAttributes; override;
-//    function GetImageListAt(Index: Integer): TCustomImageList; virtual;
-//    procedure GetValues(Proc: TGetStrProc); override;
-//  end;
-//
-//procedure Register;
-//
-//implementation
-//
-//procedure TTextBulletImageIndexProperty.ListMeasureHeight(const Value: string;
-//  ACanvas: TCanvas; var AHeight: Integer);
-//var
-//  ImgList: TCustomImageList;
-//begin
-//  ImgList := GetImageListAt(0);
-//  AHeight := ACanvas.TextHeight(Value) + 2;
-//  if Assigned(ImgList) then
-//    AHeight := Max(AHeight, ImgList.Height + 4);
-//end;
-//
-//procedure TTextBulletImageIndexProperty.ListMeasureWidth(const Value: string;
-//  ACanvas: TCanvas; var AWidth: Integer);
-//var
-//  ImgList: TCustomImageList;
-//begin
-//  ImgList := GetImageListAt(0);
-//  AWidth := ACanvas.TextWidth(Value) + 4;
-//  if Assigned(ImgList) then
-//    AWidth := Max(AWidth, ImgList.Width + 4);
-//end;
-//
-//procedure TTextBulletImageIndexProperty.ListDrawValue(const Value: string;
-//  ACanvas: TCanvas; const ARect: TRect; ASelected: Boolean);
-//var
-//  ImgList: TCustomImageList;
-//  R: TRect;
-//begin
-//  ImgList := GetImageListAt(0);
-//  ACanvas.FillRect(ARect);
-//  R := ARect;
-//  Inc(R.Left, 2);
-//  if Assigned(ImgList) then
-//  begin
-//    ImgList.Draw(ACanvas, R.Left, R.Top + 2, StrToInt(Value));
-//    Inc(R.Left, ImgList.Width + 2);
-//  end;
-//  DefaultPropertyListDrawValue(Value, ACanvas, R, ASelected);
-//end;
-//
-//function TTextBulletImageIndexProperty.GetAttributes: TPropertyAttributes;
-//begin
-//  Result := [paMultiSelect, paValueList, paRevertable];
-//end;
-//
-//function TTextBulletImageIndexProperty.GetImageListAt(Index: Integer):
-//  TCustomImageList;
-//var
-//  APersistent: TPersistent;
-//begin
-//  APersistent := GetComponent(Index);
-//  if APersistent is TTextBullet then
-//    Result := TTextBullet(APersistent).Images
-//  else
-//    Result := nil;
-//end;
-//
-//procedure TTextBulletImageIndexProperty.GetValues(Proc: TGetStrProc);
-//var
-//  ImgList: TCustomImageList;
-//  i: Integer;
-//begin
-//  ImgList := GetImageListAt(0);
-//  if Assigned(ImgList) then
-//    for i := 0 to ImgList.Count - 1 do
-//      Proc(IntToStr(i));
-//end;
-//
-//procedure Register;
-//begin
-//  RegisterPropertyEditor(TypeInfo(TImageIndex), TTextBullet, '',
-//    TTextBulletImageIndexProperty);
-//end;
-
-
+  // unit MijnPropertyEditorReg;
+  //
+  // interface
+  //
+  // uses
+  // Classes, Types, SysUtils, Graphics, Math, ImgList, DesignIntf, DesignEditors,
+  // VCLEditors, TypInfo, MijnTTextBulletUnit;
+  //
+  // type
+  // { TTextBulletImageIndexProperty shows a dropdown list with images for the
+  // ImageIndex property of TTextBullet. It works similar to
+  // TPersistentImageIndexPropertyEditor, which is declared in the implementation
+  // section of StdReg.pas (package dclstd). }
+  //
+  // TTextBulletImageIndexProperty = class(TIntegerProperty,
+  // ICustomPropertyListDrawing)
+  // private
+  // procedure ListMeasureWidth(const Value: string; ACanvas: TCanvas;
+  // var AWidth: Integer);
+  // procedure ListMeasureHeight(const Value: string; ACanvas: TCanvas;
+  // var AHeight: Integer);
+  // procedure ListDrawValue(const Value: string; ACanvas: TCanvas;
+  // const ARect: TRect; ASelected: Boolean);
+  // public
+  // function GetAttributes: TPropertyAttributes; override;
+  // function GetImageListAt(Index: Integer): TCustomImageList; virtual;
+  // procedure GetValues(Proc: TGetStrProc); override;
+  // end;
+  //
+  // procedure Register;
+  //
+  // implementation
+  //
+  // procedure TTextBulletImageIndexProperty.ListMeasureHeight(const Value: string;
+  // ACanvas: TCanvas; var AHeight: Integer);
+  // var
+  // ImgList: TCustomImageList;
+  // begin
+  // ImgList := GetImageListAt(0);
+  // AHeight := ACanvas.TextHeight(Value) + 2;
+  // if Assigned(ImgList) then
+  // AHeight := Max(AHeight, ImgList.Height + 4);
+  // end;
+  //
+  // procedure TTextBulletImageIndexProperty.ListMeasureWidth(const Value: string;
+  // ACanvas: TCanvas; var AWidth: Integer);
+  // var
+  // ImgList: TCustomImageList;
+  // begin
+  // ImgList := GetImageListAt(0);
+  // AWidth := ACanvas.TextWidth(Value) + 4;
+  // if Assigned(ImgList) then
+  // AWidth := Max(AWidth, ImgList.Width + 4);
+  // end;
+  //
+  // procedure TTextBulletImageIndexProperty.ListDrawValue(const Value: string;
+  // ACanvas: TCanvas; const ARect: TRect; ASelected: Boolean);
+  // var
+  // ImgList: TCustomImageList;
+  // R: TRect;
+  // begin
+  // ImgList := GetImageListAt(0);
+  // ACanvas.FillRect(ARect);
+  // R := ARect;
+  // Inc(R.Left, 2);
+  // if Assigned(ImgList) then
+  // begin
+  // ImgList.Draw(ACanvas, R.Left, R.Top + 2, StrToInt(Value));
+  // Inc(R.Left, ImgList.Width + 2);
+  // end;
+  // DefaultPropertyListDrawValue(Value, ACanvas, R, ASelected);
+  // end;
+  //
+  // function TTextBulletImageIndexProperty.GetAttributes: TPropertyAttributes;
+  // begin
+  // Result := [paMultiSelect, paValueList, paRevertable];
+  // end;
+  //
+  // function TTextBulletImageIndexProperty.GetImageListAt(Index: Integer):
+  // TCustomImageList;
+  // var
+  // APersistent: TPersistent;
+  // begin
+  // APersistent := GetComponent(Index);
+  // if APersistent is TTextBullet then
+  // Result := TTextBullet(APersistent).Images
+  // else
+  // Result := nil;
+  // end;
+  //
+  // procedure TTextBulletImageIndexProperty.GetValues(Proc: TGetStrProc);
+  // var
+  // ImgList: TCustomImageList;
+  // i: Integer;
+  // begin
+  // ImgList := GetImageListAt(0);
+  // if Assigned(ImgList) then
+  // for i := 0 to ImgList.Count - 1 do
+  // Proc(IntToStr(i));
+  // end;
+  //
+  // procedure Register;
+  // begin
+  // RegisterPropertyEditor(TypeInfo(TImageIndex), TTextBullet, '',
+  // TTextBulletImageIndexProperty);
+  // end;
 
 var
   FrmImgIdxEditor: TFrmImgIdxEditor;
@@ -146,7 +144,7 @@ var
   _ImgList: TNvCustomImageList;
 begin
   inherited;
-  _ImgList:= nil;
+  _ImgList := nil;
   _ImgLink := GetComponent(0) as TNVImageListLink;
   if Assigned(_ImgLink) then
     _ImgList := _ImgLink.Images;
@@ -154,7 +152,7 @@ begin
   if not Assigned(_ImgList) then
     Raise Exception.Create('Can''t access ImageList');
 
-  Browser := TNvBrowser.Create(nil);
+  Browser := TNvScreenBrowser.Create(nil);
   Browser.CreateScreenBrowser(ExecuteCallback);
   Browser.ResizeBrowser(500, 200);
   Browser.LoadHtml(GetHtml(_ImgList));
@@ -162,15 +160,15 @@ end;
 
 procedure TNvImageIndexEditor.ExecuteCallback(const Value: PChar);
 var
-  Idx: Integer;
-  _Browser :TNvBrowser;
+  Idx     : Integer;
+  _Browser: TNvScreenBrowser;
 begin
   Idx := StrToIntDef(Value, -1);
 
   if Browser <> nil then
     FreeAndnil(Browser);
 
-   if Idx >= 0 then
+  if Idx >= 0 then
     SetValue(Idx.ToString);
 end;
 
