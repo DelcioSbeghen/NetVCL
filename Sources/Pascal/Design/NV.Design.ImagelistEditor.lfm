@@ -1,0 +1,121 @@
+object FrmImgListEditor: TFrmImgListEditor
+  Left = 0
+  Height = 496
+  Top = 0
+  Width = 802
+  Caption = 'FrmImgListEditor'
+  ClientHeight = 496
+  ClientWidth = 802
+  Color = clBtnFace
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  LCLVersion = '3.2.0.0'
+  object Panel1: TPanel
+    Left = 0
+    Height = 496
+    Top = 0
+    Width = 617
+    Align = alClient
+    Caption = 'Panel1'
+    ClientHeight = 496
+    ClientWidth = 617
+    ParentBackground = False
+    TabOrder = 0
+    object Panel2: TPanel
+      Left = 1
+      Height = 41
+      Top = 1
+      Width = 615
+      Align = alTop
+      Caption = 'Panel2'
+      ClientHeight = 41
+      ClientWidth = 615
+      ParentBackground = False
+      TabOrder = 0
+      object BtnAddOne: TSpeedButton
+        Left = 27
+        Height = 32
+        Top = 4
+        Width = 75
+        Caption = 'Add One'
+        OnClick = BtnAddOneClick
+      end
+      object BtnAddMultpl: TSpeedButton
+        Left = 109
+        Height = 32
+        Top = 4
+        Width = 75
+        Caption = 'Add Multiple'
+        OnClick = BtnAddMultplClick
+      end
+      object BtnReplace: TSpeedButton
+        Left = 191
+        Height = 32
+        Top = 4
+        Width = 75
+        Caption = 'Replace'
+        OnClick = BtnReplaceClick
+      end
+      object BtnDelete: TSpeedButton
+        Left = 273
+        Height = 32
+        Top = 4
+        Width = 75
+        Caption = 'Delete'
+        OnClick = BtnDeleteClick
+      end
+    end
+    object ListView1: TPanel
+      Left = 1
+      Height = 453
+      Top = 42
+      Width = 615
+      Align = alClient
+      Caption = 'ListView1'
+      ParentBackground = False
+      TabOrder = 1
+    end
+  end
+  object Panel3: TPanel
+    Left = 617
+    Height = 496
+    Top = 0
+    Width = 185
+    Align = alRight
+    Caption = 'Panel3'
+    ClientHeight = 496
+    ClientWidth = 185
+    ParentBackground = False
+    TabOrder = 1
+    object SpeedButton1: TSpeedButton
+      Left = 14
+      Height = 32
+      Top = 444
+      Width = 75
+      Caption = 'Ok'
+      OnClick = SpeedButton1Click
+    end
+    object BtnCancel: TSpeedButton
+      Left = 95
+      Height = 32
+      Top = 444
+      Width = 75
+      Caption = 'Cancel'
+      OnClick = BtnCancelClick
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 309
+    Top = 181
+  end
+  object FakeList: TImageList
+    Height = 32
+    Width = 32
+    Left = 453
+    Top = 293
+  end
+end

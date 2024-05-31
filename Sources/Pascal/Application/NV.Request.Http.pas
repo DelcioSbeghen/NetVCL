@@ -1,4 +1,5 @@
-unit NV.Request.Exe;
+unit NV.Request.Http;
+
 
 interface
 
@@ -7,7 +8,7 @@ uses
 
 type
 
-  TNvExeRequest = class(TnvRequest)
+  TNvHttpRequest = class(TnvRequest)
   private
     FParams  : TStrings;
     FDocument: string;
@@ -25,7 +26,7 @@ type
     procedure Initialize(Document: string);
   end;
 
-  TNvExeResponse = class(TNvResponse)
+  TNvHttpResponse = class(TNvResponse)
   private
     FText      : UTF8String;
     Fheaders   : TStringList;
@@ -65,7 +66,7 @@ type
     // procedure Redirect(aNewUrl: string); override;
   end;
 
-  TNVExeRequestTask = class(TNVRequestTask)
+  TNVHttpRequestTask = class(TNVRequestTask)
   private
 
   protected
@@ -86,115 +87,115 @@ uses
 
 { TNVExeRequestTask }
 
-function TNVExeRequestTask.CheckIsvalid: Boolean;
+function TNVHttpRequestTask.CheckIsvalid: Boolean;
 begin
   Result := True;
 end;
 
-constructor TNVExeRequestTask.Create;
+constructor TNVHttpRequestTask.Create;
 begin
   inherited Create;
 end;
 
-procedure TNVExeRequestTask.CreateFields;
+procedure TNVHttpRequestTask.CreateFields;
 begin
-  FRequest  := TNvExeRequest.Create(Self);
-  FResponse := TNvExeResponse.Create;
+  FRequest  := TNvHttpRequest.Create(Self);
+  FResponse := TNvHttpResponse.Create;
 end;
 
 { TNvExeRequest }
 
-constructor TNvExeRequest.Create(aRequetTask: TNVRequestTask);
+constructor TNvHttpRequest.Create(aRequetTask: TNVRequestTask);
 begin
   inherited Create(aRequetTask);
   FParams := TStringList.Create;
 end;
 
-destructor TNvExeRequest.Destroy;
+destructor TNvHttpRequest.Destroy;
 begin
   FParams.Free;
   inherited;
 end;
 
-function TNvExeRequest.GetDocument: string;
+function TNvHttpRequest.GetDocument: string;
 begin
   Result := FDocument;
 end;
 
-function TNvExeRequest.GetParams: TStrings;
+function TNvHttpRequest.GetParams: TStrings;
 begin
   Result := FParams;
 end;
 
-procedure TNvExeRequest.Initialize(Document: string);
+procedure TNvHttpRequest.Initialize(Document: string);
 begin
   FDocument := Document;
 end;
 
 { TNvExeResponse }
 
-procedure TNvExeResponse.Clear;
+procedure TNvHttpResponse.Clear;
 begin
   inherited;
   FText := '';
 end;
 
-constructor TNvExeResponse.Create;
+constructor TNvHttpResponse.Create;
 begin
   inherited Create;
   Fheaders := TStringList.Create;
 end;
 
-destructor TNvExeResponse.Destroy;
+destructor TNvHttpResponse.Destroy;
 begin
   Fheaders.Free;
   inherited;
 end;
 
-function TNvExeResponse.GetCustomHeaderValue(Name: string): string;
+function TNvHttpResponse.GetCustomHeaderValue(Name: string): string;
 begin
   Result := Fheaders.Values[Name];
 end;
 
-function TNvExeResponse.GetResponseNo: Integer;
+function TNvHttpResponse.GetResponseNo: Integer;
 begin
   Result := FResponseNo;
 end;
 
-function TNvExeResponse.GetText: UTF8String;
+function TNvHttpResponse.GetText: UTF8String;
 begin
   Result := FText;
 end;
 
-procedure TNvExeResponse.SetCacheControl(const Value: string);
+procedure TNvHttpResponse.SetCacheControl(const Value: string);
 begin
   inherited;
 
 end;
 
-procedure TNvExeResponse.SetContentDisposition(const Value: string);
+procedure TNvHttpResponse.SetContentDisposition(const Value: string);
 begin
   inherited;
 
 end;
 
-procedure TNvExeResponse.SetCustomHeaderValue(Name: string; const Value: string);
+procedure TNvHttpResponse.SetCustomHeaderValue(Name: string; const Value: string);
 begin
   Fheaders.Values[Name] := Value;
 end;
 
-procedure TNvExeResponse.SetResponseNo(const Value: Integer);
+procedure TNvHttpResponse.SetResponseNo(const Value: Integer);
 begin
   inherited;
   FResponseNo := Value;
 end;
 
-procedure TNvExeResponse.SetText(const Value: UTF8String);
+procedure TNvHttpResponse.SetText(const Value: UTF8String);
 begin
   FText := Value;
 end;
 
-procedure TNvExeResponse.SmartServeFile(aRequest: TNVRequestTask; aFile: string);
+procedure TNvHttpResponse.SmartServeFile(aRequest: TNVRequestTask; aFile: string);
 var
   LFileDate: TDateTime;
   LReqDate : TDateTime;
@@ -267,13 +268,13 @@ begin
 
 end;
 
-procedure TNvExeResponse.WriteCookies;
+procedure TNvHttpResponse.WriteCookies;
 begin
   inherited;
   //
 end;
 
-procedure TNvExeResponse.WriteHeader;
+procedure TNvHttpResponse.WriteHeader;
 begin
   inherited;
   // FIdResponse.WriteHeader;

@@ -3,7 +3,7 @@ unit NV.BS.Register;
 interface
 
 uses
-  Classes, DB, DesignEditors, DesignIntf, ToolsAPI, PaletteAPI;
+  Classes, DB {$IFDEF FPC} , ComponentEditors, PropEdits {$ELSE} ,DesignEditors, DesignIntf, ToolsAPI,  PaletteAPI {$ENDIF} ;
 
 type
   TNVBsNavEditor = class(TComponentEditor)
@@ -77,15 +77,26 @@ implementation
 
 uses SysUtils, StrUtils, Dialogs, NV.BS.Containers, NV.BS.ScrollFocus, NV.BS.Alerts, NV.BS.Buttons,
   NV.BS.Inputs, NV.BS.Navbar, NV.BS.HtmlControls, NV.BS.Cards, NV.BS.Tabs, NV.BS.Accordions,
-  NV.BS.Tables, NV.JSON, NV.BS.Design.TableDataEditor, NV.Design.ActionEditor;
+  NV.BS.Tables, NV.JSON{$IFDEF FPC} ,TypInfo {$ELSE}, NV.BS.Design.TableDataEditor {$ENDIF}, NV.Design.ActionEditor;
 
 const
   PALLETE_PAGE      = 'NetVCL BS';
   PALLETE_PAGE_DASH = 'NetVCL BS Dashboard';
 
+{$IFDEF FPC}
+ procedure UnlistPublishedProperty (ComponentClass:TPersistentClass; const PropertyName:String);
+ var
+   pi :PPropInfo;
+ begin
+   pi := TypInfo.GetPropInfo (ComponentClass, PropertyName);
+   if (pi <> nil) then
+     RegisterPropertyEditor (pi^.PropType, ComponentClass, PropertyName, PropEdits.THiddenPropertyEditor);
+ end;
+{$ENDIF}
+
+
 procedure Register;
 begin
-
   { TODO -oDelcio -cRegister : Property categories in Object inspector with RegisterPropertiesInCategory }
 
   // RegisterComponents('SRP', [TSRPInput, TNvrPanel]);
@@ -144,7 +155,10 @@ begin
 
   // Tables
   RegisterComponents(PALLETE_PAGE, [TNvBsTable, TNvBsDbTable]);
+  {$IFNDEF FPC}
+  { TODO -oDelcio : FPC - TNvBsTable - Create Data Property Editor}
   RegisterPropertyEditor(TypeInfo(TJsonArray), TNvBsTable, 'Data', TNvBsTableDataEditor);
+  {$ENDIF}
   RegisterClasses([TNvBsTableColumns, TNvBsTableColumn, TNvBsFmtAction]);
   RegisterPropertyEditor(TypeInfo(TNvBsFormatterClass), TNvBsTableColumn, 'FormaterClass',
     TNvColFormatterProperty);

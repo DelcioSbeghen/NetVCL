@@ -1,0 +1,18 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TFrmJsonArrayEditor','FORMDATA',[
+  'TPF0'#19'TFrmJsonArrayEditor'#18'FrmJsonArrayEditor'#4'Left'#2#0#6'Height'#3
+  +'q'#1#3'Top'#2#0#5'Width'#3#224#0#11'BorderIcons'#11#0#7'Caption'#6#17'Json '
+  +'Array Editor'#12'ClientHeight'#3'q'#1#11'ClientWidth'#3#224#0#5'Color'#7#9
+  +'clBtnFace'#10'Font.Color'#7#12'clWindowText'#11'Font.Height'#2#245#9'Font.N'
+  +'ame'#6#6'Tahoma'#8'OnCreate'#7#10'FormCreate'#9'OnDestroy'#7#11'FormDestroy'
+  +#10'LCLVersion'#6#7'3.2.0.0'#0#5'TMemo'#5'Memo1'#4'Left'#2#0#6'Height'#3'H'#1
+  +#3'Top'#2#0#5'Width'#3#224#0#5'Align'#7#8'alClient'#8'TabOrder'#2#0#0#0#6'TP'
+  +'anel'#6'Panel1'#4'Left'#2#0#6'Height'#2')'#3'Top'#3'H'#1#5'Width'#3#224#0#5
+  +'Align'#7#8'alBottom'#7'Caption'#6#6'Panel1'#12'ClientHeight'#2')'#11'Client'
+  +'Width'#3#224#0#16'ParentBackground'#8#8'TabOrder'#2#1#0#7'TButton'#5'BtnOk'
+  +#4'Left'#2#19#6'Height'#2#25#3'Top'#2#8#5'Width'#2'K'#7'Caption'#6#2'Ok'#8'T'
+  +'abOrder'#2#0#7'OnClick'#7#10'BtnOkClick'#0#0#7'TButton'#9'btnCancel'#4'Left'
+  +#3#131#0#6'Height'#2#25#3'Top'#2#8#5'Width'#2'K'#7'Caption'#6#6'Cancel'#8'Ta'
+  +'bOrder'#2#1#7'OnClick'#7#14'btnCancelClick'#0#0#0#0
+]);

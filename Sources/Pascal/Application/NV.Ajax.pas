@@ -37,6 +37,7 @@ type
     function ExecJson: TJsonArray;
     procedure BeginUpdate;
     procedure EndUpdate;
+    function InUpdate: Boolean; inline;
     property Includes: TJsonObject read FIncludes;
     property Json: TJsonObject read FJson;
     property Page: TWinControl read FPage;
@@ -220,6 +221,11 @@ begin
   Result.S['Id']       := aId;
 end;
 
+function TNvAjax.InUpdate: Boolean;
+begin
+  Result := FUpdateCount <> 0;
+end;
+
 procedure TNvAjax.Invalidate;
 begin
   if FUpdateCount <> 0 then
@@ -228,7 +234,7 @@ begin
   if ((Json.Count > 0) or (FChangeList.Count > 0)) and Application.Running and (Screen <> nil) and
     Screen.Active then
     begin
-      //ProcessChanges can be create new changes
+      // ProcessChanges can be create new changes
       BeginUpdate;
       try
         //

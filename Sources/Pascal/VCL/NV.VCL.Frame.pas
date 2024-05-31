@@ -3,7 +3,7 @@ unit NV.VCL.Frame;
 interface
 
 uses
-  Messages, Controls, NV.Controls, System.Classes, NV.JSON, NV.Types;
+  Messages, Controls, NV.Controls, Classes, NV.JSON, NV.Types;
 
 type
   TNVCloseEvent = NV.Types.TNVCloseEvent;
@@ -59,7 +59,7 @@ type
 implementation
 
 uses
-  NV.Router, System.RTLConsts, NV.VCL.Forms;
+  NV.Router, RTLConsts, NV.VCL.Forms;
 
 { TNVBaseFrame }
 
@@ -162,7 +162,7 @@ procedure TNVBaseFrame.InternalRender(JSON: TJsonObject);
 begin
   inherited;
   // Attach panel to designer page in design mode
-  if (csDesigning in ComponentState) and (Parent <> nil) and not(Parent is TNvWinControl) then
+  if (csDesigning in ComponentState) and (Designer <> nil) and (Designer.Root = Self) then
     JSON.S['Parent'] := (Screen.Ajax.Page as TNvWinControl).ID;
 end;
 

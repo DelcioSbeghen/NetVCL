@@ -62,7 +62,7 @@ type
     function IndexOf(const S: string): Integer;
     function IndexOfName(const Name: string): Integer;
     procedure Sort;
-    function GetText: PWideChar;
+    function GetText: {$IFDEF FPC} PChar {$ELSE} PWideChar {$ENDIF};
     procedure LoadFromFile(const FileName: string);
     procedure LoadFromStream(Stream: TStream);
     procedure SaveToFile(const FileName: string);
@@ -99,7 +99,9 @@ type
     procedure Clear;
     function LockList: TList;
     procedure Remove(Item: Pointer); inline;
+    {$IFNDEF FPC}
     procedure RemoveItem(Item: Pointer; Direction: TList.TDirection);
+    {$ENDIF}
     procedure UnlockList; inline;
     property Duplicates: TDuplicates read FDuplicates write FDuplicates;
     procedure Delete(aIndex: Integer);
@@ -294,7 +296,7 @@ begin
   end;
 end;
 
-function TThreadStringList.GetText: PWideChar;
+function TThreadStringList.GetText: {$IFDEF FPC} PChar {$ELSE} PWideChar {$ENDIF};
 begin
   LockList;
   try
@@ -575,7 +577,7 @@ begin
     if (Duplicates = dupAccept) or (FList.IndexOf(Item) = -1) then
       FList.Add(Item)
     else if Duplicates = dupError then
-      FList.Error(@SDuplicateItem, IntPtr(Item));
+      FList.Error({$IFNDEF FPC} @ {$ENDIF}SDuplicateItem, IntPtr(Item));
   finally
     UnlockList;
   end;
@@ -607,9 +609,19 @@ end;
 
 procedure TNVThreadList.Remove(Item: Pointer);
 begin
+  {$IFDEF FPC}
+   LockList;
+  try
+    FList{$IFDEF FPC} .Remove {$ELSE} .RemoveItem {$ENDIF}(Item);
+  finally
+    UnlockList;
+  end;
+  {$ELSE}
   RemoveItem(Item, TList.TDirection.FromBeginning);
+  {$ENDIF}
 end;
 
+{$IFNDEF FPC}
 procedure TNVThreadList.RemoveItem(Item: Pointer; Direction: TList.TDirection);
 begin
   LockList;
@@ -619,6 +631,7 @@ begin
     UnlockList;
   end;
 end;
+{$ENDIF}
 
 procedure TNVThreadList.Delete(aIndex: Integer);
 begin

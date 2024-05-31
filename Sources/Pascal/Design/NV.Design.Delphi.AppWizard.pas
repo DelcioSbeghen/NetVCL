@@ -1,4 +1,4 @@
-unit NV.Design.AppWizard;
+unit NV.Design.Delphi.AppWizard;
 
 interface
 
@@ -73,7 +73,7 @@ type
 implementation
 
 uses
-  NV.Design.AppModuleWizard, NV.Design.PageWizard, NV.Design.UserSessionWizard, PlatformAPI;
+  NV.Design.Delphi.AppModuleWizard, NV.Design.Delphi.PageWizard, NV.Design.UserSessionWizard, PlatformAPI;
 
 { TNVAppWizard }
 

@@ -355,7 +355,7 @@ begin
                                   end;
                                 2: { replace if newer }
                                   begin
-                                    if comparefiletime(FromlastWriteTime, ToLastWriteTime) > 0 then
+                                    if comparefiletime({$IFDEF FPC} @FromlastWriteTime, @ToLastWriteTime {$ELSE} FromlastWriteTime, ToLastWriteTime {$ENDIF}) > 0 then
                                       begin
                                         copyafile(False);
                                         inc(DupsOverWritten);

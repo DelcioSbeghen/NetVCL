@@ -3,9 +3,9 @@ unit NV.Design.JsonArrayEditor;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, NV.JSON,
-  DesignEditors, DesignIntf;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics,
+  Controls, Forms, Dialogs, StdCtrls, ExtCtrls, NV.JSON
+  {$IFDEF FPC}, PropEdits {$ELSE}, DesignEditors, DesignIntf {$ENDIF};
 
 type
   TFrmJsonArrayEditor = class(TForm)
@@ -94,7 +94,11 @@ begin
   try
     FrmJsonArrayEditor.LoadArray(TJsonArray(GetOrdValue));
     if FrmJsonArrayEditor.ShowModal = mrOk then
+      {$IFDEF FPC}
+      Modified;
+      {$ELSE}
       Designer.Modified;
+      {$ENDIF}
   finally
     FrmJsonArrayEditor.Free;
   end;

@@ -1,0 +1,117 @@
+// JCL_DEBUG_EXPERT_GENERATEJDBG OFF
+// JCL_DEBUG_EXPERT_INSERTJDBG OFF
+package NetVCLDebug2;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl,
+  designide,
+  ExpertsCreators,
+  dbrtl,
+  vcldb,
+  vcldesigner,
+  IndySystem,
+  IndyProtocols,
+  IndyCore,
+  FireDAC,
+  FireDACCommonDriver,
+  FireDACCommon,
+  dclstd,
+  EAV_RIO;
+
+contains
+  NV.Ajax in '..\Sources\Pascal\Application\NV.Ajax.pas',
+  NV.Desktop in '..\Sources\Pascal\Application\NV.Desktop.pas',
+  NV.Cache in '..\Sources\Pascal\Application\NV.Cache.pas',
+  NV.Classes in '..\Sources\Pascal\Application\NV.Classes.pas',
+  NV.Dispatcher in '..\Sources\Pascal\Application\NV.Dispatcher.pas',
+  NV.DispatcherDesign in '..\Sources\Pascal\Application\NV.DispatcherDesign.pas',
+  NV.DispatcherPage in '..\Sources\Pascal\Application\NV.DispatcherPage.pas',
+  NV.Interfaces in '..\Sources\Pascal\Application\NV.Interfaces.pas',
+  NV.MergeSort in '..\Sources\Pascal\Application\NV.MergeSort.pas',
+  NV.Messages in '..\Sources\Pascal\Application\NV.Messages.pas',
+  NV.Request.Exe in '..\Sources\Pascal\Application\NV.Request.Exe.pas',
+  NV.Router in '..\Sources\Pascal\Application\NV.Router.pas',
+  NV.Types in '..\Sources\Pascal\Application\NV.Types.pas',
+  NV.UserSession in '..\Sources\Pascal\Application\NV.UserSession.pas',
+  NV.Utils in '..\Sources\Pascal\Application\NV.Utils.pas',
+  NV.BS.Accordions in '..\Sources\Pascal\BCL\NV.BS.Accordions.pas',
+  NV.BS.Alerts in '..\Sources\Pascal\BCL\NV.BS.Alerts.pas',
+  NV.BS.Badges in '..\Sources\Pascal\BCL\NV.BS.Badges.pas',
+  NV.BS.Buttons in '..\Sources\Pascal\BCL\NV.BS.Buttons.pas',
+  NV.BS.Cards in '..\Sources\Pascal\BCL\NV.BS.Cards.pas',
+  NV.BS.Containers in '..\Sources\Pascal\BCL\NV.BS.Containers.pas',
+  NV.BS.Controls in '..\Sources\Pascal\BCL\NV.BS.Controls.pas',
+  NV.BS.DBCtrls in '..\Sources\Pascal\BCL\NV.BS.DBCtrls.pas',
+  NV.BS.HtmlControls in '..\Sources\Pascal\BCL\NV.BS.HtmlControls.pas',
+  NV.BS.Inputs in '..\Sources\Pascal\BCL\NV.BS.Inputs.pas',
+  NV.BS.Navbar in '..\Sources\Pascal\BCL\NV.BS.Navbar.pas',
+  NV.BS.Register in '..\Sources\Pascal\BCL\NV.BS.Register.pas',
+  NV.BS.Tables in '..\Sources\Pascal\BCL\NV.BS.Tables.pas',
+  NV.BS.Tabs in '..\Sources\Pascal\BCL\NV.BS.Tabs.pas',
+  NV.BS.Types in '..\Sources\Pascal\BCL\NV.BS.Types.pas',
+  NV.JSON in '..\Sources\Pascal\Common\NV.JSON.pas',
+  NV.Languages in '..\Sources\Pascal\Common\NV.Languages.pas',
+  NV.Request in '..\Sources\Pascal\Common\NV.Request.pas',
+  NV.BS.Design.TableDataEditor in '..\Sources\Pascal\Design\NV.BS.Design.TableDataEditor.pas' {FrmNvBsTableDataEditor},
+  NV.Design.Delphi.AppModuleWizard in '..\Sources\Pascal\Design\NV.Design.Delphi.AppModuleWizard.pas',
+  NV.Design.Delphi.AppWizard in '..\Sources\Pascal\Design\NV.Design.Delphi.AppWizard.pas',
+  NV.Design.CopyFiles in '..\Sources\Pascal\Design\NV.Design.CopyFiles.pas',
+  NV.Design.Delphi.FrameDesigner in '..\Sources\Pascal\Design\NV.Design.Delphi.FrameDesigner.pas' {NvFrameDesigner},
+  NV.Design.Delphi.FrameWizard in '..\Sources\Pascal\Design\NV.Design.Delphi.FrameWizard.pas',
+  NV.Design.Delphi.IDE in '..\Sources\Pascal\Design\NV.Design.Delphi.IDE.pas',
+  NV.Design.ImageIndexEditor in '..\Sources\Pascal\Design\NV.Design.ImageIndexEditor.pas' {FrmImgIdxEditor},
+  NV.Design.ImagelistEditor in '..\Sources\Pascal\Design\NV.Design.ImagelistEditor.pas' {FrmImgListEditor},
+  NV.Design.Delphi.IOTAUtils in '..\Sources\Pascal\Design\NV.Design.Delphi.IOTAUtils.pas',
+  NV.Design.JsonArrayEditor in '..\Sources\Pascal\Design\NV.Design.JsonArrayEditor.pas' {FrmJsonArrayEditor},
+  NV.Design.Delphi.ModuleDesigner in '..\Sources\Pascal\Design\NV.Design.Delphi.ModuleDesigner.pas' {NvModuleDesigner},
+  NV.Design.Delphi.PageWizard in '..\Sources\Pascal\Design\NV.Design.Delphi.PageWizard.pas',
+  NV.Design.Delphi.Register in '..\Sources\Pascal\Design\NV.Design.Delphi.Register.pas',
+  NV.Design.Delphi.RuntimeHook in '..\Sources\Pascal\Design\NV.Design.Delphi.RuntimeHook.pas',
+  NV.Design.UserSessionWizard in '..\Sources\Pascal\Design\NV.Design.UserSessionWizard.pas',
+  NV.Controls in '..\Sources\Pascal\VCL\NV.Controls.pas',
+  NV.VCL.Charts in '..\Sources\Pascal\VCL\NV.VCL.Charts.pas',
+  NV.VCL.DBCtrls in '..\Sources\Pascal\VCL\NV.VCL.DBCtrls.pas',
+  NV.VCL.Dialogs in '..\Sources\Pascal\VCL\NV.VCL.Dialogs.pas',
+  NV.VCL.Forms in '..\Sources\Pascal\VCL\NV.VCL.Forms.pas',
+  NV.VCL.Frame in '..\Sources\Pascal\VCL\NV.VCL.Frame.pas',
+  NV.VCL.Graphics in '..\Sources\Pascal\VCL\NV.VCL.Graphics.pas',
+  NV.VCL.Images in '..\Sources\Pascal\VCL\NV.VCL.Images.pas',
+  NV.VCL.Page in '..\Sources\Pascal\VCL\NV.VCL.Page.pas',
+  NV.VCL.ActnList in '..\Sources\Pascal\VCL\NV.VCL.ActnList.pas',
+  NV.Design.ActionEditor in '..\Sources\Pascal\Design\NV.Design.ActionEditor.pas',
+  NV.BS.DBSearch in '..\Sources\Pascal\Firedac\NV.BS.DBSearch.pas',
+  NV.BS.ScrollFocus in '..\Sources\Pascal\BCL\NV.BS.ScrollFocus.pas',
+  NV.VCL.Dashboards in '..\Sources\Pascal\VCL\NV.VCL.Dashboards.pas',
+  NV.HttpServer in '..\Sources\Pascal\Application\NV.HttpServer.pas',
+  NV.HttpServerWebsockets in '..\Sources\Pascal\Application\NV.HttpServerWebsockets.pas',
+  NV.Request.Http in '..\Sources\Pascal\Application\NV.Request.Http.pas';
+
+end.

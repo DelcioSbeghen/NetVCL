@@ -29,6 +29,14 @@ Licensing stuff...: You may use this software in any kind of development,
                     Original test case unit written by dangph
 ******************************************************************************}
 
+{$IFDEF FPC}
+{$mode delphi}
+{$H+}
+{$MACRO ON}
+{$define RTLVersion :=  25}
+{$define CompilerVersion := 22}
+{$ENDIF}
+
 
 interface
 

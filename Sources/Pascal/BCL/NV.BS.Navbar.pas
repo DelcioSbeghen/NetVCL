@@ -3,7 +3,7 @@ unit NV.BS.Navbar;
 interface
 
 uses
-  Controls, NV.BS.Containers, NV.BS.Types, NV.Ajax, NV.JSON, System.Classes,
+  Controls, NV.BS.Containers, NV.BS.Types, NV.Ajax, NV.JSON, Classes,
   NV.BS.HtmlControls, NV.BS.Buttons;
 
 type
@@ -275,8 +275,9 @@ var
   _Container: TBsNavBarContainer;
 begin
   Result := nil;
-  if (csLoading in Owner.ComponentState) or (csLoading in ComponentState) or
-    (csRecreating in ControlState) then
+  if (csLoading in Owner.ComponentState) //
+  or (csLoading in ComponentState) //
+  {$IFNDEF FPC} or (csRecreating in ControlState) {$ENDIF} then
     Exit;
 
   _Container := Container; // Optimization;
@@ -291,7 +292,7 @@ begin
     end;
   if Result = nil then
     begin
-      UpdateRecreatingFlag(True);
+      {$IFNDEF FPC} UpdateRecreatingFlag(True);   {$ENDIF}
       try
         Result := TBsNavBarBrand.Create(Owner);
 
@@ -301,7 +302,7 @@ begin
 
         Result.Parent := _Container;
       finally
-        UpdateRecreatingFlag(False);
+        {$IFNDEF FPC} UpdateRecreatingFlag(False);   {$ENDIF}
       end;
     end;
 end;
@@ -311,8 +312,9 @@ var
   I: integer;
 begin
   Result := nil;
-  if (csLoading in Owner.ComponentState) or (csLoading in ComponentState) or
-    (csRecreating in ControlState) then
+  if (csLoading in Owner.ComponentState) //
+  or (csLoading in ComponentState) //
+  {$IFNDEF FPC} or (csRecreating in ControlState) {$ENDIF} then
     Exit;
 
   for I := 0 to ControlCount - 1 do
@@ -325,7 +327,7 @@ begin
     end;
   if Result = nil then
     begin
-      UpdateRecreatingFlag(True);
+      {$IFNDEF FPC} UpdateRecreatingFlag(True); {$ENDIF}
       try
         Result := TBsNavBarContainer.Create(Owner);
 
@@ -335,7 +337,7 @@ begin
 
         Result.Parent := Self;
       finally
-        UpdateRecreatingFlag(False);
+        {$IFNDEF FPC} UpdateRecreatingFlag(False);  {$ENDIF}
       end;
     end;
 end;
@@ -346,8 +348,9 @@ var
   _Container: TBsNavBarContainer;
 begin
   Result := nil;
-  if (csLoading in Owner.ComponentState) or (csLoading in ComponentState) or
-    (csRecreating in ControlState) then
+  if (csLoading in Owner.ComponentState) //
+  or (csLoading in ComponentState) //
+  {$IFNDEF FPC} or (csRecreating in ControlState) {$ENDIF} then
     Exit;
 
   _Container := Container; // Optimization;
@@ -362,7 +365,7 @@ begin
     end;
   if (Result = nil) and (not(csLoading in ComponentState)) then
     begin
-      UpdateRecreatingFlag(True);
+      {$IFNDEF FPC} UpdateRecreatingFlag(True); {$ENDIF}
       try
         Result := TBsNavBarContent.Create(Owner);
 
@@ -372,7 +375,7 @@ begin
 
         Result.Parent := _Container;
       finally
-        UpdateRecreatingFlag(False);
+        {$IFNDEF FPC} UpdateRecreatingFlag(False);  {$ENDIF}
       end;
     end;
 end;
@@ -383,8 +386,9 @@ var
   _Container: TBsNavBarContainer;
 begin
   Result := nil;
-  if (csLoading in Owner.ComponentState) or (csLoading in ComponentState) or
-    (csRecreating in ControlState) then
+  if (csLoading in Owner.ComponentState) //
+  or (csLoading in ComponentState) //
+ {$IFNDEF FPC}  or (csRecreating in ControlState) {$ENDIF} then
     Exit;
 
   _Container := Container; // Optimization;
@@ -399,7 +403,7 @@ begin
     end;
   if (Result = nil) and (not(csLoading in ComponentState)) then
     begin
-      UpdateRecreatingFlag(True);
+      {$IFNDEF FPC} UpdateRecreatingFlag(True);  {$ENDIF}
       try
         Result := TBsNavBarToggler.Create(Owner);
 
@@ -409,7 +413,7 @@ begin
 
         Result.Parent := _Container;
       finally
-        UpdateRecreatingFlag(False);
+        {$IFNDEF FPC} UpdateRecreatingFlag(False);    {$ENDIF}
       end;
     end;
 end;
@@ -648,8 +652,9 @@ var
 begin
   Result := nil;
 
-  if (csLoading in Owner.ComponentState) or (csLoading in ComponentState) or
-    (csRecreating in ControlState) then
+  if (csLoading in Owner.ComponentState) //
+  or (csLoading in ComponentState) //
+  {$IFNDEF FPC} or (csRecreating in ControlState) {$ENDIF} then
     Exit;
 
   for I := 0 to ControlCount - 1 do
@@ -662,7 +667,7 @@ begin
     end;
   if (Result = nil) and (not(csLoading in ComponentState)) then
     begin
-      UpdateRecreatingFlag(True);
+      {$IFNDEF FPC} UpdateRecreatingFlag(True);   {$ENDIF}
       try
         Result := TBsNavBarNav.Create(Owner);
 
@@ -672,7 +677,7 @@ begin
 
         Result.Parent := Self;
       finally
-        UpdateRecreatingFlag(False);
+        {$IFNDEF FPC} UpdateRecreatingFlag(False); {$ENDIF}
       end;
     end;
 

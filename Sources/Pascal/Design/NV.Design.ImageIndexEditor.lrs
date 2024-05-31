@@ -1,0 +1,8 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TFrmImgIdxEditor','FORMDATA',[
+  'TPF0'#16'TFrmImgIdxEditor'#15'FrmImgIdxEditor'#4'Left'#2#0#6'Height'#3#205#1
+  +#3'Top'#2#0#5'Width'#3#225#2#7'Caption'#6#15'FrmImgIdxEditor'#5'Color'#7#9'c'
+  +'lBtnFace'#10'Font.Color'#7#12'clWindowText'#11'Font.Height'#2#245#9'Font.Na'
+  +'me'#6#6'Tahoma'#10'LCLVersion'#6#7'3.2.0.0'#0#0
+]);

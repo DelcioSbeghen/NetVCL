@@ -71,10 +71,24 @@ function RemoveWords(aOrig: string; aRemove: string; aSeparator: Char = ' ';
 function AddWords(aOrig: string; aNews: string; aSeparator: char = ' ';
   aQuoteChar: Char = #0): string;
 
+{$IFDEF FPC}
+{$mode delphi}{$macro on}
+const
+  sArgumentOutOfRange_Index = 'Argument out of range index';
+{ delphi compatibility aliases }
+function DebugHook: integer stdcall; external 'kernel32.dll'  name 'IsDebuggerPresent';
+//{$if fpc_fullversion < 30301}
+function AtomicIncrement (var Target: integer): integer;overload; external name 'FPC_INTERLOCKEDINCREMENT';
+function AtomicIncrement (var Target: int64): int64;overload; external name 'FPC_INTERLOCKEDINCREMENT';
+function AtomicIncrement (var Target: QWord): QWord;overload; external name 'FPC_INTERLOCKEDINCREMENT';
+//{$ifend}
+{$ENDIF FPC}
+
+
 implementation
 
 uses
-  Windows, SysUtils, StrUtils, System.Win.Registry, VCL.Dialogs, NV.VCL.Forms;
+  Windows, SysUtils, StrUtils, Registry, Dialogs, NV.VCL.Forms;
 
 type
   PWin9xDebugThunk = ^TWin9xDebugThunk;
@@ -149,7 +163,7 @@ begin
       Ch := AnsiChar(Url[i]);
       if Ch = '%' then
         begin
-          Ch := AnsiChar(htoin(PChar(@Url[i + 1]), 2));
+          Ch := AnsiChar(htoin({$IFDEF FPC}PWideChar{$ELSE}PChar{$ENDIF}(@Url[i + 1]), 2));
           inc(i, 2);
         end
       else if Ch = '+' then
@@ -439,7 +453,7 @@ begin
   OldProc := GetProcAddr(OldProc);
   NewProc := GetProcAddr(NewProc);
 
-  i   := vmtSelfPtr div SizeOf(Pointer);
+  i   := {$IFDEF FPC}-48{$ELSE}vmtSelfPtr{$ENDIF} div SizeOf(Pointer);
   Vmt := Pointer(AClass);
   while (i < 0) or (Vmt[i] <> nil) do
     begin
@@ -690,9 +704,9 @@ var
 begin
   Result := nil;
 
-  for I := 0 to DataSet.FieldList.Count - 1 do
+  for I := 0 to DataSet.FieldCount - 1 do
     begin
-      Field := DataSet.FieldList[I];
+      Field := DataSet.Fields[I];
       if (pfInKey in Field.ProviderFlags) then
         begin
           Result := Field;
@@ -721,7 +735,7 @@ begin
     _Remove.DelimitedText := Trim(aRemove);
 
     for I := _Remove.Count - 1 downto 0 do
-      if _Olds.Contains(_Remove[I]) then
+      if _Olds.IndexOf(_Remove[I]) > -1 then
         _Olds.Delete(_Olds.IndexOf(_Remove[I]));
 
     Result := _Olds.DelimitedText;
@@ -751,7 +765,7 @@ begin
     _News.DelimitedText := Trim(aNews);
 
     for I := 0 to _News.Count - 1 do
-      if not _Olds.Contains(_News[I]) then
+      if not _Olds.IndexOf(_News[I]) > -1 then
         _Olds.Add(_News[I]);
 
     Result := _Olds.DelimitedText;

@@ -1,4 +1,4 @@
-unit NV.Design.IOTAUtils;
+unit NV.Design.Delphi.IOTAUtils;
 
 {$IFDEF VER130}
 {$DEFINE DELPHI_5_UP}
@@ -31,7 +31,7 @@ function IsNvFormModule: Boolean;
 implementation
 
 uses
-  Registry, Windows, Classes, SysUtils, IniFiles, Dialogs, NV.Design.Register;
+  Registry, Windows, Classes, SysUtils, IniFiles, Dialogs, NV.Design.Delphi.Register;
 
 {$IFNDEF DELPHI_6_UP}
 function ExcludeTrailingPathDelimiter(const S: string): string; forward;

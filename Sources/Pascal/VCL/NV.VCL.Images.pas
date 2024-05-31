@@ -3,7 +3,7 @@ unit NV.VCL.Images;
 interface
 
 uses
-  Classes, NV.Interfaces, System.Generics.Collections;
+  Classes, NV.Interfaces, Generics.Collections;
 
 type
   TNVImageListLink = class;
@@ -104,8 +104,8 @@ type
 
   TNVImageListLink = class(TPersistent)
   private
-    [Weak]
     FImages       : TNvCustomImageList;
+    {$IFNDEF FPC} [Weak] {$ENDIF}
     FControl      : INVRenderableComponent;
     FImagePropName: string;
     FImageIndex   : Integer;
@@ -145,7 +145,7 @@ type
 implementation
 
 uses
-  Windows, SysUtils, System.RTLConsts, NV.Utils;
+  Windows, SysUtils, RTLConsts, NV.Utils;
 
 { TNvCustomImageList }
 
@@ -225,7 +225,7 @@ begin
           FLinks.Remove(Link);
           if FLinks.Count = 0 then
             begin
-              FLinks.DisposeOf;
+              FLinks.Free;
               FLinks := nil;
             end;
         end;
@@ -242,7 +242,7 @@ begin
       for Link in FLinks do
         Link.FImages:= nil;
 
-      Flinks.DisposeOf;
+      Flinks.Free;
       FLinks:= nil;
     end;
 

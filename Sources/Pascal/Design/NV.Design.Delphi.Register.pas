@@ -1,4 +1,4 @@
-unit NV.Design.Register;
+unit NV.Design.Delphi.Register;
 
 interface
 
@@ -8,7 +8,7 @@ uses
   Controls, Forms, WCtlForm, NV.VCL.Page, NV.Controls, NV.Interfaces,
   NV.VCL.Forms,
 
-  NV.Design.IDE;
+  NV.Design.Delphi.IDE;
 
 type
 
@@ -86,12 +86,12 @@ procedure Register;
 implementation
 
 uses
-  Actions, ActionEditors, ToolsAPI, NV.Design.AppWizard, NV.Design.UserSessionWizard,
-  NV.Design.PageWizard, NV.Design.AppModuleWizard, NV.UserSession,
-  NV.Design.ModuleDesigner,
-  NV.Design.FrameWizard, NV.VCL.Frame, NV.VCL.Images, NV.VCL.Dashboards,
+  Actions, ActionEditors, ToolsAPI, NV.Design.Delphi.AppWizard, NV.Design.UserSessionWizard,
+  NV.Design.Delphi.PageWizard, NV.Design.Delphi.AppModuleWizard, NV.UserSession,
+  NV.Design.Delphi.ModuleDesigner,
+  NV.Design.Delphi.FrameWizard, NV.VCL.Frame, NV.VCL.Images, NV.VCL.Dashboards,
   ExtCtrls, System.Threading, NV.Design.ImagelistEditor,
-  NV.Design.IOTAUtils, NV.VCL.Charts, NV.JSON, NV.Design.JsonArrayEditor,
+  NV.Design.Delphi.IOTAUtils, NV.VCL.Charts, NV.JSON, NV.Design.JsonArrayEditor,
   NV.Desktop,
   NV.Design.ImageIndexEditor, NV.VCL.ActnList, NV.Design.ActionEditor;
 

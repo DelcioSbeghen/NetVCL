@@ -19,7 +19,7 @@ type
 implementation
 
 uses
-  StrUtils, System.Classes, SysUtils, NV.JSON, IdGlobal, NV.Utils, NV.VCL.Forms;
+  StrUtils, Classes, SysUtils, NV.JSON, IdGlobal, NV.Utils, NV.VCL.Forms;
 
 type
  THackApplication  = class(TNvApplication);

@@ -3,11 +3,11 @@ unit NV.VCL.ActnList;
 interface
 
 uses
-  Classes, SysUtils, UITypes, Actions, NV.VCL.Images;
+  Classes, SysUtils, UITypes, {$IFDEF FPC} Controls, actnlist, LCLType, {$ELSE} Actions,{$ENDIF} NV.VCL.Images;
 
 type
 
-  TNvCustomActionList = class(TContainedActionList)
+  TNvCustomActionList = class({$IFDEF FPC} TCustomActionList {$ELSE} TContainedActionList{$ENDIF})
   private
     // FImageChangeLink: TChangeLink;
     // FImageListLink: TNVImageListLink;
@@ -31,31 +31,96 @@ type
     property State;
     property OnChange;
     property OnExecute;
+    {$IFNDEF FPC}
     property OnStateChange;
+    {$ENDIF}
     property OnUpdate;
   end;
 
   /// <summary> This class is designed to communicate with some of the object in VCL </summary>
-  TNvActionLink = class(TContainedActionLink)
+
+  { TNvActionLink }
+
+  TNvActionLink = class({$IFDEF FPC} TControlActionLink {$ELSE} TContainedActionLink{$ENDIF})
   protected
     function IsImageNameLinked: Boolean; virtual;
+  //  {$IFDEF FPC}
+  //  procedure SetAutoCheck(Value: Boolean); virtual;
+  //  procedure SetCaption(const Value: string); virtual;
+  //  procedure SetChecked(Value: Boolean); virtual;
+  //  procedure SetEnabled(Value: Boolean); virtual;
+  //  procedure SetGroupIndex(Value: Integer); virtual;
+  //  procedure SetHelpContext(Value: THelpContext); virtual;
+  //  procedure SetHelpKeyword(const Value: string); virtual;
+  //  procedure SetHelpType(Value: THelpType); virtual;
+  //  procedure SetHint(const Value: string); virtual;
+  //  procedure SetImageIndex(Value: Integer); virtual;
+  //  procedure SetShortCut(Value: TShortCut); virtual;
+  //  procedure SetVisible(Value: Boolean); virtual;
+  //public
+  //  function IsCaptionLinked: Boolean; virtual;
+  //  function IsCheckedLinked: Boolean; virtual;
+  //  function IsEnabledLinked: Boolean; virtual;
+  //  function IsGroupIndexLinked: Boolean; virtual;
+  //  function IsHelpContextLinked: Boolean; virtual;
+  //  function IsHelpLinked: Boolean; virtual;
+  //  function IsHintLinked: Boolean; virtual;
+  //  function IsImageIndexLinked: Boolean; virtual;
+  //  function IsShortCutLinked: Boolean; virtual;
+  //  function IsVisibleLinked: Boolean; virtual;
+  //  {$ENDIF}
   end;
 
   TNvActionLinkClass = class of TNvActionLink;
 
   /// <summary> List of additional combinations of hot keys in VCL </summary>
-  TNvShortCutList = class(TCustomShortCutList)
+  TNvShortCutList = class({$IFDEF FPC} TShortCutList {$ELSE} TCustomShortCutList{$ENDIF})
   public
     function Add(const S: String): Integer; override;
   end;
 
   /// <summary> The usual action (without published properties) in VCL </summary>
-  TNvCustomAction = class(TContainedAction)
+
+  { TNvCustomAction }
+
+  TNvCustomAction = class({$IFDEF FPC} TCustomAction {$ELSE} TContainedAction {$ENDIF})
   private
     FImageListLink: TNVImageListLink;
-    FActionList   : TContainedActionList;
+    FActionList   : {$IFDEF FPC} TCustomActionList {$ELSE} TContainedActionList{$ENDIF};
     // FImageName: TImageName;
     FImageIndexChanging: Boolean;
+    //{$IFDEF FPC}
+    //FAutoCheck: Boolean;
+    //FCaption: TTranslateString;
+    //FChecked: Boolean;
+    //FChecking: Boolean;
+    //FGrayed: Boolean;
+    //FDisableIfNoHandler: Boolean;
+    //FEnabled: Boolean;
+    //FGroupIndex: Integer;
+    //FHelpContext: THelpContext;
+    //FHelpKeyword: string;
+    //FHelpType: THelpType;
+    //FHint: TTranslateString;
+    //FSecondaryShortCuts: TShortCutList;// nil as default
+    //FShortCut: TShortCut;
+    //FVisible: Boolean;
+    //FOnHint: THintEvent;
+    //procedure SetAutoCheck(Value: Boolean);
+    //procedure SetCaption(const Value: TTranslateString);
+    //procedure SetChecked(Value: Boolean);
+    //procedure SetEnabled(Value: Boolean);
+    //procedure SetGroupIndex(const Value: Integer);
+    //procedure SetHelpContext(Value: THelpContext); virtual;
+    //procedure SetHelpKeyword(const Value: string); virtual;
+    //procedure SetHelpType(Value: THelpType);
+    //procedure SetHint(const Value: TTranslateString);
+    //procedure SetShortCut(Value: TShortCut);
+    //procedure SetVisible(Value: Boolean);
+    //function GetSecondaryShortCuts: TShortCutList;
+    //procedure SetSecondaryShortCuts(const Value: TShortCutList);
+    //function IsSecondaryShortCutsStored: Boolean;
+    //{$ENDIF}
     // procedure SetImageName(const Value: TImageName);
     function GetCustomActionList: TNvCustomActionList; inline;
     procedure SetCustomActionList(const Value: TNvCustomActionList); inline;
@@ -63,12 +128,33 @@ type
     // FImage: TObject;
     // FMask: TObject;
     procedure AssignTo(Dest: TPersistent); override;
-    function CreateShortCutList: TCustomShortCutList; override;
     // procedure SetImageIndex(Value: System.UITypes.TImageIndex); override;
     procedure Change; override;
     // function GetImages: TCustomImageList; virtual;
     procedure SetImageListLink(Value: TNVImageListLink); virtual;
     procedure Loaded; override;
+    protected
+    {$IFDEF FPC}
+    //property AutoCheck: Boolean read FAutoCheck write SetAutoCheck default False;
+    //property Checked: Boolean read FChecked write SetChecked default False;
+    //property Grayed: Boolean read FGrayed write FGrayed;
+    //property DisableIfNoHandler: Boolean read FDisableIfNoHandler
+    //                                    write FDisableIfNoHandler default False;
+    //property GroupIndex: Integer read FGroupIndex write SetGroupIndex default 0;
+    //property HelpContext: THelpContext
+    //                           read FHelpContext write SetHelpContext default 0;
+    //property HelpKeyword: string read FHelpKeyword write SetHelpKeyword;
+    //property HelpType: THelpType
+    //                         read FHelpType write SetHelpType default htContext;
+    //property Hint: TTranslateString read FHint write SetHint;
+    //property SecondaryShortCuts: TShortCutList read GetSecondaryShortCuts
+    //              write SetSecondaryShortCuts stored IsSecondaryShortCutsStored;
+    //property ShortCut: TShortCut read FShortCut write SetShortCut default 0;
+    //property Visible: Boolean read FVisible write SetVisible default True;
+    //property OnHint: THintEvent read FOnHint write FOnHint;
+   {$ELSE}
+   function CreateShortCutList:  TCustomShortCutList; override;
+   {$ENDIF}
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -77,7 +163,10 @@ type
     property ImageListLink: TNVImageListLink read FImageListLink write SetImageListLink;
     // property ImageName: TImageName read FImageName write SetImageName;
     property ActionList: TNvCustomActionList read GetCustomActionList write SetCustomActionList;
-
+   // {$IFDEF FPC}
+   // property Caption: TTranslateString read FCaption write SetCaption;
+   // property Enabled: Boolean read FEnabled write SetEnabled default True;
+   //{$ENDIF}
   end;
 
   /// <summary> The usual action (with published properties) in VCL </summary>
@@ -116,7 +205,8 @@ uses
 procedure TNvCustomActionList.Change;
 begin
   inherited;
-  if ActionsCreated and (csDesigning in ComponentState) then
+  if {$IFNDEF FPC}ActionsCreated and {$ENDIF} //
+  (csDesigning in ComponentState) then
     begin
       if (Owner is TNVForm) and (TNVForm(Owner).Designer <> nil) then
         TNVForm(Owner).Designer.Modified;
@@ -218,6 +308,118 @@ begin
   Result := Action is TNvCustomAction;
 end;
 
+//{$IFDEF FPC}
+//procedure TNvActionLink.SetAutoCheck(Value: Boolean);
+//begin
+//
+//end;
+//
+//procedure TNvActionLink.SetCaption(const Value: string);
+//begin
+//
+//end;
+//
+//procedure TNvActionLink.SetChecked(Value: Boolean);
+//begin
+//
+//end;
+//
+//procedure TNvActionLink.SetEnabled(Value: Boolean);
+//begin
+//
+//end;
+//
+//procedure TNvActionLink.SetGroupIndex(Value: Integer);
+//begin
+//
+//end;
+//
+//procedure TNvActionLink.SetHelpContext(Value: THelpContext);
+//begin
+//
+//end;
+//
+//procedure TNvActionLink.SetHelpKeyword(const Value: string);
+//begin
+//
+//end;
+//
+//procedure TNvActionLink.SetHelpType(Value: THelpType);
+//begin
+//
+//end;
+//
+//procedure TNvActionLink.SetHint(const Value: string);
+//begin
+//
+//end;
+//
+//procedure TNvActionLink.SetImageIndex(Value: Integer);
+//begin
+//
+//end;
+//
+//procedure TNvActionLink.SetShortCut(Value: TShortCut);
+//begin
+//
+//end;
+//
+//procedure TNvActionLink.SetVisible(Value: Boolean);
+//begin
+//
+//end;
+//
+//function TNvActionLink.IsCaptionLinked: Boolean;
+//begin
+// Result := Action is TCustomAction;
+//end;
+//
+//function TNvActionLink.IsCheckedLinked: Boolean;
+//begin
+//  Result := Action is TCustomAction;
+//end;
+//
+//function TNvActionLink.IsEnabledLinked: Boolean;
+//begin
+//  Result := Action is TCustomAction;
+//end;
+//
+//function TNvActionLink.IsGroupIndexLinked: Boolean;
+//begin
+//  Result := Action is TCustomAction;
+//end;
+//
+//function TNvActionLink.IsHelpContextLinked: Boolean;
+//begin
+//  Result := Action is TCustomAction;
+//end;
+//
+//function TNvActionLink.IsHelpLinked: Boolean;
+//begin
+//  Result := Action is TCustomAction;
+//end;
+//
+//function TNvActionLink.IsHintLinked: Boolean;
+//begin
+// Result := Action is TCustomAction;
+//end;
+//
+//function TNvActionLink.IsImageIndexLinked: Boolean;
+//begin
+//  Result := Action is TCustomAction;
+//end;
+//
+//function TNvActionLink.IsShortCutLinked: Boolean;
+//begin
+//  Result := Action is TCustomAction;
+//end;
+//
+//function TNvActionLink.IsVisibleLinked: Boolean;
+//begin
+//  Result := Action is TCustomAction;
+//end;
+//{$ENDIF}
+
 { TNvCustomAction }
 
 constructor TNvCustomAction.Create(AOwner: TComponent);
@@ -226,10 +428,184 @@ begin
   FImageListLink:= TNVImageListLink.Create(nil);
 end;
 
+{$IFDEF FPC}
+//procedure TNvCustomAction.SetAutoCheck(Value: Boolean);
+//var
+//  I: Integer;
+//begin
+//  if Value = FAutoCheck then exit;
+//  for I := 0 to FClients.Count - 1 do
+//    TNvActionLink(FClients[I]).SetAutoCheck(Value);
+//  FAutoCheck := Value;
+//  Change;
+//end;
+//
+//procedure TNvCustomAction.SetCaption(const Value: TTranslateString);
+//var
+//  I: Integer;
+//begin
+//  if Value = FCaption then exit;
+//  for I := 0 to FClients.Count - 1 do
+//    TNvActionLink(FClients[I]).SetCaption(Value);
+//  FCaption := Value;
+//  Change;
+//end;
+//
+//procedure TNvCustomAction.SetChecked(Value: Boolean);
+//var
+//  I: Integer;
+//  Action: TContainedAction;
+//begin
+//  if FChecking then exit;
+//  if (Value=FChecked) and not FGrayed then exit;
+//  FChecking := True;
+//  try
+//    for I := 0 to FClients.Count - 1 do
+//      TNvActionLink(FClients[I]).SetChecked(Value);
+//    FChecked := Value;
+//    if (FGroupIndex > 0) and FChecked then
+//      for I := 0 to ActionList.ActionCount - 1 do
+//      begin
+//        Action := ActionList[I];
+//        if (Action <> Self)
+//        and (Action is TNvCustomAction)
+//        and (TNvCustomAction(Action).FGroupIndex = FGroupIndex) then
+//          TCustomAction(Action).Checked := False;
+//      end;
+//    Change;
+//  finally
+//    FChecking := False;
+//  end;
+//end;
+//
+//procedure TNvCustomAction.SetEnabled(Value: Boolean);
+//var
+//  I: Integer;
+//begin
+//  if Value = FEnabled then exit;
+//  if ActionList<>nil then
+//  begin
+//    if ActionList.State = asSuspended then
+//    begin
+//      FEnabled := Value;
+//      exit;
+//    end;
+//    if ActionList.State = asSuspendedEnabled then
+//    begin
+//      // enable for Delphi compatibility
+//      Value := True;
+//    end;
+//  end;
+//  for I := 0 to FClients.Count - 1 do
+//    TNvActionLink(FClients[I]).SetEnabled(Value);
+//  FEnabled := Value;
+//  Change;
+//end;
+//
+//procedure TNvCustomAction.SetGroupIndex(const Value: Integer);
+//var
+//  I: Integer;
+//begin
+//  if Value = FGroupIndex then exit;
+//  FGroupIndex := Value;
+//  for I := 0 to FClients.Count - 1 do
+//    TNvActionLink(FClients[I]).SetGroupIndex(Value);
+//  Change;
+//end;
+//
+//procedure TNvCustomAction.SetHelpContext(Value: THelpContext);
+//var
+//  I: Integer;
+//begin
+//  if Value = FHelpContext then exit;
+//  for I := 0 to FClients.Count - 1 do
+//    TNvActionLink(FClients[I]).SetHelpContext(Value);
+//  FHelpContext := Value;
+//  Change;
+//end;
+//
+//procedure TNvCustomAction.SetHelpKeyword(const Value: string);
+//var
+//  I: Integer;
+//begin
+//  if Value = FHelpKeyword then exit;
+//  for I := 0 to FClients.Count -1 do
+//    TNvActionLink(FClients[I]).SetHelpKeyword(Value);
+//  FHelpKeyword := Value;
+//  Change;
+//end;
+//
+//procedure TNvCustomAction.SetHelpType(Value: THelpType);
+//var
+//  I: Integer;
+//begin
+//  if Value = FHelpType then exit;
+//  for I := 0 to FClients.Count -1 do
+//    TNvActionLink(FClients[I]).SetHelpType(Value);
+//  FHelpType := Value;
+//  Change;
+//end;
+//
+//procedure TNvCustomAction.SetHint(const Value: TTranslateString);
+//var
+//  I: Integer;
+//begin
+//  if Value = FHint then exit;
+//  for I := 0 to FClients.Count - 1 do
+//    TNvActionLink(FClients[I]).SetHint(Value);
+//  FHint := Value;
+//  Change;
+//end;
+//
+//procedure TNvCustomAction.SetShortCut(Value: TShortCut);
+//var
+//  I: Integer;
+//begin
+//  if Value = FShortCut then exit;
+//  for I := 0 to FClients.Count - 1 do
+//    TNvActionLink(FClients[I]).SetShortCut(Value);
+//  FShortCut := Value;
+//  Change;
+//end;
+//
+//procedure TNvCustomAction.SetVisible(Value: Boolean);
+//var
+//  I: Integer;
+//begin
+//  if Value = FVisible then exit;
+//  for I := 0 to FClients.Count - 1 do
+//    TNvActionLink(FClients[I]).SetVisible(Value);
+//  FVisible := Value;
+//  Change;
+//end;
+//
+//function TNvCustomAction.GetSecondaryShortCuts: TShortCutList;
+//begin
+//  if FSecondaryShortCuts = nil then
+//    FSecondaryShortCuts := TShortCutList.Create;
+//  Result := FSecondaryShortCuts;
+//end;
+//
+//procedure TNvCustomAction.SetSecondaryShortCuts(const Value: TShortCutList);
+//begin
+//  if FSecondaryShortCuts = nil then begin
+//    if (Value=nil) or (Value.Count=0) then exit;
+//    FSecondaryShortCuts := TShortCutList.Create;
+//  end;
+//  FSecondaryShortCuts.Assign(Value);
+//end;
+//
+//function TNvCustomAction.IsSecondaryShortCutsStored: Boolean;
+//begin
+//  Result := Assigned(FSecondaryShortCuts) and (FSecondaryShortCuts.Count > 0);
+//end;
+//
+{$ELSE}
 function TNvCustomAction.CreateShortCutList: TCustomShortCutList;
 begin
   Result := TNvShortCutList.Create;
 end;
+{$ENDIF}
 
 destructor TNvCustomAction.Destroy;
 begin
@@ -251,8 +627,10 @@ end;
 function TNvCustomAction.Execute: Boolean;
 begin
   Result := False;
+  {$IFNDEF FPC}
   if Suspended then
     exit;
+  {$ENDIF}
   Update;
   if Enabled and AutoCheck then
     if not Checked or Checked and (GroupIndex = 0) then

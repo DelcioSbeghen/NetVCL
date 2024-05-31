@@ -1,4 +1,4 @@
-unit NV.Design.ModuleDesigner;
+unit NV.Design.Delphi.ModuleDesigner;
 
 interface
 

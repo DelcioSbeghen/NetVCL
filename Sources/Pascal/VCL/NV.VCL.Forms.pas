@@ -3,7 +3,7 @@ unit NV.VCL.Forms;
 interface
 
 uses
-  Classes, Windows, Messages, SysUtils, Controls, NV.VCL.Frame, System.Generics.Collections,
+  Classes, Windows, Messages, SysUtils, Controls, NV.VCL.Frame, Generics.Collections,
   NV.Ajax, NV.VCL.Page;
 
 const
@@ -36,7 +36,7 @@ type
   protected
     FUrlBase: string;
     // Browser requests
-    procedure DataReceived(const Data: PChar);
+    procedure DataReceived(const Data:PChar);
     procedure MsgDataReceived(var Msg: TMessage);
   public
     constructor Create(AOwner: TComponent); override;
@@ -139,7 +139,7 @@ var
 
 implementation
 
-uses StrUtils, RTLConsts, Consts, NV.JSON, Rtti, NV.VCL.Dialogs,
+uses StrUtils, RTLConsts, {$IFNDEF FPC} Consts,{$ENDIF} NV.JSON, Rtti, NV.VCL.Dialogs,
   NV.Request.Exe;
 
 var
@@ -229,8 +229,10 @@ begin
 
         FHandle        := LHandle;
         FHandleCreated := True;
+        {$IFNDEF FPC}
         if TOSVersion.Check(5, 1) then
           WTSRegisterSessionNotification(LHandle, NOTIFY_FOR_THIS_SESSION);
+        {$ENDIF}
         // if TOSVersion.Check(6, 0) then
         // BufferedPaintInit;
 
@@ -409,7 +411,6 @@ begin
 end;
 
 function TNvApplication.ProcessMessage(
-
   var Msg: TMsg): Boolean;
 var
   Handled  : Boolean;
@@ -503,6 +504,7 @@ var
   SubE: Exception;
 begin
   Msg := E.Message;
+  {$IFNDEF FPC}
   while True do
     begin
       SubE := E.GetBaseException;
@@ -515,15 +517,23 @@ begin
       else
         Break;
     end;
+  {$ENDIF}
   if (Msg <> '') and (Msg[Length(Msg)] > '.') then
     Msg := Msg + '.';
   { TODO -oDelcio -cDesign : Show Design exceptions }
   if not FDesignInstance then
-    TThread.Synchronize(nil,
+    {$IFDEF FPC}
+    begin
+      OutputDebugString('!!!!!!NO FPC ISSO NÃO ESTÁ THREAD SAFE!!!!!!');
+      NV.VCL.Dialogs.ShowMessage(Msg, FTitle, TMsgDlgType.mtError);
+    end;
+     {$ELSE}
+     TThread.Synchronize(nil,
       procedure
       begin
         NV.VCL.Dialogs.ShowMessage(Msg, FTitle, TMsgDlgType.mtError);
       end);
+     {$ENDIF}
 end;
 
 procedure TNvApplication.ShowMessage(aMsg: string);
@@ -730,7 +740,9 @@ begin
         // FDialogHandle := lParam;
         WM_SETTINGCHANGE:
           begin
+            {$IFNDEF FPC}
             Mouse.SettingChanged(WParam);
+            {$ENDIF}
             // SettingChange(TWMSettingChange(Message));
 
             Default;
@@ -802,8 +814,8 @@ end;
 constructor TNvScreen.Create(AOwner: TComponent);
 begin
   inherited;
-  System.Classes.AddDataModule    := AddDataModule;
-  System.Classes.RemoveDataModule := RemoveDataModule;
+  {$IFNDEF FPC}System.{$ENDIF}Classes.AddDataModule    := AddDataModule;
+  {$IFNDEF FPC}System.{$ENDIF}Classes.RemoveDataModule := RemoveDataModule;
   FForms                          := TList.Create;
   FDataModules                    := TList.Create;
   FFrames                         := TList.Create;
@@ -821,7 +833,7 @@ begin
   Result := TDataModule(FDataModules[Index]);
 end;
 
-procedure TNvScreen.DataReceived(const Data: PChar);
+procedure TNvScreen.DataReceived(const Data:PChar);
 begin
   if Data = 'close' then
     PostMessage(Application.Handle, WM_CLOSE, 0, 0)
@@ -833,7 +845,7 @@ begin
   else // Save Data to read on message TNvScreen.MsgDataReceived
     begin
       inc(FDataId);
-      FDataReceived.Add(FDataId, PChar(Data));
+      FDataReceived.Add(FDataId, {$IFDEF FPC} PChar {$ELSE} PChar {$ENDIF}(Data));
 
       PostMessage(Application.Handle, WM_SCR_DATA, FDataId, 0);
     end;
@@ -845,8 +857,8 @@ begin
   FForms.Free;
   FDataModules.Free;
   FFrames.Free;
-  System.Classes.AddDataModule    := nil;
-  System.Classes.RemoveDataModule := nil;
+  {$IFNDEF FPC}System.{$ENDIF}Classes.AddDataModule    := nil;
+  {$IFNDEF FPC}System.{$ENDIF}Classes.RemoveDataModule := nil;
   if Screen = Self then
     Screen := nil;
   inherited;
@@ -979,7 +991,7 @@ initialization
 // InitProcs;
 // RM_TaskBarCreated := RegisterWindowMessage('TaskbarCreated');
 // RM_TaskBarButtonCreated := RegisterWindowMessage('TaskbarButtonCreated');
-System.Classes.RegisterFindGlobalComponentProc(FindGlobalComponent);
+{$IFNDEF FPC}System.{$ENDIF}Classes.RegisterFindGlobalComponentProc(FindGlobalComponent);
 // IdleTimerHandle := 0;
 
 finalization
@@ -988,6 +1000,6 @@ finalization
 // DoneApplication;
 // if HintDoneEvent <> 0 then
 // CloseHandle(HintDoneEvent);
-System.Classes.UnregisterFindGlobalComponentProc(FindGlobalComponent);
+{$IFNDEF FPC}System.{$ENDIF}Classes.UnregisterFindGlobalComponentProc(FindGlobalComponent);
 
 end.

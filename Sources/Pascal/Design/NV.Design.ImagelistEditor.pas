@@ -3,9 +3,9 @@ unit NV.Design.ImagelistEditor;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Graphics,
-  Controls, Forms, Dialogs, DesignEditors, ExtCtrls, Vcl.Buttons, Vcl.ComCtrls, NV.Vcl.Images,
-  ImageList, ImgList, NV.Desktop, DesignIntf;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics,
+  Controls, Forms, Dialogs, ExtCtrls, Buttons, ComCtrls, NV.Vcl.Images,
+   NV.Desktop{$IFDEF FPC} , ComponentEditors {$ELSE},ImageList, ImgList, DesignEditors, DesignIntf {$ENDIF};
 
 type
   TFrmImgListEditor = class(TForm)
@@ -37,7 +37,7 @@ type
     Browser      : TNvScreenBrowser;
     BrowserActive: Boolean;
     Selected     : TNvImageItem;
-    procedure ExecuteCallback(const Value: PChar);
+    procedure ExecuteCallback(const Value:  {$IFDEF FPC} ustring {$ELSE} PChar {$ENDIF});
   protected
     procedure RefillListView;
 
@@ -59,8 +59,13 @@ implementation
 
 uses
   StrUtils, NV.Utils;
-
+  
+{$IFDEF FPC}
+{$R *.lfm}
+{$ELSE}
 {$R *.dfm}
+{$ENDIF}
+
 { TNvSvgImageListEditor }
 
 procedure TNvSvgImageListEditor.ExecuteVerb(Index: Integer);
@@ -144,7 +149,7 @@ begin
     end;
 end;
 
-procedure TFrmImgListEditor.ExecuteCallback(const Value: PChar);
+procedure TFrmImgListEditor.ExecuteCallback(const Value:  {$IFDEF FPC} ustring {$ELSE} PChar {$ENDIF});
 var
   Idx: Integer;
 begin
@@ -297,7 +302,7 @@ begin
     '</html>';     //
 
   if not BrowserActive then
-    Browser.CreateScreenBrowser(ExecuteCallback);
+    Browser.CreateScreenBrowser;
 
   Browser.SetParent(ListView1);
   Browser.LoadHtml(_Html);

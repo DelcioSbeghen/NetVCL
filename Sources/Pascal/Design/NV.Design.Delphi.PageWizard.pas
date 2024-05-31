@@ -1,4 +1,4 @@
-unit NV.Design.PageWizard;
+unit NV.Design.Delphi.PageWizard;
 
 interface
 

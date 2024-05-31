@@ -1,9 +1,12 @@
 unit NV.VCL.Dialogs;
+{$IFDEF FPC}
+{$mode delphi}
+{$ENDIF}
 
 interface
 
 uses
-  Classes, UITypes, SysUtils, Consts, NV.Controls, NV.Ajax, NV.JSON, Generics.Collections;
+  Classes, UITypes, SysUtils, {$IFDEF FPC} RtlConsts,{$ELSE}Consts,{$ENDIF} NV.Controls, NV.Ajax, NV.JSON, Generics.Collections;
 
 const
   { Message dialog }
@@ -81,7 +84,7 @@ type
   private
     FButtons: TDlgBtnList;
     procedure UpdateButtons(JSON: TJsonObject);
-    procedure DoButtonsUpdate(Sender: TObject; const Item: TNvDlgButtonItem;
+    procedure DoButtonsUpdate(Sender: TObject; {$IFDEF FPC}constref{$ELSE}const{$ENDIF}Item: TNvDlgButtonItem;
       Action: TCollectionNotification);
   protected
     procedure InternalRender(JSON: TJsonObject); override;
@@ -372,7 +375,7 @@ begin
   inherited;
 end;
 
-procedure TNvButtonsDialog.DoButtonsUpdate(Sender: TObject; const Item: TNvDlgButtonItem;
+procedure TNvButtonsDialog.DoButtonsUpdate(Sender: TObject; {$IFDEF FPC}constref{$ELSE}const{$ENDIF} Item: TNvDlgButtonItem;
   Action: TCollectionNotification);
 begin
   if (Action in [cnAdded, cnRemoved]) and FRendered then

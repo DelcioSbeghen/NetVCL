@@ -11,6 +11,6 @@ uses
 implementation
 
 uses
-  DBConsts, RTLConsts;
+  RTLConsts;
 
 end.

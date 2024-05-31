@@ -3,7 +3,8 @@ unit NV.Controls;
 interface
 
 uses
-  Classes, Windows, Messages, SysUtils, Controls, Generics.Collections, NV.Json,
+  Classes, Windows, Messages, SysUtils, {$IFDEF FPC}UITypes, LCLType, {$ENDIF} Controls,
+  Generics.Collections, NV.Json,
   NV.Interfaces, NV.MergeSort, NV.VCL.Images;
 
 type
@@ -11,6 +12,8 @@ type
   TNvPropChangeList = TDictionary<string, TPropChangeProc>;
 
   { TODO -oDelcio -cFocus : Implement SetFocus in Controls and WinControls }
+
+  { TNvControl }
 
   TNvControl = class(TGraphicControl, INvControl, INVRenderableComponent)
   protected
@@ -69,12 +72,16 @@ type
     function IsTextVisibleStored: Boolean;
     function IsSubComponent: Boolean; inline;
     //
-    procedure DoPendingChangesChange(Sender: TObject; const Item: string;
-      Action: TCollectionNotification);
+    procedure DoPendingChangesChange(Sender: TObject; {$IFDEF FPC} constref {$ELSE} const
+{$ENDIF} Item: string; Action: TCollectionNotification);
     // After component dropped in IDE Designer
     procedure AfterDesignDrop; virtual;
     procedure RenameSubComponents(NewName: string); virtual;
     //
+{$IFDEF FPC}
+    function GetComponent: TComponent;
+    function GetActionLinkClass: TControlActionLinkClass; override;
+{$ENDIF}
     procedure AddIncludes; virtual;
     function WebClassType: string; virtual;
     function ControlAjaxJson: TJsonObject;
@@ -94,6 +101,7 @@ type
     procedure RenderClassCss(aJson: TJsonObject); dynamic;
     procedure RenderEvents(aJson: TJsonObject); virtual;
     procedure RenderRenderIndex(aJson: TJsonObject); dynamic;
+    procedure RenderDestroy; dynamic;
     //
     property Caption: TCaption read GetText write SetText stored IsCaptionStored;
     property CaptionVisible: Boolean read FRenderText write SetRenderText
@@ -116,7 +124,7 @@ type
     destructor Destroy; override;
     procedure AfterConstruction; override;
     procedure Render; virtual;
-    procedure RenderChanges;
+    procedure RenderChanges; // do not override
     procedure Invalidate; override;
     procedure ProcessRequest(J: TJsonObject);
     procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
@@ -133,6 +141,8 @@ type
     property Height stored FRenderPosition;
     property RenderIndex: Integer read FRenderIndex write SetRenderIndex stored IsRenderIndexStored;
   end;
+
+  { TNvWinControl }
 
   TNvWinControl = class(TCustomControl, INvControl, INVRenderableComponent)
   protected
@@ -198,12 +208,16 @@ type
     function IsTextVisibleStored: Boolean;
     function IsSubComponent: Boolean; inline;
     //
-    procedure DoPendingChangesChange(Sender: TObject; const Item: string;
-      Action: TCollectionNotification);
+    procedure DoPendingChangesChange(Sender: TObject; {$IFDEF FPC} constref {$ELSE} const
+{$ENDIF} Item: string; Action: TCollectionNotification);
     // Occurs after component dropped in IDE Designer
     procedure AfterDesignDrop; virtual;
     procedure RenameSubComponents(NewName: string); virtual;
     //
+{$IFDEF FPC}
+    function GetComponent: TComponent;
+    function GetActionLinkClass: TControlActionLinkClass; override;
+{$ENDIF}
     procedure AddIncludes; virtual;
     function WebClassType: string; virtual;
     function ControlAjaxJson: TJsonObject;
@@ -223,6 +237,7 @@ type
     procedure RenderClassCss(aJson: TJsonObject); dynamic;
     procedure RenderEvents(aJson: TJsonObject); virtual;
     procedure RenderRenderIndex(aJson: TJsonObject); dynamic;
+    procedure RenderDestroy; dynamic;
     //
     procedure Paint; override;
     procedure CreateParams(var Params: TCreateParams); override;
@@ -257,7 +272,7 @@ type
     procedure ProcessRequest(J: TJsonObject); virtual;
     procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
     function Rendered: Boolean;
-    procedure RenderChanges;
+    procedure RenderChanges; // do not override
     procedure ReRender(Now: Boolean = True); virtual;
     procedure SetSubComponent(IsSubComponent: Boolean; PropName: string); reintroduce;
     procedure AddClassCss(aClass: string);
@@ -312,12 +327,13 @@ type
     FPropName: string;
     FPrefix  : string;
     FSuffix  : string;
-    procedure DoPendingChangesChange(Sender: TObject; const Item: string;
-      Action: TCollectionNotification);
+    procedure DoPendingChangesChange(Sender: TObject; {$IFDEF FPC} constref {$ELSE} const
+{$ENDIF} Item: string; Action: TCollectionNotification);
 
     procedure InternalRender(aJson: TJsonObject); virtual; abstract;
     { IInterface }
-    function QueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
+    function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const
+{$ENDIF} IID: TGUID; out Obj): HResult; virtual; stdcall;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
     // IInterfaceComponentReference (Not used)
@@ -349,7 +365,7 @@ implementation
 
 uses
   NV.Utils, NV.VCL.Page, TypInfo, StrUtils, NV.VCL.Forms,
-  System.Generics.Collections, NV.VCL.ActnList;
+  NV.VCL.ActnList;
 
 type
   TControlActionLinkHack = class(TControlActionLink);
@@ -579,24 +595,13 @@ end;
 
 destructor TNvControl.Destroy;
 begin
-  if not FId.IsEmpty then
-    begin
-      if (Not Application.Terminated) and (Screen.Ajax <> nil) then
-        begin
-          Screen.Ajax.AddDestruction(FId);
-          FRendered := True;
-          FPropChanges.Clear;
-          if Not IsSubComponent then
-            Invalidate;
-        end;
-
-      _RemoveControl(Self);
-    end;
+  RenderDestroy;
 
   if SupportImage then
     FImageListLink.Free;
 
   FPropChanges.Free;
+
   inherited;
 end;
 
@@ -618,8 +623,8 @@ begin
     FOnExit(Self);
 end;
 
-procedure TNvControl.DoPendingChangesChange(Sender: TObject; const Item: string;
-  Action: TCollectionNotification);
+procedure TNvControl.DoPendingChangesChange(Sender: TObject; {$IFDEF FPC} constref {$ELSE} const
+{$ENDIF} Item: string; Action: TCollectionNotification);
 begin
   case Action of
     cnAdded: Screen.Ajax.ChangeList.Add(Self);
@@ -765,6 +770,19 @@ begin
         end;
     end;
 end;
+{$IFDEF FPC}
+
+function TNvControl.GetComponent: TComponent;
+begin
+  Result := Self;
+end;
+
+function TNvControl.GetActionLinkClass: TControlActionLinkClass;
+begin
+  Result := TNvActionLink;
+end;
+
+{$ENDIF}
 
 procedure TNvControl.Render;
 var
@@ -860,6 +878,24 @@ end;
 procedure TNvControl.RenderClassCss(aJson: TJsonObject);
 begin
   aJson.S['ClassCss'] := FClassCss;
+end;
+
+procedure TNvControl.RenderDestroy;
+begin
+  if not FId.IsEmpty then
+    begin
+      if (Not Application.Terminated) and (Screen.Ajax <> nil) and Rendered then
+        begin
+          // If Ajax is being updated, the changes would be rendered later (Ajax.EndUpdate), but the control would already be destroyed.
+          if not IsSubComponent then
+            RenderChanges;
+          Screen.Ajax.AddDestruction(FId);
+          Screen.Ajax.Invalidate;
+          FRendered := False;
+        end;
+      FPropChanges.Clear;
+      _RemoveControl(Self);
+    end;
 end;
 
 function TNvControl.Rendered: Boolean;
@@ -1040,8 +1076,12 @@ begin
   else if Assigned(AParent)                 //
     and (AParent as TNvWinControl).Rendered //
     and not(csLoading in ComponentState) then
-    { Re } Render;
-
+    begin
+      { Re } Render;
+      // created out of an request
+      if Not Screen.Ajax.InUpdate then
+        Screen.Ajax.Invalidate;
+    end;
 end;
 
 procedure TNvControl.SetPropValueByRequest(aPropName: string; aValue: Variant);
@@ -1268,7 +1308,7 @@ begin
   GetID;
 
   ControlStyle := [csAcceptsControls, csCaptureMouse, csClickEvents, csDoubleClicks,
-    csParentBackground, csPannable, csGestures];
+    csParentBackground{$IFNDEF FPC} , csPannable, csGestures {$ENDIF}];
 
   FRenderText     := DefaultRenderText;
   FRenderPosition := True;
@@ -1319,48 +1359,17 @@ begin
 end;
 
 destructor TNvWinControl.Destroy;
-  procedure DestroyControls(aControl: TControl);
-  var
-    I         : Integer;
-    _Container: TNvWinControl;
-  begin
-    if aControl is TNvControl then
-      Screen.Ajax.AddDestruction(TNvControl(aControl).FId)
-    else if aControl is TNvWinControl then
-      begin
-        _Container := TNvWinControl(aControl);
-
-        for I := 0 to _Container.ControlCount - 1 do
-          if _Container.Controls[I] is TWinControl then
-            DestroyControls(TWinControl(_Container.Controls[I]))
-          else if _Container.Controls[I] is TNvControl then
-            Screen.Ajax.AddDestruction(TNvControl(_Container.Controls[I]).FId);
-
-        Screen.Ajax.AddDestruction(_Container.FId);
-      end;
-  end;
-
 begin
-  if not FId.IsEmpty then
-    begin
-      if (not Application.Terminated) and (Screen.Ajax <> nil) then
-        begin
 
-          DestroyControls(Self);
-          FRendered := True;
-          FPropChanges.Clear;
-          if Not IsSubComponent then
-            Invalidate;
-        end;
+  RenderDestroy;
 
-      _RemoveControl(Self);
-    end;
   FControlsOrdered.Free;
 
   if SupportImage then
     FImageListLink.Free;
 
   FPropChanges.Free;
+
   inherited;
 end;
 
@@ -1376,7 +1385,7 @@ begin
     ModalResult := aEvent.I['ModalResult'];
 end;
 
-Procedure TNvWinControl.DoEnter(aEvent: TJsonObject);
+procedure TNvWinControl.DoEnter(aEvent: TJsonObject);
 begin
   if Assigned(FOnEnter) then
     FOnEnter(Self);
@@ -1388,8 +1397,8 @@ begin
     FOnExit(Self);
 end;
 
-procedure TNvWinControl.DoPendingChangesChange(Sender: TObject; const Item: string;
-  Action: TCollectionNotification);
+procedure TNvWinControl.DoPendingChangesChange(Sender: TObject; {$IFDEF FPC} constref {$ELSE} const
+{$ENDIF} Item: string; Action: TCollectionNotification);
 begin
   case Action of
     cnAdded: Screen.Ajax.ChangeList.Add(Self);
@@ -1561,6 +1570,20 @@ begin
     end;
 end;
 
+{$IFDEF FPC}
+
+function TNvWinControl.GetComponent: TComponent;
+begin
+  Result := Self;
+end;
+
+function TNvWinControl.GetActionLinkClass: TControlActionLinkClass;
+begin
+  Result := TNvActionLink;
+end;
+
+{$ENDIF}
+
 procedure TNvWinControl.Render;
 var
   I       : Integer;
@@ -1669,6 +1692,32 @@ end;
 procedure TNvWinControl.RenderClassCss(aJson: TJsonObject);
 begin
   aJson.S['ClassCss'] := FClassCss;
+end;
+
+procedure TNvWinControl.RenderDestroy;
+var
+  I: integer;
+begin
+  for I := 0 to ControlCount - 1 do
+    if Controls[I] is TNvWinControl then
+      TNvWinControl(Controls[I]).RenderDestroy
+    else if Controls[I] is TNvControl then
+      TNvControl(Controls[I]).RenderDestroy;
+
+  if not FId.IsEmpty then
+    begin
+      if (Not Application.Terminated) and (Screen.Ajax <> nil) and Rendered then
+        begin
+          // Render changes now, because if Ajax is being updated, the changes would be rendered later (Ajax.EndUpdate), but the control would already be destroyed.
+          if not IsSubComponent then
+            RenderChanges;
+          Screen.Ajax.AddDestruction(FId);
+          Screen.Ajax.Invalidate;
+          FRendered := False;
+        end;
+      FPropChanges.Clear;
+      _RemoveControl(Self);
+    end;
 end;
 
 function TNvWinControl.Rendered: Boolean;
@@ -1874,7 +1923,12 @@ begin
   else if Assigned(AParent)                 //
     and (AParent as TNvWinControl).Rendered //
     and not(csLoading in ComponentState) then
-    { Re } Render;
+    begin
+      { Re } Render;
+      // created out of an request
+      if Not Screen.Ajax.InUpdate then
+        Screen.Ajax.Invalidate;
+    end;
 end;
 
 procedure TNvWinControl.SetPropValueByRequest(aPropName: string; aValue: Variant);
@@ -2099,8 +2153,8 @@ begin
   inherited;
 end;
 
-procedure TNvSubProperty.DoPendingChangesChange(Sender: TObject; const Item: string;
-  Action: TCollectionNotification);
+procedure TNvSubProperty.DoPendingChangesChange(Sender: TObject; {$IFDEF FPC} constref {$ELSE} const
+{$ENDIF} Item: string; Action: TCollectionNotification);
 begin
   case Action of
     cnAdded: FControl.EnqueueChange(FPrefix + FPropName + FSuffix, RenderChanges);
@@ -2131,7 +2185,8 @@ begin
   Result := FControl.NeedSendChange;
 end;
 
-function TNvSubProperty.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TNvSubProperty.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const
+{$ENDIF} IID: TGUID; out Obj): HResult;
 begin
   if GetInterface(IID, Obj) then
     Result := S_OK

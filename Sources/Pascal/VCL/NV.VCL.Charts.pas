@@ -3,7 +3,7 @@ unit NV.VCL.Charts;
 interface
 
 uses
-  Classes, Types, VCL.Controls, SysUtils, DB, Graphics, UIConsts, UITypes, NV.JSON, NV.VCL.Graphics,
+  Classes, Types, Controls, SysUtils, DB, Graphics, {$IFDEF FPC} RtlConsts, {$ELSE} UIConsts, {$ENDIF} System.UITypes, NV.JSON, NV.VCL.Graphics,
   NV.Controls,
   NV.Ajax, NV.Interfaces;
 
@@ -193,7 +193,7 @@ type
   public
     constructor Create(aMaster: INVRenderableComponent; aSerieItem: TNvChartSerieItem); override;
   published
-    property BorderDash: TDWCanvasLineDashPattern read FBorderDash write SetBorderDash default [];
+    property BorderDash: TDWCanvasLineDashPattern read FBorderDash write SetBorderDash{$IFNDEF FPC}  default [] {$ENDIF};
     property BorderDashOffset: Integer read FBorderDashOffset write SetBorderDashOffset default 0;
     property BorderCapStyle: TDWCanvasLineCap read FBorderCapStyle write SetBorderCapStyle
       default dwclcButt;
@@ -338,7 +338,7 @@ type
   protected
     FChart: TNvCustomChart;
     { IInterface }
-    function QueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
+    function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult; virtual; stdcall;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
     // IInterfaceComponentReference (Not used)
@@ -787,7 +787,7 @@ type
     property BorderColor   : TAlphaColor read FBorderColor write SetBorderColor default $25000000;
     property BorderCapStyle: TDWCanvasLineCap read FBorderCapStyle write SetBorderCapStyle
       default dwclcButt;
-    property BorderDash: TDWCanvasLineDashPattern read FBorderDash write SetBorderDash default [];
+    property BorderDash: TDWCanvasLineDashPattern read FBorderDash write SetBorderDash {$IFNDEF FPC} default [] {$ENDIF};
     property BorderDashOffset: Integer read FBorderDashOffset write SetBorderDashOffset default 0;
     property BorderJoinStyle: TDWCanvasLineJoin read FBorderJoinStyle write SetBorderJoinStyle
       default dwcljMiter;
@@ -905,6 +905,7 @@ type
     destructor Destroy; override;
     procedure Invalidate; override;
     property Labels: TStringList read FLabels write SetLabels;
+    {$IFDEF FPC}     property Padding   : TRect read FPadding write SetPadding;  {$ENDIF}
   published
     property Series: TNvChartSeries read FSeries write SetSeries;
     property Caption;
@@ -913,7 +914,7 @@ type
     property Animation : TNvChartAnimation read FAnimation write SetAnimation;
     property Title     : TNvChartTitle read FTitle write SetTitle;
     property Elements  : TNvChartElements read FElements write SetElements;
-    property Padding   : TRect read FPadding write SetPadding;
+{$IFNDEF FPC}     property Padding   : TRect read FPadding write SetPadding;  {$ENDIF}
     property Tooltip   : TNvChartTooltip read FTooltip write SetTooltip;
     property Responsive: Boolean read FResponsive write SetResponsive default False;
   end;
@@ -948,7 +949,7 @@ type
 implementation
 
 uses
-  NV.VCL.Forms;
+  NV.Utils, NV.VCL.Forms;
 
 { TDWGraph }
 
@@ -3891,7 +3892,7 @@ begin
   Result := FChart.NeedSendChange;
 end;
 
-function TNvChartSeries.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TNvChartSeries.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult;
 begin
   if GetInterface(IID, Obj) then
     Result := S_OK

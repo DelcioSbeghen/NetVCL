@@ -1,6 +1,7 @@
 unit NV.JSON;
 
 
+
 (* ****************************************************************************
   Library From IWBSFramework Project:
   http://kattunga.github.io/IWBootstrapFramework/
@@ -39,6 +40,14 @@ unit NV.JSON;
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
   **************************************************************************** *)
+
+{$IFDEF FPC}
+{$mode delphi}
+{$H+}
+{$MACRO ON}
+{$define RTLVersion :=  25}
+{$define CompilerVersion := 22}
+{$ENDIF}
 
 {$A8,B-,C+,E-,F-,G+,H+,I+,J-,K-,M-,N-,O+,P+,Q-,R-,S-,T-,U-,V+,W-,X+,Z1}
 {$WARN WIDECHAR_REDUCED OFF} // All sets only use ASCII chars (<=#127) and the compiler generates the >=#128 check itself
@@ -465,7 +474,7 @@ type
     class function ParseUtf8(const S: UTF8String): TJsonBaseObject; overload; static; inline;
 {$ENDIF ~NEXTGEN}
     class function ParseUtf8Bytes(S: PByte; Len: Integer = -1): TJsonBaseObject; overload; static;
-    class function Parse(S: PWideChar; Len: Integer = -1): TJsonBaseObject; overload; static;
+    class function Parse(S: {$IFDEF FPC}PChar{$ELSE}PWideChar{$ENDIF}; Len: Integer = -1): TJsonBaseObject; overload; static;
     class function Parse(const S: UnicodeString): TJsonBaseObject; overload; static; inline;
     class function Parse(const Bytes: TBytes; Encoding: TEncoding = nil; ByteIndex: Integer = 0;
       ByteCount: Integer = -1): TJsonBaseObject; overload; static;
@@ -490,8 +499,8 @@ type
     procedure FromUtf8JSON(S: PAnsiChar; Len: Integer = -1); overload; inline;
 {$ENDIF ~NEXTGEN}
     procedure FromUtf8JSON(S: PByte; Len: Integer = -1); overload;
-    procedure FromJSON(const S: UnicodeString); overload;
-    procedure FromJSON(S: PWideChar; Len: Integer = -1); overload;
+    procedure FromJSON(const S: string); overload;
+    procedure FromJSON(S: PChar; Len: Integer = -1); overload;
 
     function ToJSON(Compact: Boolean = True): string;
 {$IFNDEF NEXTGEN}
@@ -795,7 +804,10 @@ Windows,
 {$ELSE}
   DateUtils,
 {$ENDIF MSWINDOWS}
-  Variants, RTLConsts, TypInfo, Math, SysConst;
+{$IFDEF FPC}
+ LazUTF8,
+{$ENDIF FPC}
+  Variants, RTLConsts, TypInfo, Math, SysConst, NV.Languages;
 {$ENDIF HAS_UNIT_SCOPE}
 {$IF SizeOf(LongWord) <> 4}
 
@@ -974,7 +986,7 @@ type
   private
     FDataString: UTF8String;
   protected
-    function Realloc(var NewCapacity: {$IFDEF VER350}NativeInt{$ELSE} Longint{$ENDIF}): Pointer; override;
+    function Realloc(var NewCapacity: {$IFDEF VER360}NativeInt{$ELSE} Longint{$ENDIF}): Pointer; override;
   public
     constructor Create;
     property DataString: UTF8String read FDataString;
@@ -985,7 +997,7 @@ type
   private
     FBytes: TBytes;
   protected
-    function Realloc(var NewCapacity: {$IFDEF VER350}NativeInt{$ELSE} Longint{$ENDIF}): Pointer; override;
+    function Realloc(var NewCapacity: {$IFDEF VER360}NativeInt{$ELSE} Longint{$ENDIF}): Pointer; override;
   public
     constructor Create;
     property Bytes: TBytes read FBytes;
@@ -2177,7 +2189,7 @@ end;
 
 function DoubleToText(Buffer: PChar; const Value: Extended): Integer; inline;
 begin
-  Result := FloatToText(Buffer, Value, fvExtended, ffGeneral, 15, 0, JSONFormatSettings);
+  Result := FloatToText(Buffer, Value, {$IFNDEF FPC}fvExtended, {$ENDIF} ffGeneral, 15, 0, JSONFormatSettings);
 end;
 
 const
@@ -2202,12 +2214,12 @@ begin
       K        := I - K;
       I        := Quotient;
       Dec(Result, 2);
-      PLongWord(Result)^ := LongWord(DoubleDigits[K]);
+      {$IFDEF FPC}PWord{$ELSE}PLongWord{$ENDIF}(Result)^ :=  {$IFDEF FPC}Word{$ELSE}LongWord{$ENDIF}(DoubleDigits[K]);
     end;
   if I >= 10 then
     begin
       Dec(Result, 2);
-      PLongWord(Result)^ := LongWord(DoubleDigits[I]);
+      {$IFDEF FPC}PWord{$ELSE}PLongWord{$ENDIF}(Result)^ :=  {$IFDEF FPC}Word{$ELSE}LongWord{$ENDIF}(DoubleDigits[I]);
     end
   else
     begin
@@ -2250,7 +2262,7 @@ begin
       Value     := Quotient;
 
       Dec(Result, 2);
-      PLongWord(Result)^ := LongWord(DoubleDigits[Remainder]);
+       {$IFDEF FPC}PWord{$ELSE}PLongWord{$ENDIF}(Result)^ :=  {$IFDEF FPC}Word{$ELSE}LongWord{$ENDIF}(DoubleDigits[Remainder]);
     end;
 
   Result := InternIntToText(Cardinal(Value), False, Result);
@@ -2670,10 +2682,10 @@ end;
 
 class function TJsonBaseObject.Parse(const S: UnicodeString): TJsonBaseObject;
 begin
-  Result := Parse(PWideChar(Pointer(S)), Length(S));
+  Result := Parse({$IFDEF FPC}PChar{$ELSE}PWideChar{$ENDIF}(Pointer(S)), Length(S));
 end;
 
-class function TJsonBaseObject.Parse(S: PWideChar; Len: Integer): TJsonBaseObject;
+class function TJsonBaseObject.Parse(S: {$IFDEF FPC}PChar{$ELSE}PWideChar{$ENDIF}; Len: Integer): TJsonBaseObject;
 begin
   if (S = nil) or (Len = 0) then
     Result := nil
@@ -2724,7 +2736,7 @@ begin
       if (Encoding = TEncoding.UTF8) or (Encoding = nil) then
         Result := ParseUtf8Bytes(PByte(@Bytes[ByteIndex]), ByteCount)
       else if Encoding = TEncoding.Unicode then
-        Result := Parse(PWideChar(@Bytes[ByteIndex]), ByteCount div SizeOf(WideChar))
+        Result := Parse({$IFDEF FPC}PChar{$ELSE}PWideChar{$ENDIF}(@Bytes[ByteIndex]), ByteCount div SizeOf({$IFDEF FPC} Char {$ELSE} WideChar {$ENDIF}))
       else
         Result := Parse(Encoding.GetString(Bytes, ByteIndex, ByteCount));
     end;
@@ -2755,7 +2767,7 @@ begin
     if Encoding = TEncoding.UTF8 then
       Result := ParseUtf8Bytes(StreamInfo.Buffer, StreamInfo.Size)
     else if Encoding = TEncoding.Unicode then
-      Result := Parse(PWideChar(Pointer(StreamInfo.Buffer)), StreamInfo.Size div SizeOf(WideChar))
+      Result := Parse({$IFDEF FPC}PChar{$ELSE}PWideChar{$ENDIF}(Pointer(StreamInfo.Buffer)), StreamInfo.Size div SizeOf(WideChar))
     else
       begin
         L := TEncodingStrictAccess(Encoding).GetCharCountEx(StreamInfo.Buffer, StreamInfo.Size);
@@ -2810,17 +2822,18 @@ begin
   end;
 end;
 
-procedure TJsonBaseObject.FromJSON(const S: UnicodeString);
+procedure TJsonBaseObject.FromJSON(const S: string);
 begin
-  FromJSON(PWideChar(S), Length(S));
+  FromJSON(PChar(S), Length(S));
 end;
 
-procedure TJsonBaseObject.FromJSON(S: PWideChar; Len: Integer = -1);
+procedure TJsonBaseObject.FromJSON(S: PChar; Len: Integer = -1);
 var
   Reader: TJsonReader;
 begin
   if Len < 0 then
-    Len  := StrLen(S);
+    Len  := string(S).Length;
+
   Reader := TStringJsonReader.Create(S, Len);
   try
     Reader.Parse(Self);
@@ -2965,7 +2978,7 @@ begin
     if Encoding = TEncoding.UTF8 then
       FromUtf8JSON(StreamInfo.Buffer, StreamInfo.Size)
     else if Encoding = TEncoding.Unicode then
-      FromJSON(PWideChar(Pointer(StreamInfo.Buffer)), StreamInfo.Size div SizeOf(WideChar))
+      FromJSON({$IFDEF FPC}PChar{$ELSE}PWideChar{$ENDIF}(Pointer(StreamInfo.Buffer)), StreamInfo.Size div SizeOf(WideChar))
     else
       begin
         L := TEncodingStrictAccess(Encoding).GetCharCountEx(StreamInfo.Buffer, StreamInfo.Size);
@@ -2980,7 +2993,7 @@ begin
         FreeMem(StreamInfo.AllocationBase);
         StreamInfo.AllocationBase := nil;
 
-        FromJSON(S);
+        FromJSON(PChar(S));
       end;
   finally
     FreeMem(StreamInfo.AllocationBase);
@@ -4414,7 +4427,7 @@ begin
 
                       tkFloat:
                         begin
-                          PropType := PropList[Index].PropType^;
+                          PropType := PropList[Index].PropType{$IFNDEF FPC}^{$ENDIF};
                           if (PropType = TypeInfo(TDateTime)) or (PropType = TypeInfo(TDate)) or
                             (PropType = TypeInfo(TTime)) then
                             SetFloatProp(AObject, PropList[Index], Item.DateTimeValue)
@@ -4492,7 +4505,7 @@ begin
 
                   tkEnumeration:
                     begin
-                      PropType := PropList[Index].PropType^;
+                      PropType := PropList[Index].PropType{$IFNDEF FPC}^{$ENDIF};
                       if (PropType = TypeInfo(Boolean)) or (PropType = TypeInfo(ByteBool)) or
                         (PropType = TypeInfo(WordBool)) or (PropType = TypeInfo(LongBool)) then
                         InternAdd(PropName, GetOrdProp(AObject, PropList[Index]) <> 0)
@@ -4502,7 +4515,7 @@ begin
 
                   tkFloat:
                     begin
-                      PropType := PropList[Index].PropType^;
+                      PropType := PropList[Index].PropType{$IFNDEF FPC}^{$ENDIF};
                       D        := GetFloatProp(AObject, PropList[Index]);
                       if (PropType = TypeInfo(TDateTime)) or (PropType = TypeInfo(TDate)) or
                         (PropType = TypeInfo(TTime)) then
@@ -4518,7 +4531,7 @@ begin
                     InternAdd(PropName, GetStrProp(AObject, PropList[Index]));
 
                   tkSet:
-                    InternAdd(PropName, GetSetProp(AObject, PropList[Index]));
+                    InternAdd(PropName, GetSetProp(AObject, PropList[Index]{$IFDEF FPC}, False{$ENDIF}));
 
                   tkVariant:
                     begin
@@ -5863,7 +5876,11 @@ end;
 
 {$IFDEF CPUX64}
 
-function ParseInt64(P, EndP: PWideChar): Int64;
+function ParseInt64(P, EndP: {$IFDEF FPC}PChar{$ELSE}PWideChar{$ENDIF}): Int64;
+{$IFDEF FPC}
+asm
+
+{$ELSE}
 // RCX = P
 // RDX = EndP
 asm
@@ -5896,11 +5913,49 @@ asm
   ret
 @@LeaveFail:
   xor rax, rax
+{$ENDIF}
 end;
 {$ELSE}
 {$IFDEF CPUX86}
 
-function ParseInt64(P, EndP: PWideChar): Int64;
+function ParseInt64(P, EndP: {$IFDEF FPC}PChar{$ELSE}PWideChar{$ENDIF}): Int64;
+{$IFDEF FPC}
+asm
+   // Registers used:
+  // EDI - Pointer to the current character (P)
+  // ESI - Pointer to the end character (EndP)
+  // EAX - Lower 32 bits of the result
+  // EDX - Higher 32 bits of the result
+  // EBX - Multiplier (10)
+  // ECX - Temporary register
+
+  // Initialize registers
+  XOR     EAX, EAX                // Clear EAX (lower 32 bits of result)
+  XOR     EDX, EDX                // Clear EDX (higher 32 bits of result)
+  MOV     EDI, P                  // EDI = P (current character)
+  MOV     ESI, EndP               // ESI = EndP (end character)
+  MOV     EBX, 10                 // EBX = 10 (multiplier)
+
+  // Loop through each character in the string
+@@loop:
+  CMP     EDI, ESI                // Compare current pointer with end pointer
+  JGE     @@done                  // If EDI >= ESI, exit loop
+
+  MOVZX   ECX, BYTE PTR [EDI]     // ECX = Current character
+  SUB     ECX, '0'                // Convert ASCII to integer (0-9)
+
+  IMUL    EAX, EAX, 10            // EAX = EAX * 10
+  IMUL    EDX, EDX, 10            // EDX = EDX * 10
+
+  ADD     EAX, ECX                // Add the digit to EAX (lower part of result)
+  ADC     EDX, 0                  // Add carry to EDX (higher part of result)
+
+  INC     EDI                     // Move to the next character
+  JMP     @@loop                  // Repeat for next character
+
+@@done:
+  // Result is in EDX:EAX, no need to do anything, it is already the return value
+{$ELSE}
 asm
   cmp eax, edx
   jge @@LeaveFail
@@ -5951,10 +6006,11 @@ asm
 @@LeaveFail:
   xor eax, eax
   xor edx, edx
+{$ENDIF}
 end;
 {$ELSE}
 
-function ParseInt64(P, EndP: PWideChar): Int64;
+function ParseInt64(P, EndP: {$IFDEF FPC}PChar{$ELSE}PWideChar{$ENDIF}): Int64;
 begin
   if P = EndP then
     Result := 0
@@ -6921,13 +6977,13 @@ end;
 
 function TEncodingStrictAccess.GetByteCountEx(Chars: PChar; CharCount: Integer): Integer;
 begin
-  Result := GetByteCount(Chars, CharCount);
+  Result := GetByteCount({$IFDEF FPC}PUnicodeChar(Chars){$ELSE}Chars{$ENDIF}, CharCount);
 end;
 
 function TEncodingStrictAccess.GetBytesEx(Chars: PChar; CharCount: Integer; Bytes: PByte;
   ByteCount: Integer): Integer;
 begin
-  Result := GetBytes(Chars, CharCount, Bytes, ByteCount);
+  Result := GetBytes({$IFDEF FPC}PUnicodeChar(Chars){$ELSE}Chars{$ENDIF}, CharCount, Bytes, ByteCount);
 end;
 
 function TEncodingStrictAccess.GetCharCountEx(Bytes: PByte; ByteCount: Integer): Integer;
@@ -6938,7 +6994,7 @@ end;
 function TEncodingStrictAccess.GetCharsEx(Bytes: PByte; ByteCount: Integer; Chars: PChar;
   CharCount: Integer): Integer;
 begin
-  Result := GetChars(Bytes, ByteCount, Chars, CharCount);
+  Result := GetChars(Bytes, ByteCount, {$IFDEF FPC}PUnicodeChar(Chars){$ELSE}Chars{$ENDIF}, CharCount);
 end;
 
 { TJsonOutputWriter.TJsonStringBuilder }
@@ -6969,6 +7025,19 @@ begin
   S := '';
   if FData <> nil then
     begin
+      {$IFDEF FPC}
+        // Release the unused memory and terminate the string with a #0. The result is that we have a
+      // native string that is exactly the same as if it was allocated by System.@NewUnicodeString.
+      StrP := PStrRec(PByte(FData) - SizeOf(TStrRec));
+      if Len <> FCapacity then
+        ReallocMem(Pointer(StrP), SizeOf(TStrRec) + (Len + 1) * SizeOf(Char));
+      // allocate +1 char for the #0
+      // Set the string's length
+      StrP.Length := Len;
+      P           := PChar(PByte(StrP) + SizeOf(TStrRec));
+      P[Len]      := #0;
+      S  := P; // keep the RefCnt=1
+      {$ELSE}
       // Release the unused memory and terminate the string with a #0. The result is that we have a
       // native string that is exactly the same as if it was allocated by System.@NewUnicodeString.
       StrP := PStrRec(PByte(FData) - SizeOf(TStrRec));
@@ -6980,6 +7049,7 @@ begin
       P           := PChar(PByte(StrP) + SizeOf(TStrRec));
       P[Len]      := #0;
       Pointer(S)  := P; // keep the RefCnt=1
+      {$ENDIF}
     end;
 end;
 
@@ -7265,7 +7335,7 @@ begin
   SetPointer(nil, 0);
 end;
 
-function TJsonUTF8StringStream.Realloc(var NewCapacity: {$IFDEF VER350}NativeInt{$ELSE} Longint{$ENDIF}): Pointer;
+function TJsonUTF8StringStream.Realloc(var NewCapacity: {$IFDEF VER360}NativeInt{$ELSE} Longint{$ENDIF}): Pointer;
 var
   L: Longint;
 begin
@@ -7302,7 +7372,7 @@ begin
   SetPointer(nil, 0);
 end;
 
-function TJsonBytesStream.Realloc(var NewCapacity: {$IFDEF VER350}NativeInt{$ELSE} Longint{$ENDIF}): Pointer;
+function TJsonBytesStream.Realloc(var NewCapacity: {$IFDEF VER360}NativeInt{$ELSE} Longint{$ENDIF}): Pointer;
 var
   L: Longint;
 begin

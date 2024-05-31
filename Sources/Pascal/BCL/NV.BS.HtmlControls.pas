@@ -3,7 +3,7 @@ unit NV.BS.HtmlControls;
 interface
 
 uses
-  NV.Controls, NV.BS.Controls, NV.Ajax, System.Classes, NV.JSON, NV.BS.Types, NV.Interfaces,
+  NV.Controls, NV.BS.Controls, NV.Ajax, Classes, NV.JSON, NV.BS.Types, NV.Interfaces,
   NV.BS.Containers;
 
 type
@@ -134,7 +134,7 @@ type
 implementation
 
 uses
-  Vcl.Controls, SysUtils;
+  Controls, SysUtils;
 
 { TNvBsLink }
 

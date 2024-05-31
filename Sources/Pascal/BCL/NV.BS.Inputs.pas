@@ -5,8 +5,8 @@ interface
 uses
   Classes, SysUtils, Controls, Messages, Nv.Types, NV.Controls, NV.BS.Buttons, NV.BS.Controls,
   NV.BS.Containers,
-  NV.Ajax, NV.Json, DB, Vcl.DBCtrls,
-  Generics.Collections, NV.VCL.Images, NV.Interfaces, NV.VCL.ActnList;
+  NV.Ajax, NV.Json, DB, DBCtrls,
+  NV.VCL.Images, NV.Interfaces, NV.VCL.ActnList;
 
 type
   TNvRenderOrder    = NV.Types.TNvRenderOrder;
@@ -126,9 +126,19 @@ type
     property OnChange: TNotifyEvent read FOnChange write SetOnChange;
   end;
 
+  { TNvListFields }
+
+  TNvListFields = class(TList)
+  private
+    function GetField(Index: Integer): TField;
+    procedure PutField(Index: Integer; AValue: TField);
+  public
+    property Fields[Index: Integer]: TField read GetField write PutField; default;
+  end;
+
   TNvBsCustomLookup = class(TNvBsCustomImput)
   private
-    FListFields      : TList<TField>;
+    FListFields      : TNvListFields;
     FListLink        : TNvListSourceLink;
     FKeyValue        : Variant;
     FKeyFieldName    : string;
@@ -167,7 +177,7 @@ type
     property KeyField: string read FKeyFieldName write SetKeyFieldName;
     property KeyValue: Variant read FKeyValue write SetKeyValue;
     property ListFieldIndex: Integer read FListFieldIndex write FListFieldIndex default 0;
-    property ListFields: TList<TField> read FListFields;
+    property ListFields: TNvListFields read FListFields;
     property ListLink: TNvListSourceLink read FListLink;
     property ListField: string read FListFieldName write SetListFieldName;
     property ListSource: TDataSource read GetListSource write SetListSource;
@@ -539,7 +549,7 @@ type
 implementation
 
 uses
-  Variants, DBConsts, NV.VCL.Forms;
+  Variants, {$IFDEF FPC} DBConst, {$ELSE} DBConsts, {$ENDIF} NV.VCL.Forms;
 
 const
   SPECIFY_ADDON_TYPE_ERR = 'Need to use Addons.Addxxx to add correct addon type';
@@ -800,6 +810,18 @@ begin
   //
 end;
 
+{ TNvListFields }
+
+function TNvListFields.GetField(Index: Integer): TField;
+begin
+  Result:= TField(Get(Index));
+end;
+
+procedure TNvListFields.PutField(Index: Integer; AValue: TField);
+begin
+  Put(Index, aValue);
+end;
+
 { TNvBsCustomSelectImput }
 
 procedure TNvBsCustomSelectInput.Addpair(aItem, aValue: string);
@@ -986,9 +1008,9 @@ begin
     begin
       case FDatalink.Field.DataType of
         ftString, ftFixedChar, ftWideString, ftFixedWideChar: AdjustCheckUncheckedValues('V', 'F');
-        ftSmallint, ftInteger, ftWord, ftLargeint, ftShortint, ftLongWord, ftByte:
+        ftSmallint, ftInteger, ftWord, ftLargeint{$IFNDEF FPC} , ftShortint, ftLongWord, ftByte {$ENDIF}:
             AdjustCheckUncheckedValues('1', '0');
-        ftBoolean: AdjustCheckUncheckedValues(STextTrue, STextFalse);
+        ftBoolean: AdjustCheckUncheckedValues({$IFDEF FPC} TrueBoolStrs[0], FalseBoolStrs[0] {$ELSE} STextTrue, STextFalse {$ENDIF});
       end;
     end;
 end;
@@ -1108,7 +1130,7 @@ end;
 procedure TNvBsCustomLookup.CheckNotCircular;
 begin
   if FListLink.Active and FListLink.DataSet.IsLinkedTo(DataSource) then
-    DatabaseError(SCircularDataLink);
+    DatabaseError({$IFDEF FPC} SErrCircularDataSourceReferenceNotAllowed {$ELSE} SCircularDataLink {$ENDIF});
 end;
 
 constructor TNvBsCustomLookup.Create(AOwner: TComponent);
@@ -1116,7 +1138,7 @@ begin
   inherited;
   FListLink                  := TNvListSourceLink.Create;
   FListLink.FDBLookupControl := Self;
-  FListFields                := TList<TField>.Create;
+  FListFields                := TNvListFields.Create;
   FKeyValue                  := Null;
   FActions                   := TNvBsInputActions.Create(Self, TNvBsInputAction);
 end;
@@ -1158,7 +1180,7 @@ begin
   if FListActive and LocateValue(Value) then
     KeyValue := FKeyField.Text
   else
-    DatabaseError(SFieldOutOfRange);
+    DatabaseError({$IFDEF FPC} SFieldIndexError {$ELSE} SFieldOutOfRange {$ENDIF});
 end;
 
 procedure TNvBsCustomLookup.InvalidateList;
@@ -1343,7 +1365,9 @@ begin
     begin
       CheckNotCircular;
       DataSet   := FListLink.DataSet;
-      FKeyField := GetFieldProperty(DataSet, Self, FKeyFieldName);
+      FKeyField := DataSet.FindField(FKeyFieldName);
+      if FKeyField = nil then
+        DatabaseErrorFmt(SFieldNotFound, [FKeyFieldName], Self);
       try
         DataSet.GetFieldList(FListFields, FListFieldName);
       except

@@ -1,11 +1,11 @@
-unit NV.Design.FrameDesigner;
+unit NV.Design.Delphi.FrameDesigner;
 
 interface
 
 uses Windows, SysUtils, Messages, Classes, Graphics, Controls, Forms,
   StdCtrls, ExtCtrls, DesignIntf, DesignEditors,
   DesignWindows, Menus, ComCtrls, ToolWin, Buttons, ActnList, NV.Controls,
-  DesignerTypes, NV.VCL.Page, NV.Design.ModuleDesigner, NV.VCL.Frame;
+  DesignerTypes, NV.VCL.Page, NV.Design.Delphi.ModuleDesigner, NV.VCL.Frame;
 
 type
   TNvFrameDesigner = class(TNvModuleDesigner, IHostForm)

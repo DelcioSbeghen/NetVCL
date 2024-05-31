@@ -3,7 +3,7 @@ unit NV.BS.Accordions;
 interface
 
 uses
-  Winapi.Windows, Classes, Vcl.Controls, NV.BS.Containers;
+  Windows, Classes, Controls, NV.BS.Containers;
 
 type
 

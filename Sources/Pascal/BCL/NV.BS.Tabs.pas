@@ -3,9 +3,9 @@ unit NV.BS.Tabs;
 interface
 
 uses
-  Winapi.Messages, Classes, Generics.Collections, NV.BS.Navbar, NV.BS.Controls, NV.BS.Containers,
+  Messages, Classes, Generics.Collections, NV.BS.Navbar, NV.BS.Controls, NV.BS.Containers,
   NV.JSON, NV.Ajax, NV.Types,
-  Vcl.Controls, NV.Vcl.Frame;
+  Controls, NV.Vcl.Frame;
 
 type
 
@@ -131,7 +131,7 @@ type
 implementation
 
 uses
-  NV.Utils, NV.BS.HtmlControls, NV.Controls, System.SysUtils, Winapi.Windows, NV.VCL.Forms;
+  NV.Utils, NV.BS.HtmlControls, NV.Controls, SysUtils, Windows, NV.VCL.Forms;
 
 { TNvBsTabControl }
 
@@ -406,7 +406,7 @@ begin
     Exit;
 
   // Get Name  - if Name not set, remove "T" from ClassName
-  _LName := IIf(Name = '', Copy(AFrameClass.ClassName, 2, AFrameClass.ClassName.Length), Name);
+  _LName := IIf(Name = '', Copy(AFrameClass.ClassName, 2{$IFNDEF FPC} , AFrameClass.ClassName.Length {$ENDIF}), Name);
 
   // check if _Tab is already open
   _Tab := FindChildControl('Tab' + _LName) as TNvBsTab;

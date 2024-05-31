@@ -1,8 +1,8 @@
-unit NV.Design.AppModuleWizard;
+unit NV.Design.Delphi.AppModuleWizard;
 
 interface
 
-uses Classes, Winapi.Windows, Vcl.Dialogs, DesignIntf, ToolsAPI, TypInfo;
+uses Classes, Windows, Dialogs, DesignIntf, ToolsAPI, TypInfo;
 
 type
 

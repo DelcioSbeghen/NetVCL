@@ -119,7 +119,7 @@ type
 
   TNvCookies = class(TCollection)
   private
-    [weak]
+    {$IFNDEF FPC}[weak] {$ENDIF}
     FWebResponse: TNvResponse;
   protected
     function GetCookie(Index: Integer): TNVCookie;
@@ -176,7 +176,7 @@ const
 implementation
 
 uses
-  SysUtils, NetEncoding;
+    SysUtils{$IFDEF FPC} ,httpprotocol{$ELSE}, NetEncoding{$ENDIF};
 
 const
   // These strings are NOT to be resourced
@@ -302,7 +302,11 @@ function TNVCookie.GetHeaderValue: string;
 var
   S: string;
 begin
-  S := Format('%s=%s; ', [TNetEncoding.URL.Encode(FName), TNetEncoding.URL.Encode(FValue)]);
+  {$IFDEF FPC}
+     S := Format('%s=%s; ', [HTTPEncode(FName), HTTPEncode(FValue)]);
+   {$ELSE}
+   S := Format('%s=%s; ', [TNetEncoding.URL.Encode(FName), TNetEncoding.URL.Encode(FValue)]);
+  {$ENDIF}
   if Domain <> '' then
     S := S + Format('domain=%s; ', [Domain]); { do not localize }
   if Path <> '' then

@@ -3,8 +3,8 @@ unit NV.Design.ImageIndexEditor;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, DesignEditors, DesignIntf, NV.Desktop, NV.Vcl.Images;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics,
+  Controls, Forms, Dialogs{$IFDEF FPC} , PropEdits {$ELSE} , DesignEditors, DesignIntf {$ENDIF}, NV.Desktop, NV.Vcl.Images;
 
 type
   TFrmImgIdxEditor = class(TForm)
@@ -17,7 +17,7 @@ type
   TNvImageIndexEditor = class(TIntegerProperty)
   private
     Browser: TNvScreenBrowser;
-    procedure ExecuteCallback(const Value: PChar);
+    procedure ExecuteCallback(const Value: {$IFDEF FPC} ustring {$ELSE} PChar {$ENDIF});
     function GetHtml(ImgList: TNvCustomImageList): string;
   public
     function GetAttributes: TPropertyAttributes; override;
@@ -153,12 +153,12 @@ begin
     Raise Exception.Create('Can''t access ImageList');
 
   Browser := TNvScreenBrowser.Create(nil);
-  Browser.CreateScreenBrowser(ExecuteCallback);
+  Browser.CreateScreenBrowser;
   Browser.ResizeBrowser(500, 200);
   Browser.LoadHtml(GetHtml(_ImgList));
 end;
 
-procedure TNvImageIndexEditor.ExecuteCallback(const Value: PChar);
+procedure TNvImageIndexEditor.ExecuteCallback(const Value:  {$IFDEF FPC} ustring {$ELSE} PChar {$ENDIF});
 var
   Idx     : Integer;
   _Browser: TNvScreenBrowser;

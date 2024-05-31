@@ -3,7 +3,8 @@ unit NV.BS.Tables;
 interface
 
 uses
-  Classes, SysUtils, DBConsts, RTLConsts, DB, NV.Interfaces, NV.BS.Controls, NV.VCL.DBCtrls,
+  Classes, SysUtils, {$IFDEF FPC} DBConst, {$ELSE} DBConsts, {$ENDIF} RTLConsts, DB, NV.Interfaces,
+  NV.BS.Controls, NV.VCL.DBCtrls,
   NV.JSON, NV.Ajax,
   NV.BS.Types, NV.VCL.ActnList, NV.BS.Buttons;
 
@@ -359,9 +360,23 @@ var
   FormaterClasses: TStringList;
 
 type
+
+  { TWriterHelper }
+
   TWriterHelper = class Helper for TWriter
     procedure WriteValue(Value: TValueType);
+{$IFDEF FPC}
+    procedure WriteProperties(Instance: TPersistent);
+{$ENDIF}
   end;
+
+{$IFDEF FPC}
+  { TDatasetHelper }
+
+  TDatasetHelper = class Helper for TDataset
+    function FieldList: TFields;
+  end;
+{$ENDIF}
 
 procedure RegisterColFormatter(aClass: TNvBsFormatterClass);
 begin
@@ -379,6 +394,14 @@ begin
   raise EInvalidGridOperation.Create(S);
 end;
 
+{$IFDEF FPC}
+{ TDatasetHelper }
+
+function TDatasetHelper.FieldList: TFields;
+begin
+  Result := Fields;
+end;
+{$ENDIF}
 { TpGridDatalink }
 
 procedure TpGridDatalink.ActiveChanged;
@@ -488,7 +511,7 @@ end;
 function TpBookmarkList.CurrentRow: TBookmark;
 begin
   if not FLinkActive then
-    RaiseGridError(sDataSetClosed);
+    RaiseGridError({$IFDEF FPC} SInactiveDataset {$ELSE} sDataSetClosed {$ENDIF});
   Result := FGrid.Datalink.Datasource.Dataset.Bookmark;
 end;
 
@@ -750,7 +773,9 @@ begin
       Table := GetDbTable;
       if (Table <> nil) and Assigned(Table.DataLink.DataSet) then
         with Table.Datalink.Dataset do
-          if Active or (lcPersistent in Fields.LifeCycles) then
+          if Active //
+            or {$IFDEF FPC} not DefaultFields {$ELSE} (lcPersistent in Fields.LifeCycles)
+          {$ENDIF} then
             SetField(FindField(FieldName));
     end;
   Result := FField;
@@ -791,7 +816,7 @@ begin
     begin
       if Table <> nil then
         FField.FreeNotification(Table);
-      FFieldName := Value.FullName;
+      FFieldName := Value{$IFDEF FPC} .FieldName {$ELSE} .FullName {$ENDIF};
     end;
   if not FPersistent and not(csDesigning in Table.ComponentState) { IsStored } then
     begin
@@ -829,8 +854,12 @@ begin
             if (csDesigning in TControl(Collection.Owner).ComponentState) and
               (not(csLoading in TControl(Collection.Owner).ComponentState)) then
               begin
+{$IFDEF FPC}
+                FindDesigner(TControl(Collection.Owner)).Modified;
+{$ELSE}
                 FindRootDesigner(Self).Notification(Self, opRemove);
                 FindRootDesigner(Self).Notification(Self, opInsert);
+{$ENDIF}
               end;
             // FindRootDesigner(Self).Modified;
           except
@@ -1875,7 +1904,16 @@ begin
   Buf := UInt32(Value);
   Write(Buf, SizeOf(Value));
 end;
+
 {$ENDIF SizeOf(TValueType) = 1}
+{$IFDEF FPC}
+
+procedure TWriterHelper.WriteProperties(Instance: TPersistent);
+begin
+  with Self do
+    WriteProperties(Instance);
+end;
+{$ENDIF}
 
 initialization
 

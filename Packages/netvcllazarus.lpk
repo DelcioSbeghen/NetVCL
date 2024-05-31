@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="5">
+    <PathDelim Value="\"/>
+    <Name Value="NetVCLLazarus"/>
+    <Type Value="RunAndDesignTime"/>
+    <AddToProjectUsesSection Value="True"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <OtherUnitFiles Value="..\Sources\Pascal\Application;..\Sources\Pascal\BCL;..\Sources\Pascal\Common;..\Sources\Pascal\Design;..\Sources\Pascal\ThirdParty;..\Sources\Pascal\VCL"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <SyntaxMode Value="Delphi"/>
+        </SyntaxOptions>
+      </Parsing>
+      <CodeGeneration>
+        <Optimizations>
+          <OptimizationLevel Value="0"/>
+        </Optimizations>
+      </CodeGeneration>
+      <Linking>
+        <Debugging>
+          <DebugInfoType Value="dsDwarf3"/>
+        </Debugging>
+      </Linking>
+    </CompilerOptions>
+    <Files>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.Ajax.pas"/>
+        <UnitName Value="NV.Ajax"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.Cache.pas"/>
+        <UnitName Value="NV.Cache"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.Classes.pas"/>
+        <UnitName Value="NV.Classes"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.Desktop.pas"/>
+        <UnitName Value="NV.Desktop"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.Dispatcher.pas"/>
+        <UnitName Value="NV.Dispatcher"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.DispatcherDesign.pas"/>
+        <UnitName Value="NV.DispatcherDesign"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.DispatcherPage.pas"/>
+        <UnitName Value="NV.DispatcherPage"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.HttpServer.pas"/>
+        <UnitName Value="NV.HttpServer"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.HttpServerWebsockets.pas"/>
+        <UnitName Value="NV.HttpServerWebsockets"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.Interfaces.pas"/>
+        <UnitName Value="NV.Interfaces"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.MergeSort.pas"/>
+        <UnitName Value="NV.MergeSort"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.Messages.pas"/>
+        <UnitName Value="NV.Messages"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.Request.Exe.pas"/>
+        <UnitName Value="NV.Request.Exe"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.Request.Http.pas"/>
+        <UnitName Value="NV.Request.Http"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.Router.pas"/>
+        <UnitName Value="NV.Router"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.Types.pas"/>
+        <UnitName Value="NV.Types"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.UserSession.pas"/>
+        <UnitName Value="NV.UserSession"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Application\NV.Utils.pas"/>
+        <UnitName Value="NV.Utils"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.Accordions.pas"/>
+        <UnitName Value="NV.BS.Accordions"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.Alerts.pas"/>
+        <UnitName Value="NV.BS.Alerts"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.Badges.pas"/>
+        <UnitName Value="NV.BS.Badges"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.Buttons.pas"/>
+        <UnitName Value="NV.BS.Buttons"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.Cards.pas"/>
+        <UnitName Value="NV.BS.Cards"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.Containers.pas"/>
+        <UnitName Value="NV.BS.Containers"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.Controls.pas"/>
+        <UnitName Value="NV.BS.Controls"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.DBCtrls.pas"/>
+        <UnitName Value="NV.BS.DBCtrls"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.HtmlControls.pas"/>
+        <UnitName Value="NV.BS.HtmlControls"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.Inputs.pas"/>
+        <UnitName Value="NV.BS.Inputs"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.Navbar.pas"/>
+        <UnitName Value="NV.BS.Navbar"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.Register.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="NV.BS.Register"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.ScrollFocus.pas"/>
+        <UnitName Value="NV.BS.ScrollFocus"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.Tables.pas"/>
+        <UnitName Value="NV.BS.Tables"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.Tabs.pas"/>
+        <UnitName Value="NV.BS.Tabs"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\BCL\NV.BS.Types.pas"/>
+        <UnitName Value="NV.BS.Types"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Common\NV.Json.pas"/>
+        <UnitName Value="NV.JSON"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Common\NV.Languages.pas"/>
+        <UnitName Value="NV.Languages"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Common\NV.Request.pas"/>
+        <UnitName Value="NV.Request"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Design\NV.Design.ActionEditor.pas"/>
+        <UnitName Value="NV.Design.ActionEditor"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Design\NV.Design.CopyFiles.pas"/>
+        <UnitName Value="NV.Design.CopyFiles"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Design\NV.Design.ImageIndexEditor.pas"/>
+        <UnitName Value="NV.Design.ImageIndexEditor"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Design\NV.Design.ImagelistEditor.pas"/>
+        <UnitName Value="NV.Design.ImagelistEditor"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Design\NV.Design.JsonArrayEditor.pas"/>
+        <UnitName Value="NV.Design.JsonArrayEditor"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\VCL\NV.Controls.pas"/>
+        <UnitName Value="NV.Controls"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\VCL\NV.VCL.ActnList.pas"/>
+        <UnitName Value="NV.VCL.ActnList"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\VCL\NV.VCL.Charts.pas"/>
+        <UnitName Value="NV.VCL.Charts"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\VCL\NV.VCL.Dashboards.pas"/>
+        <UnitName Value="NV.VCL.Dashboards"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\VCL\NV.VCL.DBCtrls.pas"/>
+        <UnitName Value="NV.VCL.DBCtrls"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\VCL\NV.VCL.Dialogs.pas"/>
+        <UnitName Value="NV.VCL.Dialogs"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\VCL\NV.VCL.Forms.pas"/>
+        <UnitName Value="NV.VCL.Forms"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\VCL\NV.VCL.Frame.pas"/>
+        <UnitName Value="NV.VCL.Frame"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\VCL\NV.VCL.Graphics.pas"/>
+        <UnitName Value="NV.VCL.Graphics"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\VCL\NV.VCL.Images.pas"/>
+        <UnitName Value="NV.VCL.Images"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\VCL\NV.VCL.Page.pas"/>
+        <UnitName Value="NV.VCL.Page"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Design\NV.Design.Lazarus.Register.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="nv.design.lazarus.register"/>
+      </Item>
+      <Item>
+        <Filename Value="..\Sources\Pascal\Design\nv.design.lazarus.designer.pas"/>
+        <UnitName Value="nv.design.lazarus.designer"/>
+      </Item>
+    </Files>
+    <RequiredPkgs>
+      <Item>
+        <PackageName Value="indylaz"/>
+      </Item>
+      <Item>
+        <PackageName Value="LCLBase"/>
+      </Item>
+      <Item>
+        <PackageName Value="FCL"/>
+      </Item>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

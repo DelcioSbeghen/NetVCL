@@ -1,4 +1,4 @@
-unit NV.Design.FrameWizard;
+unit NV.Design.Delphi.FrameWizard;
 
 
 interface

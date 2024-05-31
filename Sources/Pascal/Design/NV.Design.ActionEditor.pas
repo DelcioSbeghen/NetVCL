@@ -3,8 +3,8 @@ unit NV.Design.ActionEditor;
 interface
 
 uses
-  DesignEditors, SysUtils,
-  Classes, Actions, ActionEditors, Vcl.ImgList, DesignIntf;
+  SysUtils{$IFDEF FPC} , ComponentEditors, PropEdits {$ELSE} , DesignEditors ,Actions, ActionEditors, DesignIntf {$ENDIF}
+  , Classes, ImgList;
 
 type
   TNvActionListEditor = class(TComponentEditor)
@@ -61,26 +61,26 @@ type
 
   { TNvIDEActions }
 
-  TNvIDEActions = class(TIDEActions)
-  public
-    class var OldIDEActionsClass: TIDEActionsClass;
-    class procedure AssignAction(Source, Destination: TBasicAction); override;
-    class function BaseActionClass: TContainedActionClass; override;
-    class function BaseActionListClass: TContainedActionListClass; override;
-    class procedure CopyImageIfAvailable(const NewAction: TContainedAction;
-      const ActionList: TContainedActionList); override;
-    class function CreateImageList(ActionList: TContainedActionList): TCustomImageList; override;
-    class function DefaultActionClass: TContainedActionClass; override;
-    class procedure RegisterImageLink(const ActionList: TContainedActionList;
-       const ImageLink: TObject); override;
-    class procedure UnregisterImageLink(const ActionList: TContainedActionList;
-       const ImageLink: TObject); override;
-  end;
+  //TNvIDEActions = class(TIDEActions)
+  //public
+  //  class var OldIDEActionsClass: TIDEActionsClass;
+  //  class procedure AssignAction(Source, Destination: TBasicAction); override;
+  //  class function BaseActionClass: TContainedActionClass; override;
+  //  class function BaseActionListClass: TContainedActionListClass; override;
+  //  class procedure CopyImageIfAvailable(const NewAction: TContainedAction;
+  //    const ActionList: TContainedActionList); override;
+  //  class function CreateImageList(ActionList: TContainedActionList): TCustomImageList; override;
+  //  class function DefaultActionClass: TContainedActionClass; override;
+  //  class procedure RegisterImageLink(const ActionList: TContainedActionList;
+  //     const ImageLink: TObject); override;
+  //  class procedure UnregisterImageLink(const ActionList: TContainedActionList;
+  //     const ImageLink: TObject); override;
+  //end;
 
 implementation
 
 uses
-  Actnedit, NV.Design.IOTAUtils, NV.VCL.ActnList;
+  {$IFNDEF FPC} Actnedit, NV.Design.Delphi.IOTAUtils, {$ENDIF}  NV.VCL.ActnList;
 
 procedure TNvActionListEditor.AddNewAction;
 var
@@ -122,102 +122,102 @@ end;
  // TdxBasicActionAccess = class(TNvCustomAction);
 
 
-  { TNvIDEActions }
-
-class procedure TNvIDEActions.AssignAction(Source, Destination: TBasicAction);
-// var
-// ABitmap: TcxBitmap32;
-// ADestination: TdxBasicActionAccess;
-// AImages: TcxImageList;
-// ASource: TNvCustomAction;
-begin
-  OldIDEActionsClass.AssignAction(Source, Destination);
-  //
-  // if (Source is TNvCustomAction) and (Destination is TNvCustomAction) then
-  // begin
-  // ASource := TdxBasicActionAccess(Source);
-  // if not (ASource.Images is TcxImageList) then
-  // Exit;
-  // ADestination := TdxBasicActionAccess(Destination);
-  // end
-  // else
-  // Exit;
-  //
-  // AImages := TcxImageList(ASource.Images);
-  // if IsImageAssigned(AImages, ASource.ImageIndex) then
-  // begin
-  // FreeAndNil(ADestination.FImage);
-  // FreeAndNil(ADestination.FMask);
-  //
-  // ABitmap := TcxBitmap32.CreateSize(16, 16);
-  // AImages.GetImage(ASource.ImageIndex, ABitmap);
-  // ADestination.FImage := ABitmap;
-  //
-  // end;
-end;
-
-class function TNvIDEActions.BaseActionClass: TContainedActionClass;
-begin
-  if IsNvFormModule then
-    Result := TNvCustomAction
-  else
-    Result := OldIDEActionsClass.BaseActionClass;
-end;
-
-class function TNvIDEActions.BaseActionListClass: TContainedActionListClass;
-begin
-  if IsNvFormModule then
-    Result := TNvCustomActionList
-  else
-    Result := OldIDEActionsClass.BaseActionListClass;
-end;
-
-class procedure TNvIDEActions.CopyImageIfAvailable(const NewAction: TContainedAction;
-  const ActionList: TContainedActionList);
-var
- // AAction: TdxBasicActionAccess;
-  AImages: TCustomImageList;
-begin
-  if NewAction is TNvCustomAction then
-    //
-  else
-    OldIDEActionsClass.CopyImageIfAvailable(NewAction, ActionList);
-end;
-
-class function TNvIDEActions.CreateImageList(ActionList: TContainedActionList): TCustomImageList;
-begin
-  if ActionList is TNvCustomActionList then
-    //
-  else
-    Result := OldIDEActionsClass.CreateImageList(ActionList);
-end;
-
-class function TNvIDEActions.DefaultActionClass: TContainedActionClass;
-begin
-  if IsNvFormModule then
-    Result := TNvAction
-  else
-    Result := OldIDEActionsClass.DefaultActionClass;
-end;
-
-class procedure TNvIDEActions.RegisterImageLink(const ActionList: TContainedActionList;
-   const ImageLink: TObject);
-begin
-  if ActionList is TNvCustomActionList then
-    //ImageLink:= nil
-  else
-  OldIDEActionsClass.RegisterImageLink(ActionList, ImageLink);
-end;
-
-class procedure TNvIDEActions.UnregisterImageLink(const ActionList: TContainedActionList;
-   const ImageLink: TObject);
-begin
-  if ActionList is TNvCustomActionList then
-    //ImageLink:= nil
-  else
-  OldIDEActionsClass.UnregisterImageLink(ActionList, ImageLink);
-end;
-
+//  { TNvIDEActions }
+//
+//class procedure TNvIDEActions.AssignAction(Source, Destination: TBasicAction);
+//// var
+//// ABitmap: TcxBitmap32;
+//// ADestination: TdxBasicActionAccess;
+//// AImages: TcxImageList;
+//// ASource: TNvCustomAction;
+//begin
+//  OldIDEActionsClass.AssignAction(Source, Destination);
+//  //
+//  // if (Source is TNvCustomAction) and (Destination is TNvCustomAction) then
+//  // begin
+//  // ASource := TdxBasicActionAccess(Source);
+//  // if not (ASource.Images is TcxImageList) then
+//  // Exit;
+//  // ADestination := TdxBasicActionAccess(Destination);
+//  // end
+//  // else
+//  // Exit;
+//  //
+//  // AImages := TcxImageList(ASource.Images);
+//  // if IsImageAssigned(AImages, ASource.ImageIndex) then
+//  // begin
+//  // FreeAndNil(ADestination.FImage);
+//  // FreeAndNil(ADestination.FMask);
+//  //
+//  // ABitmap := TcxBitmap32.CreateSize(16, 16);
+//  // AImages.GetImage(ASource.ImageIndex, ABitmap);
+//  // ADestination.FImage := ABitmap;
+//  //
+//  // end;
+//end;
+//
+//class function TNvIDEActions.BaseActionClass: TContainedActionClass;
+//begin
+//  if IsNvFormModule then
+//    Result := TNvCustomAction
+//  else
+//    Result := OldIDEActionsClass.BaseActionClass;
+//end;
+//
+//class function TNvIDEActions.BaseActionListClass: TContainedActionListClass;
+//begin
+//  if IsNvFormModule then
+//    Result := TNvCustomActionList
+//  else
+//    Result := OldIDEActionsClass.BaseActionListClass;
+//end;
+//
+//class procedure TNvIDEActions.CopyImageIfAvailable(const NewAction: TContainedAction;
+//  const ActionList: TContainedActionList);
+//var
+// // AAction: TdxBasicActionAccess;
+//  AImages: TCustomImageList;
+//begin
+//  if NewAction is TNvCustomAction then
+//    //
+//  else
+//    OldIDEActionsClass.CopyImageIfAvailable(NewAction, ActionList);
+//end;
+//
+//class function TNvIDEActions.CreateImageList(ActionList: TContainedActionList): TCustomImageList;
+//begin
+//  if ActionList is TNvCustomActionList then
+//    //
+//  else
+//    Result := OldIDEActionsClass.CreateImageList(ActionList);
+//end;
+//
+//class function TNvIDEActions.DefaultActionClass: TContainedActionClass;
+//begin
+//  if IsNvFormModule then
+//    Result := TNvAction
+//  else
+//    Result := OldIDEActionsClass.DefaultActionClass;
+//end;
+//
+//class procedure TNvIDEActions.RegisterImageLink(const ActionList: TContainedActionList;
+//   const ImageLink: TObject);
+//begin
+//  if ActionList is TNvCustomActionList then
+//    //ImageLink:= nil
+//  else
+//  OldIDEActionsClass.RegisterImageLink(ActionList, ImageLink);
+//end;
+//
+//class procedure TNvIDEActions.UnregisterImageLink(const ActionList: TContainedActionList;
+//   const ImageLink: TObject);
+//begin
+//  if ActionList is TNvCustomActionList then
+//    //ImageLink:= nil
+//  else
+//  OldIDEActionsClass.UnregisterImageLink(ActionList, ImageLink);
+//end;
+//
 //initialization
 //
 //if TNvIDEActions.OldIDEActionsClass = nil then

@@ -3,7 +3,7 @@ unit NV.BS.Cards;
 interface
 
 uses
-  NV.BS.Containers, NV.BS.Types, NV.BS.HtmlControls, System.Classes;
+  NV.BS.Containers, NV.BS.Types, NV.BS.HtmlControls, Classes;
 
 type
 
@@ -120,7 +120,7 @@ type
 implementation
 
 uses
-  SysUtils, NV.VCL.Charts, VCL.Graphics, NV.BS.Tables;
+  SysUtils, NV.VCL.Charts, Graphics, NV.BS.Tables;
 
 { TNvBsCardSubtitle }
 

@@ -1,4 +1,4 @@
-unit NV.Design.IDE;
+unit NV.Design.Delphi.IDE;
 
 interface
 
@@ -36,7 +36,7 @@ type
 implementation
 
 uses
-  NV.Design.IOTAUtils, SysUtils, NV.Design.CopyFiles, VCL.Dialogs, NV.VCL.Forms, NV.Desktop;
+  NV.Design.Delphi.IOTAUtils, SysUtils, NV.Design.CopyFiles, VCL.Dialogs, NV.VCL.Forms, NV.Desktop;
 
 var
   FIDENotifier: Integer;

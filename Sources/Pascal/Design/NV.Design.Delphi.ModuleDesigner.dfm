@@ -8,8 +8,6 @@ object NvModuleDesigner: TNvModuleDesigner
   Constraints.MinHeight = 250
   Constraints.MinWidth = 300
   ParentFont = True
-  OldCreateOrder = True
   ShowHint = True
-  PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 15
 end
